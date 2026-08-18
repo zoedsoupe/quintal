@@ -64,3 +64,47 @@ defmodule QuintalWeb.OAuthControllerTest do
     end
   end
 end
+
+defmodule QuintalWeb.OAuthLoginTest do
+  use QuintalWeb.ConnCase, async: true
+
+  import Mox
+
+  alias Quintal.Auth.Mock
+
+  setup :verify_on_exit!
+
+  test "login redireciona para o authorization server e guarda o pending", %{conn: conn} do
+    expect(Mock, :authorize_url, fn "alice.bsky.social" ->
+      {:ok, "https://bsky.social/oauth/authorize?request_uri=xyz", %{state: "abc"}}
+    end)
+
+    conn = get(conn, "/oauth/login", %{"handle" => "alice.bsky.social"})
+
+    assert redirected_to(conn) == "https://bsky.social/oauth/authorize?request_uri=xyz"
+    assert get_session(conn, :oauth_pending) == %{state: "abc"}
+  end
+
+  test "login com handle ruim volta com flash", %{conn: conn} do
+    expect(Mock, :authorize_url, fn _handle -> {:error, :not_found} end)
+
+    conn = get(conn, "/oauth/login", %{"handle" => "ninguem"})
+
+    assert redirected_to(conn) == "/"
+    refute get_session(conn, :oauth_pending)
+  end
+
+  test "logout revoga e limpa a sessão", %{conn: conn} do
+    sessao = %{session: %{handle: "alice"}}
+
+    expect(Mock, :revoke, fn ^sessao -> :ok end)
+
+    conn =
+      conn
+      |> init_test_session(%{quintal_session: sessao})
+      |> get("/oauth/logout")
+
+    assert redirected_to(conn) == "/"
+    refute get_session(conn, :quintal_session)
+  end
+end

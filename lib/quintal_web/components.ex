@@ -117,6 +117,8 @@ defmodule QuintalWeb.Components do
   slot :inner_block
 
   def vazio(assigns) do
+    assigns = assign_new(assigns, :inner_block, fn -> [] end)
+
     ~H"""
     <div class="vazio">
       <div class="axo" aria-hidden="true"></div>

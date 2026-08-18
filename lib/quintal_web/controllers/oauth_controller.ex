@@ -44,4 +44,28 @@ defmodule QuintalWeb.OAuthController do
         |> text("ih, algo deu errado. tenta de novo?")
     end
   end
+
+  def login(conn, %{"handle" => handle}) do
+    case Quintal.Auth.impl().authorize_url(handle) do
+      {:ok, url, pending} ->
+        conn
+        |> put_session(:oauth_pending, pending)
+        |> redirect(external: url)
+
+      {:error, _} ->
+        conn
+        |> put_flash(:error, "não achei essa conta. confere o handle?")
+        |> redirect(to: "/")
+    end
+  end
+
+  def logout(conn, _params) do
+    if sessao = get_session(conn, :quintal_session) do
+      Quintal.Auth.impl().revoke(sessao)
+    end
+
+    conn
+    |> clear_session()
+    |> redirect(to: "/")
+  end
 end

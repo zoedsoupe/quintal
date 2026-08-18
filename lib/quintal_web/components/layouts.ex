@@ -15,17 +15,13 @@ defmodule QuintalWeb.Layouts do
   O chrome da aplicação em volta do conteúdo.
   """
   attr :flash, :map, default: %{}
-  slot :inner_block, required: true
+  slot :inner_block, required: true, required: true
 
   def app(assigns) do
     ~H"""
     <div class="chrome">
       <header class="chrome__topo">
-        <a href="/" class="chrome__marca">quintal</a>
-        <nav class="chrome__nav">
-          <a href="/passear">passear</a>
-          <a href="/visitas">visitas</a>
-        </nav>
+        <.link navigate={~p"/"} class="chrome__marca">quintal</.link>
       </header>
 
       <p :if={msg = Phoenix.Flash.get(@flash, :info)} class="flash flash--info">{msg}</p>

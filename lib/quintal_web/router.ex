@@ -17,7 +17,12 @@ defmodule QuintalWeb.Router do
   scope "/", QuintalWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
+    live_session :default do
+      live "/", HomeLive
+    end
+
+    get "/oauth/login", OAuthController, :login
+    get "/oauth/logout", OAuthController, :logout
     get "/oauth/callback", OAuthController, :callback
   end
 
