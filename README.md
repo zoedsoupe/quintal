@@ -17,16 +17,16 @@ o quintal não é uma rede social. é uma vizinhança. cada pessoa tem seu canto
 
 ## vocabulário
 
-| palavra | significado |
-|---|---|
-| canto | sua home pessoal: perfil, prosas, recados, blogroll, links |
-| prosa | a unidade de escrita. vale nota de duas linhas e ensaio longo |
-| recado | entrada no livro de visitas de um canto |
+| palavra    | significado                                                      |
+| ---------- | ---------------------------------------------------------------- |
+| canto      | sua home pessoal: perfil, prosas, recados, blogroll, links       |
+| prosa      | a unidade de escrita. vale nota de duas linhas e ensaio longo    |
+| recado     | entrada no livro de visitas de um canto                          |
 | depoimento | testemunho público sobre uma pessoa, visível só depois de aceito |
-| blogroll | "quem eu leio": lista curada e pública de cantos |
-| vizinhança | seu grafo de leitura, quem você escolheu ler |
-| passear | a descoberta serendipita, protagonizada pelo axô |
-| axô | o mascote, um axolote. axolotes regeneram, e seus dados também |
+| blogroll   | "quem eu leio": lista curada e pública de cantos                 |
+| vizinhança | seu grafo de leitura, quem você escolheu ler                     |
+| passear    | a descoberta serendipita, protagonizada pelo axô                 |
+| axô        | o mascote, um axolote. axolotes regeneram, e seus dados também   |
 
 ## a forma
 
@@ -47,16 +47,16 @@ o quintal é um **appview atproto, não um host**. você autentica com sua ident
 
 ## stack
 
-| peça | escolha |
-|---|---|
-| web | phoenix + liveview, ssr. sem spa, gettext desde a linha 1 |
-| atproto | [proto_rune](https://github.com/zoedsoupe/proto_rune) (dogfood) |
-| ingestão | websocket do firehose, upsert idempotente por uri |
-| banco | postgres, jsonb mais colunas extraídas |
-| jobs | oban |
-| http | finch |
-| testes | mox na fronteira xrpc, bypass com fixtures de pds |
-| dev e infra | nix flake, fly.io, caddy |
+| peça        | escolha                                                         |
+| ----------- | --------------------------------------------------------------- |
+| web         | phoenix + liveview, ssr. sem spa, gettext desde a linha 1       |
+| atproto     | [proto_rune](https://github.com/zoedsoupe/proto_rune) (dogfood) |
+| ingestão    | websocket do firehose, upsert idempotente por uri               |
+| banco       | postgres, jsonb mais colunas extraídas                          |
+| jobs        | oban                                                            |
+| http        | finch                                                           |
+| testes      | mox na fronteira xrpc, bypass com fixtures de pds               |
+| dev e infra | nix flake, fly.io, caddy                                        |
 
 ## rodando localmente
 

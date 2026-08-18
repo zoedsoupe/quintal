@@ -34,19 +34,19 @@ lar como verbo, não como substantivo: um lugar que se mantém, se arruma, se co
 
 a linguagem do lugar é a arquitetura da informação. registro cotidiano, popular, de padaria.
 
-| palavra | significado |
-|---|---|
-| quintal | a plataforma, a vizinhança inteira |
-| canto | sua home pessoal: perfil, prosas, recados, blogroll, links |
-| prosa | a unidade de escrita. vale nota de duas linhas e ensaio longo. tipos internos (metadado, não rótulo): nota, pergunta, crônica, ensaio |
-| recado | entrada no livro de visitas de um canto |
-| depoimento | testemunho público sobre uma pessoa. aparece no canto dela só depois de aceito |
-| blogroll | "quem eu leio": lista curada e pública de cantos |
-| vizinhança | seu grafo de leitura, quem você segue |
-| passear | a descoberta serendipita, protagonizada pelo axô |
-| roda | comunidades temáticas pequenas. v2, namespace reservado |
-| prosear | o verbo de publicar |
-| visitas | a página de notificações quietas |
+| palavra    | significado                                                                                                                           |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| quintal    | a plataforma, a vizinhança inteira                                                                                                    |
+| canto      | sua home pessoal: perfil, prosas, recados, blogroll, links                                                                            |
+| prosa      | a unidade de escrita. vale nota de duas linhas e ensaio longo. tipos internos (metadado, não rótulo): nota, pergunta, crônica, ensaio |
+| recado     | entrada no livro de visitas de um canto                                                                                               |
+| depoimento | testemunho público sobre uma pessoa. aparece no canto dela só depois de aceito                                                        |
+| blogroll   | "quem eu leio": lista curada e pública de cantos                                                                                      |
+| vizinhança | seu grafo de leitura, quem você segue                                                                                                 |
+| passear    | a descoberta serendipita, protagonizada pelo axô                                                                                      |
+| roda       | comunidades temáticas pequenas. v2, namespace reservado                                                                               |
+| prosear    | o verbo de publicar                                                                                                                   |
+| visitas    | a página de notificações quietas                                                                                                      |
 
 ## 5. escopo v1
 
@@ -100,34 +100,34 @@ tudo minúsculo no chrome da interface: botões, títulos, nomes de coisas. "qui
 
 **papel** (default). um preset só, com duas luminosidades: **papel** de dia e **lamparina** de noite, com troca automática via `prefers-color-scheme`. sem toggle, sem configuração, sem manutenção de dois temas. mesma paleta, duas claridades.
 
-| papel | papel (dia) | lamparina (noite) |
-|---|---|---|
-| fundo | `#faf6f1` papel quente | `#1d1923` aubergine profundo |
-| tinta | `#2e2833` | `#e8e2ee` |
-| acento lilás | `#8b7bb8` | `#a493cc` |
-| acento rosa | `#d98bab` | `#e2a3bf` |
-| sussurro (bordas, meta) | `#b5a9be` | `#4a4156` |
+| papel                   | papel (dia)            | lamparina (noite)            |
+| ----------------------- | ---------------------- | ---------------------------- |
+| fundo                   | `#faf6f1` papel quente | `#1d1923` aubergine profundo |
+| tinta                   | `#2e2833`              | `#e8e2ee`                    |
+| acento lilás            | `#8b7bb8`              | `#a493cc`                    |
+| acento rosa             | `#d98bab`              | `#e2a3bf`                    |
+| sussurro (bordas, meta) | `#b5a9be`              | `#4a4156`                    |
 
 **madrugada.** dark-first, pra quem vive de noite. não é a lamparina: é mais fundo, mais saturado, feito para ser o estado principal e não a versão noturna de outra coisa.
 
-| papel | madrugada |
-|---|---|
-| fundo | `#14101c` |
-| tinta | `#ece6f2` |
+| papel        | madrugada |
+| ------------ | --------- |
+| fundo        | `#14101c` |
+| tinta        | `#ece6f2` |
 | acento lilás | `#b9a7e0` |
-| acento rosa | `#f0a8cc` |
-| sussurro | `#5a4f6b` |
+| acento rosa  | `#f0a8cc` |
+| sussurro     | `#5a4f6b` |
 
 **gloss** (nome de trabalho). inspiração hyperpop: fofo, bem rosa, colorido, mas adaptado para conforto de leitura. a regra de design: a saturação mora no chrome (cabeçalho, bordas, links, detalhes), e a área de leitura fica calma, com contraste AA garantido. fofura sem dor de cabeça.
 
-| papel | gloss |
-|---|---|
-| fundo | `#fff5fa` |
+| papel            | gloss     |
+| ---------------- | --------- |
+| fundo            | `#fff5fa` |
 | fundo de leitura | `#fffafd` |
-| tinta | `#3d2b3a` |
-| acento rosa | `#ff6fb5` |
-| acento cyan | `#57c9d8` |
-| sussurro | `#e5c4d8` |
+| tinta            | `#3d2b3a` |
+| acento rosa      | `#ff6fb5` |
+| acento cyan      | `#57c9d8` |
+| sussurro         | `#e5c4d8` |
 
 hexes são ponto de partida, afinar no olho. piso de contraste: WCAG AA em texto corrido, sempre, nos três presets.
 
@@ -199,17 +199,17 @@ o quintal é um **appview atproto, não um host**. a pessoa autentica com sua id
 
 estilo da casa: deps mínimas, behaviours em vez de use, pattern matching em vez de libs de validação, nix flake, finch, mox e bypass.
 
-| peça | escolha | nota |
-|---|---|---|
-| web | phoenix + liveview, ssr | sem spa. gettext desde a linha 1 |
-| atproto | proto_rune (dogfood) | requisitos detalhados na seção 9 |
-| ingestão | websocket do firehose, genstage, postgres | broadway só se a contra-pressão aparecer; no alpha não aparece |
-| banco | postgres, jsonb mais colunas extraídas | sqlite considerado e rejeitado: escrita de firehose concorrente com leitura web. backup: pg_dump agendado para object storage |
-| jobs | oban | backfills, cache de blobs, eventos de visitas |
-| http | finch | |
-| testes | mox na fronteira xrpc, bypass com fixtures de pds | |
-| cache | ets para resolução de identidade | |
-| dev e infra | nix flake, um vps (hetzner ou fly), caddy | 10 a 15 euros por mês no total |
+| peça        | escolha                                           | nota                                                                                                                          |
+| ----------- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| web         | phoenix + liveview, ssr                           | sem spa. gettext desde a linha 1                                                                                              |
+| atproto     | proto_rune (dogfood)                              | requisitos detalhados na seção 9                                                                                              |
+| ingestão    | websocket do firehose, genstage, postgres         | broadway só se a contra-pressão aparecer; no alpha não aparece                                                                |
+| banco       | postgres, jsonb mais colunas extraídas            | sqlite considerado e rejeitado: escrita de firehose concorrente com leitura web. backup: pg_dump agendado para object storage |
+| jobs        | oban                                              | backfills, cache de blobs, eventos de visitas                                                                                 |
+| http        | finch                                             |                                                                                                                               |
+| testes      | mox na fronteira xrpc, bypass com fixtures de pds |                                                                                                                               |
+| cache       | ets para resolução de identidade                  |                                                                                                                               |
+| dev e infra | nix flake, um vps (hetzner ou fly), caddy         | 10 a 15 euros por mês no total                                                                                                |
 
 ### 8.4 o índice (postgres)
 
@@ -322,7 +322,10 @@ autoridade `place.quintal`, derivada de quintal.place. versionados e públicos d
             "maxLength": 4,
             "items": { "type": "ref", "ref": "#imagem" }
           },
-          "langs": { "type": "array", "items": { "type": "string", "format": "language" } },
+          "langs": {
+            "type": "array",
+            "items": { "type": "string", "format": "language" }
+          },
           "createdAt": { "type": "string", "format": "datetime" }
         }
       }
@@ -464,7 +467,13 @@ record único com `literal:self`: uma escrita, lista limitada a 150 cantos, simp
             "type": "array",
             "items": {
               "type": "string",
-              "knownValues": ["bio", "prosas", "recados", "quem-eu-leio", "links"]
+              "knownValues": [
+                "bio",
+                "prosas",
+                "recados",
+                "quem-eu-leio",
+                "links"
+              ]
             }
           },
           "bio": { "type": "string", "maxGraphemes": 500 },
@@ -530,13 +539,13 @@ grafo próprio, separado do bluesky de propósito: ninguém quer seus follows de
 
 ## 12. marcos
 
-| marco | conteúdo | sai do forno quando |
-|---|---|---|
-| m0 | lexicons publicados e resolvíveis; proto_rune com oauth, escrita, backfill e firehose (seção 9) | caminho crítico, a incógnita real |
-| m1 | criar canto, escrever e ler as próprias prosas, sem feed | já dá para usar como diário público |
-| m2 | follows, ingestão de firehose, feed cronológico | a vizinhança fica legível |
-| m3 | recados, blogroll, depoimentos com aceite, três presets de tema | a vizinhança fica decorada |
-| m4 | axô e o passear, convites com cota de 5, polish | alpha com cerca de 30 amigos |
+| marco | conteúdo                                                                                        | sai do forno quando                 |
+| ----- | ----------------------------------------------------------------------------------------------- | ----------------------------------- |
+| m0    | lexicons publicados e resolvíveis; proto_rune com oauth, escrita, backfill e firehose (seção 9) | caminho crítico, a incógnita real   |
+| m1    | criar canto, escrever e ler as próprias prosas, sem feed                                        | já dá para usar como diário público |
+| m2    | follows, ingestão de firehose, feed cronológico                                                 | a vizinhança fica legível           |
+| m3    | recados, blogroll, depoimentos com aceite, três presets de tema                                 | a vizinhança fica decorada          |
+| m4    | axô e o passear, convites com cota de 5, polish                                                 | alpha com cerca de 30 amigos        |
 
 ## 13. custos
 
