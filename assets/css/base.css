@@ -1,0 +1,57 @@
+/* base: reset minimo e tipografia. tudo minusculo no chrome (spec 7.1);
+   o texto das prosas pertence ao autor e a interface nao toca. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html {
+  color-scheme: light dark;
+}
+
+body {
+  background: var(--fundo);
+  color: var(--tinta);
+  font-family: var(--fonte-chrome);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+img,
+picture,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+h1,
+h2,
+h3,
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  text-transform: lowercase;
+}
+
+a {
+  color: var(--acento);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.15em;
+}
+
+a:hover {
+  color: var(--acento-2);
+}
+
+::selection {
+  background: var(--acento);
+  color: var(--fundo);
+}

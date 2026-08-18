@@ -1,0 +1,145 @@
+/* componentes do quintal. classes proprias, modificadores com --.
+   saturacao mora no chrome; a area de leitura fica calma (spec 7.2). */
+
+/* botao */
+
+.botao {
+  display: inline-block;
+  padding: var(--espaco-2) var(--espaco-3);
+  border: 1px solid transparent;
+  border-radius: var(--raio);
+  font-family: var(--fonte-chrome);
+  text-decoration: none;
+  cursor: pointer;
+  background: var(--acento);
+  color: var(--fundo);
+}
+
+.botao:hover {
+  background: var(--acento-2);
+  color: var(--fundo);
+}
+
+.botao--fantasma {
+  background: transparent;
+  border-color: var(--acento);
+  color: var(--acento);
+}
+
+.botao--fantasma:hover {
+  border-color: var(--acento-2);
+  color: var(--acento-2);
+}
+
+.botao--sutil {
+  background: transparent;
+  color: var(--acento);
+  padding-inline: var(--espaco-1);
+}
+
+/* campo de formulario */
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+}
+
+.campo__label {
+  font-size: 0.875rem;
+  color: var(--sussurro);
+}
+
+.campo__input,
+.campo__area {
+  padding: var(--espaco-2) var(--espaco-3);
+  border: 1px solid var(--sussurro);
+  border-radius: var(--raio);
+  background: var(--fundo);
+  color: var(--tinta);
+  font-family: var(--fonte-leitura);
+}
+
+.campo__input:focus,
+.campo__area:focus {
+  outline: 2px solid var(--acento);
+  outline-offset: 1px;
+  border-color: transparent;
+}
+
+.campo__erro {
+  font-size: 0.875rem;
+  color: var(--acento-2);
+}
+
+/* prosa: a unidade de escrita. area de leitura calma, medida generosa */
+
+.prosa {
+  max-width: var(--medida-leitura);
+  padding: var(--espaco-4);
+  border-radius: var(--raio);
+  background: var(--fundo-leitura);
+  font-family: var(--fonte-leitura);
+  line-height: 1.7;
+}
+
+.prosa--pergunta {
+  border-left: 3px solid var(--acento-2);
+}
+
+.prosa__meta {
+  display: flex;
+  gap: var(--espaco-2);
+  margin-bottom: var(--espaco-3);
+  font-family: var(--fonte-chrome);
+  font-size: 0.875rem;
+  color: var(--sussurro);
+}
+
+.prosa__texto {
+  white-space: pre-wrap;
+}
+
+/* recado: entrada do livro de visitas */
+
+.recado {
+  padding: var(--espaco-3);
+  border: 1px solid var(--sussurro);
+  border-radius: var(--raio);
+}
+
+.recado__meta {
+  margin-bottom: var(--espaco-1);
+  font-size: 0.875rem;
+  color: var(--sussurro);
+}
+
+/* selo do compromisso humano */
+
+.selo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  padding: var(--espaco-1) var(--espaco-2);
+  border: 1px solid var(--acento-2);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  color: var(--acento-2);
+}
+
+/* estado vazio: o axo aparece aqui (spec 7.6) */
+
+.vazio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espaco-3);
+  padding: var(--espaco-5) var(--espaco-3);
+  text-align: center;
+  color: var(--sussurro);
+}
+
+.vazio .axo {
+  width: 4rem;
+  height: 4rem;
+}
