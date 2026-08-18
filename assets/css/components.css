@@ -203,3 +203,24 @@
   margin-inline: auto;
   text-align: left;
 }
+
+/* cadastro: micro tutorial de conta */
+
+.cadastro {
+  max-width: var(--medida-leitura);
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+}
+
+.cadastro__passos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  padding-left: var(--espaco-4);
+}
+
+.cadastro__link {
+  font-size: 0.875rem;
+  text-align: center;
+}

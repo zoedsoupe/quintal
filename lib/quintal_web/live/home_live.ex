@@ -34,6 +34,7 @@ defmodule QuintalWeb.HomeLive do
           <form action="/oauth/login" method="get" class="entrar">
             <.campo name="handle" label="seu handle atproto" placeholder="alice.bsky.social" required />
             <.botao type="submit">entrar</.botao>
+            <.link navigate={~p"/cadastro"} class="cadastro__link">não tenho conta ainda</.link>
           </form>
         </.vazio>
       </div>

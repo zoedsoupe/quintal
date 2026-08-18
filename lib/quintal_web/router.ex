@@ -19,6 +19,7 @@ defmodule QuintalWeb.Router do
 
     live_session :default do
       live "/", HomeLive
+      live "/cadastro", CadastroLive
     end
 
     get "/oauth/login", OAuthController, :login
