@@ -55,19 +55,7 @@ defmodule Quintal.Auth.ProtoRune do
     Client.new(
       client_id: Keyword.fetch!(config, :client_id),
       redirect_uri: Keyword.fetch!(config, :redirect_uri),
-      scope: Keyword.get(config, :scope, default_scope())
-    )
-  end
-
-  defp default_scope do
-    Enum.join(
-      [
-        "atproto",
-        "repo:place.quintal.feed.prosa",
-        "repo:place.quintal.canto.*",
-        "repo:place.quintal.graph.follow"
-      ],
-      " "
+      scope: Keyword.fetch!(config, :scope)
     )
   end
 end

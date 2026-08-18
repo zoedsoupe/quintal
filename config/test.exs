@@ -14,6 +14,11 @@ config :phoenix,
 config :phoenix_live_view,
   enable_expensive_runtime_checks: true
 
+# Deterministic client metadata for the endpoint tests
+config :quintal, Quintal.Auth.ProtoRune,
+  client_id: "http://localhost:4002/oauth/client-metadata.json",
+  redirect_uri: "http://localhost:4002/oauth/callback"
+
 # Configure your database
 #
 # The MIX_TEST_PARTITION environment variable can be used

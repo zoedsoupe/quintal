@@ -13,4 +13,17 @@ defmodule QuintalWeb.Router do
   pipeline :api do
     plug :accepts, ["json"]
   end
+
+  scope "/", QuintalWeb do
+    pipe_through :browser
+
+    get "/", PageController, :home
+    get "/oauth/callback", OAuthController, :callback
+  end
+
+  scope "/", QuintalWeb do
+    pipe_through :api
+
+    get "/oauth/client-metadata.json", OAuthController, :client_metadata
+  end
 end

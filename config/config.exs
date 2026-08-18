@@ -22,6 +22,12 @@ config :phoenix, :json_library, JSON
 # the attribute set on all root tags. Used for Phoenix.LiveView.ColocatedCSS.
 config :phoenix_live_view, root_tag_attribute: "phx-r"
 
+# AT Protocol OAuth, shared parts. client_id and redirect_uri are set
+# per environment. Scope stays restricted to the place.quintal.*
+# collections: never broad atproto access, never Bluesky collections.
+config :quintal, Quintal.Auth.ProtoRune,
+  scope: "atproto repo:place.quintal.feed.prosa repo:place.quintal.canto.* repo:place.quintal.graph.follow"
+
 # Configure the endpoint
 config :quintal, QuintalWeb.Endpoint,
   url: [host: "localhost"],
