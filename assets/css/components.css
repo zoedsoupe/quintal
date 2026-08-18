@@ -210,7 +210,16 @@
   max-width: var(--medida-leitura);
   display: flex;
   flex-direction: column;
-  gap: var(--espaco-3);
+  gap: var(--espaco-2);
+}
+
+.cadastro h2 {
+  margin-top: var(--espaco-4);
+}
+
+.cadastro .botao {
+  align-self: flex-start;
+  margin-top: var(--espaco-3);
 }
 
 .cadastro__passos {
