@@ -56,6 +56,10 @@ if config_env() == :prod do
 
   host = System.get_env("PHX_HOST") || "example.com"
 
+  config :quintal, Quintal.Auth.ProtoRune,
+    client_id: "https://#{host}/oauth/client-metadata.json",
+    redirect_uri: "https://#{host}/oauth/callback"
+
   config :quintal, Quintal.Repo,
     url: database_url,
     pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),

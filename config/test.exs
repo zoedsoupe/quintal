@@ -33,3 +33,6 @@ config :quintal, QuintalWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4002],
   secret_key_base: "U8Jl/4Q7xjAy/DzE1Uj/K7RGrkfX7ZiICX/YpiYUxi+vDaW2dazDJ+J5MIsDVey1",
   server: false
+
+# Swap the OAuth boundary for a mock
+config :quintal, :auth_impl, Quintal.Auth.Mock
