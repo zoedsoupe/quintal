@@ -27,7 +27,7 @@ if config_env() == :dev do
 
     config :quintal, QuintalWeb.Endpoint,
       url: [host: host],
-      check_origin: ["https://#{host}"]
+      check_origin: ["https://#{host}", "http://localhost:4000"]
   end
 
   # Reload browser tabs when matching files change.
