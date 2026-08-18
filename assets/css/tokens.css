@@ -9,7 +9,11 @@
   --tinta: #2e2833;
   --acento: #8b7bb8;
   --acento-2: #d98bab;
+  /* sussurro: bordas e decoracao, nao passa em AA como texto.
+     meta: texto secundario, AA garantido em cima de fundo (spec 7.2) */
   --sussurro: #b5a9be;
+  --meta: #6f6280;
+  --erro: #b04a72;
 
   --fonte-leitura: "fraunces", georgia, serif;
   --fonte-chrome: "atkinson hyperlegible", system-ui, sans-serif;
@@ -32,6 +36,8 @@
     --acento: #a493cc;
     --acento-2: #e2a3bf;
     --sussurro: #4a4156;
+    --meta: #9d91b2;
+    --erro: #e2a3bf;
   }
 }
 
@@ -41,6 +47,8 @@
   --acento: #b9a7e0;
   --acento-2: #f0a8cc;
   --sussurro: #5a4f6b;
+  --meta: #a89cc4;
+  --erro: #f0a8cc;
 }
 
 :root[data-theme="gloss"] {
@@ -50,6 +58,8 @@
   --acento: #ff6fb5;
   --acento-2: #57c9d8;
   --sussurro: #e5c4d8;
+  --meta: #8f5c7d;
+  --erro: #c73a76;
 }
 
 @font-face {

@@ -15,6 +15,12 @@ html {
   color-scheme: light dark;
 }
 
+@media (min-width: 48rem) {
+  html {
+    font-size: 112.5%;
+  }
+}
+
 body {
   background: var(--fundo);
   color: var(--tinta);

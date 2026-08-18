@@ -47,7 +47,7 @@
 
 .campo__label {
   font-size: 0.875rem;
-  color: var(--sussurro);
+  color: var(--meta);
 }
 
 .campo__input,
@@ -69,7 +69,7 @@
 
 .campo__erro {
   font-size: 0.875rem;
-  color: var(--acento-2);
+  color: var(--erro);
 }
 
 /* prosa: a unidade de escrita. area de leitura calma, medida generosa */
@@ -93,7 +93,7 @@
   margin-bottom: var(--espaco-3);
   font-family: var(--fonte-chrome);
   font-size: 0.875rem;
-  color: var(--sussurro);
+  color: var(--meta);
 }
 
 .prosa__texto {
@@ -111,7 +111,7 @@
 .recado__meta {
   margin-bottom: var(--espaco-1);
   font-size: 0.875rem;
-  color: var(--sussurro);
+  color: var(--meta);
 }
 
 /* selo do compromisso humano */
@@ -136,7 +136,7 @@
   gap: var(--espaco-3);
   padding: var(--espaco-5) var(--espaco-3);
   text-align: center;
-  color: var(--sussurro);
+  color: var(--meta);
 }
 
 .vazio .axo {
@@ -184,10 +184,22 @@
   margin-block: var(--espaco-3) 0;
   border-radius: var(--raio);
   border: 1px solid var(--acento);
-  color: var(--acento);
+  color: var(--tinta);
 }
 
 .flash--erro {
-  border-color: var(--acento-2);
-  color: var(--acento-2);
+  border-color: var(--erro);
+  color: var(--tinta);
+}
+
+/* form de entrar: campo e botao com respiro */
+
+.entrar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  width: 100%;
+  max-width: 22rem;
+  margin-inline: auto;
+  text-align: left;
 }
