@@ -55,7 +55,7 @@
 @font-face {
   font-family: "fraunces";
   src: url("/fonts/fraunces.woff2") format("woff2");
-  font-weight: 400 600;
+  font-weight: 100 900;
   font-style: normal;
   font-display: swap;
 }
@@ -71,7 +71,23 @@
 @font-face {
   font-family: "atkinson hyperlegible";
   src: url("/fonts/atkinson-hyperlegible.woff2") format("woff2");
-  font-weight: 400 600;
+  font-weight: 400;
   font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "atkinson hyperlegible";
+  src: url("/fonts/atkinson-hyperlegible-bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "atkinson hyperlegible";
+  src: url("/fonts/atkinson-hyperlegible-italic.woff2") format("woff2");
+  font-weight: 400;
+  font-style: italic;
   font-display: swap;
 }

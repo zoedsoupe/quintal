@@ -52,3 +52,31 @@ defmodule QuintalWeb.ComponentsTest do
     assert html =~ "por aqui ainda tá quieto"
   end
 end
+
+defmodule QuintalWeb.LayoutsTest do
+  use ExUnit.Case, async: true
+
+  import Phoenix.Component
+  import Phoenix.LiveViewTest
+
+  test "app renderiza marca e conteúdo" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H[<QuintalWeb.Layouts.app>conteúdo da página</QuintalWeb.Layouts.app>])
+
+    assert html =~ ~s(class="chrome__marca")
+    assert html =~ "quintal"
+    assert html =~ "conteúdo da página"
+  end
+
+  test "app mostra flash quando presente" do
+    assigns = %{}
+
+    html =
+      rendered_to_string(~H[<QuintalWeb.Layouts.app flash={%{"info" => "pronto"}}>x</QuintalWeb.Layouts.app>])
+
+    assert html =~ "pronto"
+    assert html =~ "flash--info"
+  end
+end
