@@ -41,3 +41,9 @@ config :quintal, QuintalWeb.Endpoint,
 
 # Swap the OAuth boundary for a mock
 config :quintal, :auth_impl, Quintal.Auth.Mock
+
+# No boot-time session restore in test: the sandbox owns the Repo
+config :quintal, :restore_sessions, false
+
+# Test-only key for encrypting sessions at rest
+config :quintal, :session_key, Base.decode64!("dTfyNvqfM/LPpCoRaSQvNDbDhh7wy3fJwBR8b8HNvdE=")

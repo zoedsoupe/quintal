@@ -25,12 +25,11 @@ defmodule QuintalWeb.OAuthControllerTest do
   end
 
   describe "GET /oauth/callback" do
-    test "exchanges the code and stores the session", %{conn: conn} do
+    test "exchanges the code and stores only the did in the cookie", %{conn: conn} do
       pending = %{state: "abc"}
-      session = %{did: "did:plc:alice"}
 
-      expect(Mock, :exchange, fn ^pending, %{"code" => "123", "state" => "abc"} ->
-        {:ok, session}
+      expect(Mock, :open_session, fn ^pending, %{"code" => "123", "state" => "abc"} ->
+        {:ok, "did:plc:alice"}
       end)
 
       conn =
@@ -39,7 +38,7 @@ defmodule QuintalWeb.OAuthControllerTest do
         |> get("/oauth/callback", %{"code" => "123", "state" => "abc"})
 
       assert redirected_to(conn) == "/"
-      assert get_session(conn, :quintal_session) == session
+      assert get_session(conn, :quintal_did) == "did:plc:alice"
       refute get_session(conn, :oauth_pending)
     end
 
@@ -50,7 +49,7 @@ defmodule QuintalWeb.OAuthControllerTest do
     end
 
     test "rejects when the exchange fails", %{conn: conn} do
-      expect(Mock, :exchange, fn _pending, _params ->
+      expect(Mock, :open_session, fn _pending, _params ->
         {:error, :invalid_grant}
       end)
 
@@ -60,7 +59,7 @@ defmodule QuintalWeb.OAuthControllerTest do
         |> get("/oauth/callback", %{"code" => "bad", "state" => "abc"})
 
       assert conn.status == 401
-      refute get_session(conn, :quintal_session)
+      refute get_session(conn, :quintal_did)
     end
   end
 end
@@ -95,16 +94,14 @@ defmodule QuintalWeb.OAuthLoginTest do
   end
 
   test "logout revoga e limpa a sessão", %{conn: conn} do
-    sessao = %{session: %{handle: "alice"}}
-
-    expect(Mock, :revoke, fn ^sessao -> :ok end)
+    expect(Mock, :logout, fn "did:plc:alice" -> :ok end)
 
     conn =
       conn
-      |> init_test_session(%{quintal_session: sessao})
+      |> init_test_session(%{quintal_did: "did:plc:alice"})
       |> get("/oauth/logout")
 
     assert redirected_to(conn) == "/"
-    refute get_session(conn, :quintal_session)
+    refute get_session(conn, :quintal_did)
   end
 end

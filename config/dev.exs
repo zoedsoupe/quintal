@@ -47,5 +47,9 @@ config :quintal, QuintalWeb.Endpoint,
     esbuild: {Esbuild, :install_and_run, [:quintal, ~w(--sourcemap=inline --watch)]}
   ]
 
+# Dev-only key for encrypting sessions at rest. Prod reads
+# QUINTAL_SESSION_KEY (see runtime.exs).
+config :quintal, :session_key, Base.decode64!("0UfHQYaT13xaFUSbU9DrxGFwV8pNO62OHDqSNYapikw=")
+
 # Enable dev routes for dashboard and mailbox
 config :quintal, dev_routes: true

@@ -7,7 +7,8 @@ defmodule QuintalWeb.OAuthController do
   server do pds busca aqui redirect_uri, scope e política de DPoP.
 
   `callback` recebe o retorno do authorization server, troca o code por
-  uma sessão via `Quintal.Auth` e guarda a sessão no cookie assinado.
+  uma sessão via `Quintal.Auth` e guarda só o did no cookie assinado:
+  os tokens vivem cifrados na tabela `sessoes`, com refresh proativo.
   """
 
   use QuintalWeb, :controller
@@ -32,10 +33,10 @@ defmodule QuintalWeb.OAuthController do
 
   def callback(conn, params) do
     with pending when not is_nil(pending) <- get_session(conn, :oauth_pending),
-         {:ok, session} <- Quintal.Auth.impl().exchange(pending, params) do
+         {:ok, did} <- Quintal.Auth.impl().open_session(pending, params) do
       conn
       |> delete_session(:oauth_pending)
-      |> put_session(:quintal_session, session)
+      |> put_session(:quintal_did, did)
       |> redirect(to: "/")
     else
       _ ->
@@ -60,8 +61,8 @@ defmodule QuintalWeb.OAuthController do
   end
 
   def logout(conn, _params) do
-    if sessao = get_session(conn, :quintal_session) do
-      Quintal.Auth.impl().revoke(sessao)
+    if did = get_session(conn, :quintal_did) do
+      Quintal.Auth.impl().logout(did)
     end
 
     conn

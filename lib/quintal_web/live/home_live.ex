@@ -11,8 +11,15 @@ defmodule QuintalWeb.HomeLive do
 
   @impl true
   def mount(_params, session, socket) do
-    sessao = session["quintal_session"]
-    handle = sessao && (get_in(sessao, [:session, :handle]) || get_in(sessao, ["session", "handle"]))
+    sessao =
+      with did when is_binary(did) <- session["quintal_did"],
+           {:ok, sessao} <- Quintal.Auth.impl().current_session(did) do
+        sessao
+      else
+        _ -> nil
+      end
+
+    handle = sessao && Map.get(sessao, :handle)
 
     {:ok, assign(socket, sessao: sessao, handle: handle)}
   end

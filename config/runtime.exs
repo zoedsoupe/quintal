@@ -70,6 +70,15 @@ if config_env() == :prod do
 
   host = System.get_env("PHX_HOST") || "example.com"
 
+  # Key that encrypts OAuth sessions at rest (tokens + DPoP private key).
+  # Any strong secret works: it is hashed to the 32 bytes AES-256 needs.
+  session_key =
+    System.get_env("QUINTAL_SESSION_KEY") ||
+      raise """
+      environment variable QUINTAL_SESSION_KEY is missing.
+      You can generate one by calling: mix phx.gen.secret
+      """
+
   config :quintal, ProtoRune,
     client_id: "https://#{host}/oauth/client-metadata.json",
     redirect_uri: "https://#{host}/oauth/callback"
@@ -87,4 +96,6 @@ if config_env() == :prod do
       ip: {0, 0, 0, 0, 0, 0, 0, 0}
     ],
     secret_key_base: secret_key_base
+
+  config :quintal, :session_key, :crypto.hash(:sha256, session_key)
 end
