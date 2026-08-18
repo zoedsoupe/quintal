@@ -1,0 +1,19 @@
+{
+  "lexicon": 1,
+  "id": "place.quintal.canto.depoimento",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["subject", "text", "createdAt"],
+        "properties": {
+          "subject": { "type": "string", "format": "did" },
+          "text": { "type": "string", "maxGraphemes": 1000 },
+          "createdAt": { "type": "string", "format": "datetime" }
+        }
+      }
+    }
+  }
+}

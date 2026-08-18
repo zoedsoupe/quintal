@@ -52,6 +52,7 @@ defmodule Quintal.MixProject do
       {:gettext, "~> 1.0"},
       {:bandit, "~> 1.5"},
       {:lucide_icons, "~> 2.3"},
+      {:proto_rune, "~> 0.4"},
       {:styler, "~> 1.12", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false}
     ]

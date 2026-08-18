@@ -280,8 +280,9 @@ o fluxo inteiro de login e autorização:
 
 ### 9.7 publicação de lexicons
 
-- schemas servidos e resolvíveis: DNS TXT em `_lexicon.place.quintal` apontando a autoridade, mais endpoint servindo os JSONs
-- versionamento em repo git próprio, tags por versão, changelog
+- schemas servidos em `priv/static/lexicons/<nsid>.json`, via `Plug.Static`, acessíveis em `quintal.place/lexicons/...` (fly proxy termina TLS para ambos os domínios no mesmo app)
+- versionamento no monorepo, tags `lexicons-v*`, changelog no spec
+- resolução oficial (DNS TXT em `_lexicon.place.quintal` + record `com.atproto.lexicon.schema`) fica para quando houver interop externa; no dogfood o proto_rune carrega os schemas de disco
 
 ### 9.8 testes
 

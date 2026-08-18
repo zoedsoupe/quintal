@@ -1,0 +1,56 @@
+{
+  "lexicon": 1,
+  "id": "place.quintal.feed.prosa",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["text", "createdAt"],
+        "properties": {
+          "text": { "type": "string", "maxGraphemes": 10000 },
+          "facets": {
+            "type": "array",
+            "items": { "type": "ref", "ref": "app.bsky.richtext.facet" }
+          },
+          "tipo": {
+            "type": "string",
+            "knownValues": ["nota", "pergunta", "cronica", "ensaio"]
+          },
+          "reply": { "type": "ref", "ref": "#replyRef" },
+          "images": {
+            "type": "array",
+            "maxLength": 4,
+            "items": { "type": "ref", "ref": "#imagem" }
+          },
+          "langs": {
+            "type": "array",
+            "items": { "type": "string", "format": "language" }
+          },
+          "createdAt": { "type": "string", "format": "datetime" }
+        }
+      }
+    },
+    "replyRef": {
+      "type": "object",
+      "required": ["root", "parent"],
+      "properties": {
+        "root": { "type": "ref", "ref": "com.atproto.repo.strongRef" },
+        "parent": { "type": "ref", "ref": "com.atproto.repo.strongRef" }
+      }
+    },
+    "imagem": {
+      "type": "object",
+      "required": ["image", "alt"],
+      "properties": {
+        "image": {
+          "type": "blob",
+          "accept": ["image/jpeg", "image/png", "image/webp"],
+          "maxSize": 2000000
+        },
+        "alt": { "type": "string", "maxGraphemes": 1000 }
+      }
+    }
+  }
+}

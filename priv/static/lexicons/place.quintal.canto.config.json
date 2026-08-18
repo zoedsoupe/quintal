@@ -1,0 +1,48 @@
+{
+  "lexicon": 1,
+  "id": "place.quintal.canto.config",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "literal:self",
+      "record": {
+        "type": "object",
+        "required": ["tema", "blocos", "updatedAt"],
+        "properties": {
+          "tema": {
+            "type": "string",
+            "knownValues": ["papel", "madrugada", "gloss"]
+          },
+          "cor": { "type": "string", "maxLength": 7 },
+          "blocos": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "knownValues": [
+                "bio",
+                "prosas",
+                "recados",
+                "quem-eu-leio",
+                "links"
+              ]
+            }
+          },
+          "bio": { "type": "string", "maxGraphemes": 500 },
+          "links": {
+            "type": "array",
+            "maxLength": 8,
+            "items": {
+              "type": "object",
+              "required": ["titulo", "url"],
+              "properties": {
+                "titulo": { "type": "string", "maxGraphemes": 60 },
+                "url": { "type": "string", "format": "uri" }
+              }
+            }
+          },
+          "updatedAt": { "type": "string", "format": "datetime" }
+        }
+      }
+    }
+  }
+}
