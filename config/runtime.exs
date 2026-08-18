@@ -1,5 +1,7 @@
 import Config
 
+alias Quintal.Auth.ProtoRune
+
 # ## Using releases
 #
 # If you use `mix release`, you need to explicitly enable the server
@@ -16,6 +18,18 @@ end
 config :quintal, QuintalWeb.Endpoint, http: [port: String.to_integer(System.get_env("PORT", "4000"))]
 
 if config_env() == :dev do
+  # Host público para testar o fluxo OAuth real em dev (ngrok etc):
+  # QUINTAL_PUBLIC_HOST=abc123.ngrok-free.app iex -S mix phx.server
+  if host = System.get_env("QUINTAL_PUBLIC_HOST") do
+    config :quintal, ProtoRune,
+      client_id: "https://#{host}/oauth/client-metadata.json",
+      redirect_uri: "https://#{host}/oauth/callback"
+
+    config :quintal, QuintalWeb.Endpoint,
+      url: [host: host],
+      check_origin: ["https://#{host}"]
+  end
+
   # Reload browser tabs when matching files change.
   config :quintal, QuintalWeb.Endpoint,
     live_reload: [
@@ -56,7 +70,7 @@ if config_env() == :prod do
 
   host = System.get_env("PHX_HOST") || "example.com"
 
-  config :quintal, Quintal.Auth.ProtoRune,
+  config :quintal, ProtoRune,
     client_id: "https://#{host}/oauth/client-metadata.json",
     redirect_uri: "https://#{host}/oauth/callback"
 

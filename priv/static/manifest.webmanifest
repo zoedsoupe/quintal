@@ -1,0 +1,15 @@
+{
+  "name": "quintal",
+  "short_name": "quintal",
+  "description": "uma vizinhança de blogs sobre o protocolo atproto",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#faf6f1",
+  "theme_color": "#8b7bb8",
+  "lang": "pt-BR",
+  "icons": [
+    { "src": "/images/icone-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/images/icone-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
