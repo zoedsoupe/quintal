@@ -45,14 +45,8 @@ config :quintal, QuintalWeb.Endpoint,
 # Swap the OAuth boundary for a mock
 config :quintal, :auth_impl, Quintal.Auth.Mock
 
-# No firehose consumer in test: ingestão tests feed events by hand
-config :quintal, :ingestao, false
-
 # Swap the pds boundary for a mock
 config :quintal, :pds_impl, Quintal.PDS.Mock
-
-# No boot-time session restore in test: the sandbox owns the Repo
-config :quintal, :restore_sessions, false
 
 # Test-only key for encrypting sessions at rest
 config :quintal, :session_key, Base.decode64!("dTfyNvqfM/LPpCoRaSQvNDbDhh7wy3fJwBR8b8HNvdE=")

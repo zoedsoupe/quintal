@@ -18,21 +18,10 @@ defmodule Quintal.Application do
       QuintalWeb.Endpoint
     ]
 
-    # Boot-time session restore: off in test, where the sandbox owns the Repo.
     children =
-      if Application.get_env(:quintal, :restore_sessions, true) do
-        List.insert_at(children, -1, {Task, &AuthImpl.restore_all/0})
-      else
-        children
-      end
-
-    # Firehose consumer (m2): off in test, which feeds events by hand.
-    children =
-      if Application.get_env(:quintal, :ingestao, true) do
-        List.insert_at(children, -1, Quintal.Ingestao)
-      else
-        children
-      end
+      if Quintal.env() == :test,
+        do: children,
+        else: children ++ [{Task, &AuthImpl.restore_all/0}, Quintal.Ingestao]
 
     opts = [strategy: :one_for_one, name: Quintal.Supervisor]
     Supervisor.start_link(children, opts)

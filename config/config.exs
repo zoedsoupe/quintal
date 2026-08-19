@@ -41,6 +41,7 @@ config :quintal, QuintalWeb.Endpoint,
 
 # pt-br primeiro (spec 2): erros de changeset chegam em portugues
 config :quintal, QuintalWeb.Gettext, default_locale: "pt_BR"
+config :quintal, :env, config_env()
 
 config :quintal,
   ecto_repos: [Quintal.Repo],
