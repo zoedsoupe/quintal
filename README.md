@@ -32,6 +32,12 @@ mvp em alpha. as coisas mudam, quebram e mudam de novo. use por sua conta e risc
 | passear    | a descoberta serendipita, protagonizada pelo axô                 |
 | axô        | o mascote, um axolote. axolotes regeneram, e seus dados também   |
 
+## axô
+
+![axô dando oi](./priv/static/images/axo-front-gretting.png)
+
+o axô é o mascote do quintal, um axolote rosa que mora aqui: na logo ele vive no laguinho em frente à cabana, e no app ele aparece guiando os passeios pela vizinhança, nadando no loading e espiando o 404 de dentro d'água. axolotes regeneram partes do corpo inteiras, e aqui seus dados também: se você sair, leva tudo com você, e se voltar, nada se perdeu. o trocadilho axô/achou vira a mecânica de descoberta: "o axô achou isso pra você". ele também se esconde no ícone do pwa como easter egg. as artes oficiais moram em [`priv/static/images`](./priv/static/images).
+
 ## a forma
 
 o quintal é um **appview atproto, não um host**. você autentica com sua identidade atproto existente (byo-pds), e cada prosa, recado e configuração de canto é um record no seu repo, no seu pds. o quintal roda três coisas: um consumidor de firehose que indexa nossos lexicons, uma camada de consulta e uma interface web liveview que escreve de volta no seu repo via oauth.
