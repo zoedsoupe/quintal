@@ -233,3 +233,63 @@
   font-size: 0.875rem;
   text-align: center;
 }
+
+/* prosear: o composer da home (m1) */
+
+.prosear {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  max-width: var(--medida-leitura);
+  margin-block: var(--espaco-4);
+}
+
+.prosear .botao {
+  align-self: flex-start;
+}
+
+/* lista de prosas, cronológica, sem ranqueamento (spec 2) */
+
+.prosas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+  margin-block: var(--espaco-4);
+}
+
+.prosear__rodape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+}
+
+/* tipo é metadado, não rótulo (spec 10.1): select quieto no chrome */
+
+.prosear__tipo {
+  padding: var(--espaco-1) var(--espaco-2);
+  border: 1px solid var(--sussurro);
+  border-radius: var(--raio);
+  background: var(--fundo);
+  color: var(--meta);
+  font-family: var(--fonte-chrome);
+  font-size: 0.875rem;
+}
+
+.prosa__acoes {
+  margin-left: auto;
+}
+
+/* rodape: links quietos de faq e conduta */
+
+.rodape {
+  display: flex;
+  gap: var(--espaco-3);
+  justify-content: center;
+  margin-top: var(--espaco-4);
+  font-size: 0.875rem;
+}
+
+.rodape a {
+  color: var(--meta);
+}

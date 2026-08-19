@@ -12,7 +12,7 @@ defmodule Quintal.Bootstrap do
   """
 
   alias Quintal.Identidade
-  alias Quintal.Prosa
+  alias Quintal.Prosas
   alias Quintal.Repo
 
   require Logger
@@ -80,7 +80,7 @@ defmodule Quintal.Bootstrap do
 
     case pds().list_records(session, session.did, @prosa, opts) do
       {:ok, %{records: records} = page} ->
-        Enum.each(records, &upsert_prosa(session.did, &1))
+        Enum.each(records, &Prosas.indexar(session.did, &1))
 
         case Map.get(page, :cursor) do
           nil -> :ok
@@ -89,48 +89,6 @@ defmodule Quintal.Bootstrap do
 
       {:error, _} = error ->
         error
-    end
-  end
-
-  defp upsert_prosa(autor_did, %{uri: uri, cid: cid, value: value}) do
-    attrs = %{
-      uri: uri,
-      autor_did: autor_did,
-      cid: cid,
-      texto: Map.get(value, :text),
-      tipo: Map.get(value, :tipo),
-      reply_root: get_in(value, [:reply, :root, :uri]),
-      reply_parent: get_in(value, [:reply, :parent, :uri]),
-      langs: Map.get(value, :langs),
-      created_at: parse_datetime(Map.get(value, :created_at)),
-      indexed_at: DateTime.utc_now()
-    }
-
-    %Prosa{}
-    |> Prosa.changeset(attrs)
-    |> Repo.insert(
-      on_conflict: {:replace, [:cid, :texto, :tipo, :reply_root, :reply_parent, :langs, :created_at, :indexed_at]},
-      conflict_target: :uri
-    )
-    |> case do
-      {:ok, _prosa} ->
-        :ok
-
-      {:error, changeset} ->
-        Logger.warning("[#{__MODULE__}] prosa #{uri} fora do índice: #{inspect(changeset.errors)}")
-    end
-  end
-
-  defp upsert_prosa(_autor_did, record) do
-    Logger.warning("[#{__MODULE__}] record inesperado no backfill: #{inspect(record)}")
-  end
-
-  defp parse_datetime(nil), do: nil
-
-  defp parse_datetime(iso) when is_binary(iso) do
-    case DateTime.from_iso8601(iso) do
-      {:ok, datetime, _offset} -> datetime
-      {:error, _reason} -> nil
     end
   end
 

@@ -18,7 +18,7 @@ defmodule QuintalWeb.Components do
   cara de botão.
   """
   attr :variante, :atom, default: :primario, values: [:primario, :fantasma, :sutil]
-  attr :rest, :global, include: ~w(type disabled navigate href phx-click phx-value-url)
+  attr :rest, :global, include: ~w(type disabled navigate href phx-click phx-value-url phx-value-uri data-confirm)
   slot :inner_block, required: true
 
   def botao(assigns) do
@@ -63,12 +63,14 @@ defmodule QuintalWeb.Components do
 
   @doc """
   Uma prosa na lista ou na leitura. `tipo: :pergunta` ganha ênfase
-  visual; os demais tipos não mudam a apresentação (spec 10.1).
+  visual; os demais tipos não mudam a apresentação (spec 10.1). O slot
+  `acoes` leva ações do dono (apagar), à direita do meta.
   """
   attr :autor, :string, required: true
   attr :data, :string, required: true
   attr :tipo, :atom, default: :nota, values: [:nota, :pergunta, :cronica, :ensaio]
   attr :class, :string, default: nil
+  slot :acoes
   slot :inner_block, required: true
 
   def prosa(assigns) do
@@ -77,6 +79,7 @@ defmodule QuintalWeb.Components do
       <header class="prosa__meta">
         <span>{@autor}</span>
         <time>{@data}</time>
+        <span :if={@acoes != []} class="prosa__acoes">{render_slot(@acoes)}</span>
       </header>
       <div class="prosa__texto">{render_slot(@inner_block)}</div>
     </article>
