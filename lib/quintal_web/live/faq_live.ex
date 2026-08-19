@@ -110,10 +110,10 @@ defmodule QuintalWeb.FaqLive do
         <h3>o que é um pds?</h3>
 
         <p>
-          pds é o servidor onde ficam seus dados. pensa num armário alugado: suas
-          coisas moram lá, a chave é sua, e se você não gostar do dono do prédio,
-          leva tudo pra outro prédio sem perder nada. o bluesky te empresta um
-          armário de graça; você também pode montar o seu.
+          pds é o servidor onde ficam seus dados. pensa num apê alugado: suas
+          coisas moram lá, a chave é sua, e se você não gostar de quem cuida
+          do prédio, leva tudo pra outro local sem perder nada. o bluesky te empresta uma
+          casinha de graça; mas você também pode montar o seu!
           <a href="https://atproto.com/guides/self-hosting" target="_blank" rel="noopener">
             guia de auto-hospedagem
           </a>

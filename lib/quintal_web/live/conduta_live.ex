@@ -4,7 +4,7 @@ defmodule QuintalWeb.CondutaLive do
 
   Curtas de propósito: combinado de vizinhança, escrito em primeira
   pessoa, porque o quintal é um projeto pessoal compartilhado com
-  amigas e afetos. Ferramentas de governança coletiva ficam pra depois
+  amigues e afetos. Ferramentas de governança coletiva ficam pra depois
   (spec 5.2); aqui está o chão mínimo do convívio no alpha, incluindo a
   parte que não fica subentendida: o quintal é um espaço coletivo e
   comunitário, e transfobia não cabe nele.
@@ -28,12 +28,15 @@ defmodule QuintalWeb.CondutaLive do
         <h1>regrinhas de convivência</h1>
 
         <p>
-          o quintal é um cantinho de internet construído por mim,
-          <a href="https://zoedsoupe.zeetech.io" target="_blank" rel="noopener">zoey</a>,
-          e dividido com amigas e afetos: um lugar quentinho de escrever e
+          o quintal é um cantinho de internet construído por mim, <a
+            href="https://zoedsoupe.zeetech.io"
+            target="_blank"
+            rel="noopener"
+          >zoey</a>,
+          e dividido com amigues e afetos: um lugar quentinho de escrever e
           ler, pequeno e feito à mão. o convívio aqui se segura com poucas
           regrinhas, e todas nascem da mesma vontade: que quem chega se
-          sinta em casa, segura e querida. e como o lugar é comum, cuidar
+          sinta em casa, segure e queride. e como o lugar é comum, cuidar
           dele é tarefa de todo mundo que mora aqui.
         </p>
 
@@ -41,9 +44,13 @@ defmodule QuintalWeb.CondutaLive do
 
         <ul class="cadastro__passos">
           <li>escreva como você fala com quem você gosta: aqui todo mundo é gente</li>
-          <li>visite os cantos com carinho: cada um tem dona ou dono, e a parede é deles</li>
+          <li>
+            visite os cantos com carinho: cada canto tem uma pessoa que cuida, e a parede é dela
+          </li>
           <li>depoimento é carta de amor: escreva aquilo que você diria olhando nos olhos</li>
-          <li>chame cada pessoa pelo nome e pelos pronomes que ela pedir, sem cerimônia e sem debate</li>
+          <li>
+            chame cada pessoa pelo nome e pelos pronomes que ela pedir, sem cerimônia e sem debate
+          </li>
         </ul>
 
         <h2>o que não cabe aqui</h2>
@@ -80,7 +87,7 @@ defmodule QuintalWeb.CondutaLive do
         <p>
           no seu canto, quem manda é você: recados podem ser ocultados e
           depoimentos só aparecem depois do seu aceite. o record de quem
-          escreveu segue intacto no pds dela, porque as palavras pertencem a
+          escreveu segue intacto no próprio pds, porque as palavras pertencem a
           quem escreve. o que passar do limite do coletivo chega até mim: por
           enquanto a administração é uma pessoa só (eu, zoey), que pode
           bloquear contas e revogar convites não usados. ainda não temos
