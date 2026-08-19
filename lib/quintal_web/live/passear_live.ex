@@ -58,7 +58,7 @@ defmodule QuintalWeb.PassearLive do
   # trecho quieto de no máximo ~400 grafemes, cortado em grafeema e não
   # em byte, para não mutilar emoji nem acento na carta
   defp trecho(texto) do
-    if String.graphemes(texto) |> length() > @trecho do
+    if texto |> String.graphemes() |> length() > @trecho do
       texto |> String.graphemes() |> Enum.take(@trecho) |> IO.iodata_to_binary() |> Kernel.<>("...")
     else
       texto

@@ -1,4 +1,6 @@
 defmodule Mix.Tasks.Quintal.Convite do
+  @shortdoc "Gera códigos de convite da portaria"
+
   @moduledoc """
   Gera códigos de convite avulsos da portaria (spec 6.1): sem cota,
   revogáveis enquanto não usados.
@@ -8,8 +10,6 @@ defmodule Mix.Tasks.Quintal.Convite do
   """
 
   use Mix.Task
-
-  @shortdoc "Gera códigos de convite da portaria"
 
   @impl true
   def run(args) do

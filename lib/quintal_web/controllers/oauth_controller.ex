@@ -43,7 +43,8 @@ defmodule QuintalWeb.OAuthController do
       |> put_session(:quintal_did, did)
       |> redirect(to: "/")
     else
-      {:portaria, conn} -> conn
+      {:portaria, conn} ->
+        conn
 
       _ ->
         conn
