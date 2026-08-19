@@ -95,7 +95,8 @@ if config_env() == :prod do
     http: [
       ip: {0, 0, 0, 0, 0, 0, 0, 0}
     ],
-    secret_key_base: secret_key_base
+    secret_key_base: secret_key_base,
+    check_origin: ["https://#{host}", "https://quintal.fly.dev"]
 
   config :quintal, :session_key, :crypto.hash(:sha256, session_key)
 end
