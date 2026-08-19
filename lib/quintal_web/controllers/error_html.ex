@@ -1,24 +1,20 @@
 defmodule QuintalWeb.ErrorHTML do
   @moduledoc """
-  This module is invoked by your endpoint in case of errors on HTML requests.
+  Páginas de erro do quintal.
 
-  See config/config.exs.
+  O 404 é território do axô (spec 7.6): "o axô procurou, procurou... e
+  não achou essa página". 401 e 500 dividem o mesmo palco quieto, com a
+  microcopy de erro da casa (spec 7.7). Sem layout de app aqui, o erro
+  precisa renderizar mesmo com o resto da casa fora do ar, então o
+  estilo é embutido e mínimo, no preset papel.
   """
+
   use QuintalWeb, :html
 
-  # If you want to customize your error pages,
-  # uncomment the embed_templates/1 call below
-  # and add pages to the error directory:
-  #
-  #   * lib/quintal_web/controllers/error_html/404.html.heex
-  #   * lib/quintal_web/controllers/error_html/500.html.heex
-  #
-  # embed_templates "error_html/*"
+  embed_templates "error_html/*"
 
-  # The default is to render a plain text page based on
-  # the template name. For example, "404.html" becomes
-  # "Not Found".
-  def render(template, _assigns) do
-    Phoenix.Controller.status_message_from_template(template)
-  end
+  def render("401.html", assigns), do: unauthorized(assigns)
+  def render("404.html", assigns), do: not_found(assigns)
+  def render("500.html", assigns), do: internal_error(assigns)
+  def render(template, _assigns), do: Phoenix.Controller.status_message_from_template(template)
 end

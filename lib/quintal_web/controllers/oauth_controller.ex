@@ -33,19 +33,55 @@ defmodule QuintalWeb.OAuthController do
 
   def callback(conn, params) do
     with pending when not is_nil(pending) <- get_session(conn, :oauth_pending),
-         {:ok, did} <- Quintal.Auth.impl().open_session(pending, params) do
+         {:ok, did} <- Quintal.Auth.impl().open_session(pending, params),
+         :ok <- portaria(conn, did) do
       bootstrap_async(did)
 
       conn
       |> delete_session(:oauth_pending)
+      |> delete_session(:convite)
       |> put_session(:quintal_did, did)
       |> redirect(to: "/")
     else
+      {:portaria, conn} -> conn
+
       _ ->
         conn
         |> put_status(:unauthorized)
-        |> text("ih, algo deu errado. tenta de novo?")
+        |> put_view(html: QuintalWeb.ErrorHTML)
+        |> render("401.html")
+        |> halt()
     end
+  end
+
+  # O gate do alpha fechado (spec 6.1): quem já mora no quintal entra
+  # direto; cara nova precisa de um código válido guardado na sessão
+  # pela tela de convite. Sem código, a sessão oauth recém-aberta é
+  # revogada na hora e a pessoa volta para a portaria.
+  defp portaria(conn, did) do
+    cond do
+      Quintal.Convites.entrou?(did) ->
+        :ok
+
+      codigo = get_session(conn, :convite) ->
+        case Quintal.Convites.usar(codigo, did) do
+          :ok -> :ok
+          {:error, :invalido} -> recusar(conn, did)
+        end
+
+      true ->
+        recusar(conn, did)
+    end
+  end
+
+  defp recusar(conn, did) do
+    Quintal.Auth.impl().logout(did)
+
+    {:portaria,
+     conn
+     |> delete_session(:oauth_pending)
+     |> put_flash(:error, "esse código já foi usado ou não existe. pede pra quem te convidou?")
+     |> redirect(to: "/convite")}
   end
 
   # Cria o canto.config e indexa o histórico (spec 8.2, fluxo 1), fora

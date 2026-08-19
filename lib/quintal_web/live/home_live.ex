@@ -130,13 +130,20 @@ defmodule QuintalWeb.HomeLive do
         <h1 class="boas-vindas__marca">quintal</h1>
         <p class="boas-vindas__linha">seu canto na vizinhança</p>
 
+        <%!-- alpha fechado (spec 6): o convite é a porta principal,
+             o login é caminho quieto pra quem já mora aqui --%>
+        <.link navigate={~p"/convite"} class="botao botao--primario">tenho um convite</.link>
+
         <form action="/oauth/login" method="get" class="entrar">
-          <.campo name="handle" label="seu handle atproto" placeholder="alice.bsky.social" required />
-          <.botao type="submit">entrar com atproto</.botao>
+          <.campo
+            name="handle"
+            label="já mora aqui? entra com teu handle"
+            placeholder="alice.bsky.social"
+            required
+          />
+          <.botao variante={:fantasma} type="submit">entrar com atproto</.botao>
           <.link navigate={~p"/cadastro"} class="cadastro__link">não tenho conta ainda</.link>
         </form>
-
-        <p class="boas-vindas__convite">tem um convite? ele entra junto no primeiro acesso</p>
 
         <nav class="rodape">
           <.link navigate={~p"/faq"}>sobre</.link>

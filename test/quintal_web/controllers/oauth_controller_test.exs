@@ -4,6 +4,7 @@ defmodule QuintalWeb.OAuthControllerTest do
   import Mox
 
   alias Quintal.Auth.Mock
+  alias Quintal.Repo
 
   setup :verify_on_exit!
 
@@ -28,6 +29,14 @@ defmodule QuintalWeb.OAuthControllerTest do
     test "exchanges the code and stores only the did in the cookie", %{conn: conn} do
       pending = %{state: "abc"}
 
+      # quem já mora no quintal entra direto, sem código
+      Repo.insert!(%Quintal.Identidade{
+        did: "did:plc:alice",
+        handle: "alice.bsky.social",
+        pds_url: "https://bsky.social",
+        atualizado_em: DateTime.utc_now()
+      })
+
       # sem sessão restaurável, o bootstrap assíncrono nem dispara
       stub(Mock, :current_session, fn _did -> {:error, :not_found} end)
 
@@ -43,6 +52,37 @@ defmodule QuintalWeb.OAuthControllerTest do
       assert redirected_to(conn) == "/"
       assert get_session(conn, :quintal_did) == "did:plc:alice"
       refute get_session(conn, :oauth_pending)
+    end
+
+    test "cara nova com convite válido entra e queima o código", %{conn: conn} do
+      {:ok, convite} = Quintal.Convites.gerar("admin")
+
+      stub(Mock, :current_session, fn _did -> {:error, :not_found} end)
+
+      expect(Mock, :open_session, fn _pending, _params -> {:ok, "did:plc:nova"} end)
+
+      conn =
+        conn
+        |> init_test_session(%{oauth_pending: %{state: "abc"}, convite: convite.codigo})
+        |> get("/oauth/callback", %{"code" => "123", "state" => "abc"})
+
+      assert redirected_to(conn) == "/"
+      assert get_session(conn, :quintal_did) == "did:plc:nova"
+      refute get_session(conn, :convite)
+      assert Repo.get(Quintal.Convite, convite.codigo).usado_por == "did:plc:nova"
+    end
+
+    test "cara nova sem convite volta para a portaria", %{conn: conn} do
+      expect(Mock, :open_session, fn _pending, _params -> {:ok, "did:plc:estranho"} end)
+      expect(Mock, :logout, fn "did:plc:estranho" -> :ok end)
+
+      conn =
+        conn
+        |> init_test_session(%{oauth_pending: %{state: "abc"}})
+        |> get("/oauth/callback", %{"code" => "123", "state" => "abc"})
+
+      assert redirected_to(conn) == "/convite"
+      refute get_session(conn, :quintal_did)
     end
 
     test "rejects when there is no pending flow", %{conn: conn} do

@@ -5,7 +5,8 @@ defmodule QuintalWeb.CadastroLive do
   O quintal é byo-pds: a conta não é criada aqui, é criada num pds
   (bsky.social, self-hosted, qualquer um) e a identidade volta pronta
   para entrar. Esta página explica isso com um micro tutorial e devolve
-  a pessoa para o login. Convites entram aqui no m4.
+  a pessoa para o login. Quem tem convite começa pela portaria em
+  `/convite`.
   """
 
   use QuintalWeb, :live_view

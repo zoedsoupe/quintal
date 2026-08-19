@@ -38,7 +38,7 @@ defmodule QuintalWeb.Layouts do
 
         <nav :if={@sessao} class="chrome__nav">
           <.link navigate={~p"/"}>início</.link>
-          <%!-- passear entra no m4 --%>
+          <.link navigate={~p"/passear"}>passear</.link>
           <.link navigate={~p"/visitas"}>visitas</.link>
           <.link :if={@handle} navigate={~p"/canto/#{@handle}"}>canto</.link>
         </nav>
@@ -56,7 +56,10 @@ defmodule QuintalWeb.Layouts do
           <Lucideicons.home aria-hidden="true" />
           <span>início</span>
         </.link>
-        <%!-- passear entra no m4 --%>
+        <.link navigate={~p"/passear"} class="nav-movel__item">
+          <Lucideicons.compass aria-hidden="true" />
+          <span>passear</span>
+        </.link>
         <.link navigate={~p"/visitas"} class="nav-movel__item">
           <span class="nav-movel__icone">
             <Lucideicons.mail aria-hidden="true" />

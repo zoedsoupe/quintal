@@ -20,6 +20,8 @@ defmodule QuintalWeb.Router do
     live_session :default, on_mount: [QuintalWeb.SessaoHook] do
       live "/", HomeLive
       live "/cadastro", CadastroLive
+      live "/convite", ConviteLive
+      live "/passear", PassearLive
       live "/faq", FaqLive
       live "/conduta", CondutaLive
       live "/canto/:handle", CantoLive
@@ -29,6 +31,7 @@ defmodule QuintalWeb.Router do
     get "/oauth/login", OAuthController, :login
     get "/oauth/logout", OAuthController, :logout
     get "/oauth/callback", OAuthController, :callback
+    post "/convite", ConviteController, :create
   end
 
   scope "/", QuintalWeb do

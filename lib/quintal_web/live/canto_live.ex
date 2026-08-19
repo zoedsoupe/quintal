@@ -4,9 +4,9 @@ defmodule QuintalWeb.CantoLive do
 
   Visitação: cabeçalho quieto com o nome do canto em fraunces, bio de
   uma linha, links em sussurro, e os blocos na ordem que o dono
-  escolheu (bio, prosas, recados, quem eu leio, links). O tema do canto
-  (papel, madrugada, gloss) e a cor de acento vivem num wrapper com
-  `data-theme`, de onde as variáveis cascateiam (spec 7.2).
+  escolheu (bio, prosas, recados, cumadis que recomendo, links). O
+  tema do canto (papel, madrugada, gloss) e a cor de acento vivem num
+  wrapper com `data-theme`, de onde as variáveis cascateiam (spec 7.2).
 
   Modo arrumar (só no próprio canto, logado): edição in place, nunca um
   painel distante. Swatches dos três presets, cor de acento, olho para
@@ -22,6 +22,7 @@ defmodule QuintalWeb.CantoLive do
   alias Quintal.Blogrolls
   alias Quintal.Canto
   alias Quintal.Cantos
+  alias Quintal.Convites
   alias Quintal.Depoimentos
   alias Quintal.Follows
   alias Quintal.Identidade
@@ -68,6 +69,8 @@ defmodule QuintalWeb.CantoLive do
             Enum.find(Follows.vizinhanca(sessao.did), &(&1.seguido_did == dono.did))
           end
 
+        convites = if proprio?, do: Convites.disponiveis(dono.did), else: []
+
         {:ok,
          assign(socket,
            novidade: novidade,
@@ -84,7 +87,9 @@ defmodule QuintalWeb.CantoLive do
            recados_visiveis: @recados_pagina,
            depoimentos: Depoimentos.aceitos(dono.did),
            depoimento_form: false,
-           blogroll_items: blogroll_items(dono.did)
+           blogroll_items: blogroll_items(dono.did),
+           convites: convites,
+           convites_restantes: if(proprio?, do: Convites.restantes(dono.did), else: 0)
          )}
     end
   end
@@ -160,6 +165,26 @@ defmodule QuintalWeb.CantoLive do
 
   def handle_event("arrumar", _params, socket) do
     {:noreply, update(socket, :arrumar, &(!&1))}
+  end
+
+  def handle_event("gerar_convite", _params, socket) do
+    if socket.assigns.proprio? do
+      case Convites.gerar(socket.assigns.sessao.did) do
+        {:ok, convite} ->
+          {:noreply,
+           socket
+           |> update(:convites, &[convite | &1])
+           |> assign(convites_restantes: Convites.restantes(socket.assigns.sessao.did))}
+
+        {:error, :cota_esgotada} ->
+          {:noreply, put_flash(socket, :error, "sua cota de convites acabou por enquanto")}
+
+        {:error, _reason} ->
+          {:noreply, put_flash(socket, :error, "ih, algo deu errado. tenta de novo?")}
+      end
+    else
+      {:noreply, socket}
+    end
   end
 
   def handle_event("tema", %{"tema" => tema}, socket) do
@@ -337,6 +362,10 @@ defmodule QuintalWeb.CantoLive do
 
   defp acento_padrao(tema), do: @presets[tema].acento
 
+  # microcopy da cota, no tom da casa (spec 7.7)
+  defp convites_linha(1), do: "você ainda pode chamar 1 pessoa pro quintal"
+  defp convites_linha(n), do: "você ainda pode chamar #{n} pessoas pro quintal"
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -512,7 +541,7 @@ defmodule QuintalWeb.CantoLive do
                   </p>
                 </div>
               <% "quem-eu-leio" -> %>
-                <h2 class="canto-bloco__titulo">quem eu leio</h2>
+                <h2 class="canto-bloco__titulo">cumadis que recomendo</h2>
                 <ul class="quem-leio">
                   <li :for={item <- @blogroll_items}>
                     <.link navigate={~p"/canto/#{item.handle}"}>{item.handle}</.link>
@@ -523,7 +552,7 @@ defmodule QuintalWeb.CantoLive do
                       class="icone-botao"
                       phx-click="blogroll_remove"
                       phx-value-did={item.did}
-                      aria-label={"tirar #{item.handle} do quem eu leio"}
+                      aria-label={"tirar #{item.handle} das cumadis"}
                     >
                       <Lucideicons.x aria-hidden="true" />
                     </button>
@@ -581,6 +610,34 @@ defmodule QuintalWeb.CantoLive do
             <% end %>
           </section>
         </div>
+
+        <section :if={@proprio? && !@arrumar} class="convidar">
+          <h2 class="canto-bloco__titulo">convidar</h2>
+          <p :if={@convites_restantes > 0} class="convidar__linha">
+            {convites_linha(@convites_restantes)}
+          </p>
+          <p :if={@convites_restantes == 0} class="convidar__linha">
+            sua cota de convites acabou por enquanto
+          </p>
+
+          <ul :if={@convites != []} class="convidar__codigos">
+            <li :for={convite <- @convites}>
+              <code>{convite.codigo}</code>
+              <button
+                type="button"
+                class="icone-botao"
+                phx-click={JS.dispatch("quintal:copiar", detail: %{texto: convite.codigo})}
+                aria-label={"copiar código #{convite.codigo}"}
+              >
+                <Lucideicons.copy aria-hidden="true" />
+              </button>
+            </li>
+          </ul>
+
+          <.botao :if={@convites_restantes > 0} variante={:sutil} phx-click="gerar_convite">
+            gerar um convite
+          </.botao>
+        </section>
 
         <nav :if={@proprio? && !@arrumar} class="rodape">
           <.link href="/oauth/logout">sair</.link>

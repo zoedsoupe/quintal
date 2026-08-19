@@ -5,10 +5,17 @@ defmodule QuintalWeb.ErrorHTMLTest do
   import Phoenix.Template, only: [render_to_string: 4]
 
   test "renders 404.html" do
-    assert render_to_string(QuintalWeb.ErrorHTML, "404", "html", []) == "Not Found"
+    html = render_to_string(QuintalWeb.ErrorHTML, "404", "html", [])
+    assert html =~ "o axô procurou, procurou... e não achou essa página"
+  end
+
+  test "renders 401.html" do
+    html = render_to_string(QuintalWeb.ErrorHTML, "401", "html", [])
+    assert html =~ "ih, algo deu errado. tenta de novo?"
   end
 
   test "renders 500.html" do
-    assert render_to_string(QuintalWeb.ErrorHTML, "500", "html", []) == "Internal Server Error"
+    html = render_to_string(QuintalWeb.ErrorHTML, "500", "html", [])
+    assert html =~ "ih, algo deu errado. tenta de novo?"
   end
 end

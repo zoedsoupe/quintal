@@ -41,7 +41,7 @@ defmodule QuintalWeb.Components do
   attr :label, :string, default: nil
   attr :area, :boolean, default: false
   attr :errors, :list, default: []
-  attr :rest, :global, include: ~w(type placeholder rows maxlength required autofocus aria-label)
+  attr :rest, :global, include: ~w(type placeholder rows maxlength required autofocus aria-label autocomplete)
 
   def campo(%{field: %FormField{} = field} = assigns) do
     assigns

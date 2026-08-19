@@ -137,6 +137,11 @@ window.addEventListener("phx:limpar-campo", (e) => {
   if (campo) campo.value = "";
 });
 
+// quintal:copiar: copia um código de convite para a área de transferência
+window.addEventListener("quintal:copiar", (e) => {
+  navigator.clipboard?.writeText(e.detail.texto);
+});
+
 const csrfToken = document
   .querySelector("meta[name='csrf-token']")
   .getAttribute("content");

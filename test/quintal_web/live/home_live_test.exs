@@ -32,7 +32,8 @@ defmodule QuintalWeb.HomeLiveTest do
     assert html =~ ~s(action="/oauth/login")
     assert html =~ ~s(name="handle")
     assert html =~ "entrar com atproto"
-    assert html =~ "tem um convite? ele entra junto no primeiro acesso"
+    assert html =~ "tenho um convite"
+    assert html =~ "/convite"
   end
 
   test "logada: composer no topo e o vazio do spec, sem prosa ainda", %{conn: conn} do

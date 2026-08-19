@@ -514,11 +514,6 @@
   color: var(--meta);
 }
 
-.boas-vindas__convite {
-  font-size: 0.875rem;
-  color: var(--meta);
-}
-
 /* form de entrar: campo e botao com respiro */
 
 .entrar {

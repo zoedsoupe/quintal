@@ -1,0 +1,84 @@
+/* passear e convite (marco m4, briefing 5.6 e 5.7) */
+
+/* passear: quase vazio de proposito. axo com a lupa, uma frase, um
+   botao grande. a carta de descoberta ocupa o mesmo centro */
+
+.passear {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espaco-4);
+  padding-block: var(--espaco-5);
+  text-align: center;
+}
+
+.passear__axo {
+  width: 9rem;
+  height: auto;
+}
+
+.passear__linha {
+  color: var(--meta);
+}
+
+.passeio__trecho {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  max-width: var(--medida-leitura);
+  font-family: var(--fonte-leitura);
+  font-size: 1.25rem;
+  line-height: 1.6;
+  color: var(--tinta);
+}
+
+.passeio__autor {
+  color: var(--meta);
+}
+
+.passeio__caminhos {
+  display: flex;
+  gap: var(--espaco-3);
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* convite: tela de portaria, uma acao (briefing 5.7) */
+
+.convite {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espaco-3);
+  padding-block: var(--espaco-5);
+  text-align: center;
+}
+
+.convite__axo {
+  width: 8rem;
+  height: auto;
+}
+
+.convite h1 {
+  font-family: var(--fonte-leitura);
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--tinta);
+  max-width: 22rem;
+}
+
+.convite__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  width: 100%;
+  max-width: 22rem;
+  text-align: left;
+}
+
+.convite__linha {
+  font-size: 0.875rem;
+  color: var(--meta);
+}
