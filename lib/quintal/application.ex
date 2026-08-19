@@ -14,6 +14,7 @@ defmodule Quintal.Application do
       {Phoenix.PubSub, name: Quintal.PubSub},
       {Registry, keys: :unique, name: SessionRegistry},
       {DynamicSupervisor, strategy: :one_for_one, name: SessionSupervisor},
+      {Task.Supervisor, name: Quintal.TaskSupervisor},
       QuintalWeb.Endpoint
     ]
 

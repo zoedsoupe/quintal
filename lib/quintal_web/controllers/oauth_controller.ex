@@ -34,6 +34,8 @@ defmodule QuintalWeb.OAuthController do
   def callback(conn, params) do
     with pending when not is_nil(pending) <- get_session(conn, :oauth_pending),
          {:ok, did} <- Quintal.Auth.impl().open_session(pending, params) do
+      bootstrap_async(did)
+
       conn
       |> delete_session(:oauth_pending)
       |> put_session(:quintal_did, did)
@@ -44,6 +46,17 @@ defmodule QuintalWeb.OAuthController do
         |> put_status(:unauthorized)
         |> text("ih, algo deu errado. tenta de novo?")
     end
+  end
+
+  # Cria o canto.config e indexa o histórico (spec 8.2, fluxo 1), fora
+  # do caminho do request: o login nunca espera nem quebra por causa
+  # do bootstrap.
+  defp bootstrap_async(did) do
+    with {:ok, session} <- Quintal.Auth.impl().current_session(did) do
+      Task.Supervisor.start_child(Quintal.TaskSupervisor, Quintal.Bootstrap, :run, [session])
+    end
+
+    :ok
   end
 
   def login(conn, %{"handle" => handle}) do

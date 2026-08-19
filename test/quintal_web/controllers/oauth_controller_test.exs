@@ -28,6 +28,9 @@ defmodule QuintalWeb.OAuthControllerTest do
     test "exchanges the code and stores only the did in the cookie", %{conn: conn} do
       pending = %{state: "abc"}
 
+      # sem sessão restaurável, o bootstrap assíncrono nem dispara
+      stub(Mock, :current_session, fn _did -> {:error, :not_found} end)
+
       expect(Mock, :open_session, fn ^pending, %{"code" => "123", "state" => "abc"} ->
         {:ok, "did:plc:alice"}
       end)
