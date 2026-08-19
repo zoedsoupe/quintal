@@ -30,6 +30,6 @@ kill_signal = 'SIGTERM'
 
 [[vm]]
   size = 'shared-cpu-1x'
-  memory = '1024mb'
+  memory = '1536mb'
   cpus = 1
-  memory_mb = 1024
+  memory_mb = 1536
