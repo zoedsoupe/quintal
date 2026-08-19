@@ -27,17 +27,74 @@ import { LiveSocket } from "phoenix_live_view";
 import { hooks as colocatedHooks } from "phoenix-colocated/quintal";
 import topbar from "../vendor/topbar";
 
+// Prosear: o composer da home (briefing 5.2). auto-grow, contador que só
+// aparece nos últimos 500 grafemes e rascunho local oferecido de volta.
+const Prosear = {
+  mounted() {
+    this.campo = this.el.querySelector("textarea");
+    this.contador = this.el.querySelector(".prosear__contador");
+    this.aviso = this.el.querySelector(".prosear__rascunho");
+    this.chave = "quintal:rascunho";
+    this.limite = 10000;
+
+    const rascunho = localStorage.getItem(this.chave);
+    if (rascunho && !this.campo.value) {
+      this.campo.value = rascunho;
+      this.aviso.hidden = false;
+    }
+
+    this.campo.addEventListener("input", () => {
+      this.cresce();
+      this.conta();
+      if (this.campo.value) {
+        localStorage.setItem(this.chave, this.campo.value);
+      } else {
+        localStorage.removeItem(this.chave);
+      }
+    });
+
+    this.handleEvent("prosear-publicado", () => {
+      this.campo.value = "";
+      localStorage.removeItem(this.chave);
+      this.aviso.hidden = true;
+      this.cresce();
+      this.conta();
+    });
+
+    this.cresce();
+    this.conta();
+  },
+
+  updated() {
+    this.cresce();
+    this.conta();
+  },
+
+  cresce() {
+    this.campo.style.height = "auto";
+    this.campo.style.height = `${this.campo.scrollHeight}px`;
+  },
+
+  conta() {
+    const faltam = this.limite - [...this.campo.value].length;
+    this.contador.hidden = faltam > 500;
+    if (!this.contador.hidden) {
+      this.contador.textContent = `tá chegando no limite, faltam ${faltam}`;
+    }
+  },
+};
+
 const csrfToken = document
   .querySelector("meta[name='csrf-token']")
   .getAttribute("content");
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: { _csrf_token: csrfToken },
-  hooks: { ...colocatedHooks },
+  hooks: { Prosear, ...colocatedHooks },
 });
 
 // Show progress bar on live navigation and form submits
-topbar.config({ barColors: { 0: "#29d" }, shadowColor: "rgba(0, 0, 0, .3)" });
+topbar.config({ barColors: { 0: "#8b7bb8" }, shadowColor: "rgba(0, 0, 0, .15)" });
 window.addEventListener("phx:page-loading-start", (_info) => topbar.show(300));
 window.addEventListener("phx:page-loading-stop", (_info) => topbar.hide());
 

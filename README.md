@@ -6,6 +6,10 @@ uma plataforma coletiva de blogs sobre atproto, inspirada na web antiga: blogs p
 
 o quintal não é uma rede social. é uma vizinhança. cada pessoa tem seu canto, escreve suas prosas, recebe recados e escolhe quem quer ler. público por padrão, seu por princípio.
 
+## status
+
+mvp em alpha. as coisas mudam, quebram e mudam de novo. use por sua conta e risco.
+
 ## princípios
 
 - **cronológico para sempre.** não existe função de ranqueamento e nunca existirá. não é uma feature faltando, é a constituição.

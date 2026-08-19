@@ -1,34 +1,52 @@
 /* componentes do quintal. classes proprias, modificadores com --.
    saturacao mora no chrome; a area de leitura fica calma (spec 7.2). */
 
-/* botao */
+/* botao (briefing 4.1): primario em pill no acento, hover escurece 8%,
+   foco com anel visivel, disabled com metade da opacidade. uma acao
+   principal por tela, sem sombras em nenhum estado. */
 
 .botao {
   display: inline-block;
   padding: var(--espaco-2) var(--espaco-3);
   border: 1px solid transparent;
-  border-radius: var(--raio);
+  border-radius: var(--raio-pill);
   font-family: var(--fonte-chrome);
   text-decoration: none;
   cursor: pointer;
   background: var(--acento);
   color: var(--fundo);
+  transition:
+    background var(--transicao),
+    color var(--transicao),
+    border-color var(--transicao);
 }
 
 .botao:hover {
-  background: var(--acento-2);
-  color: var(--fundo);
+  background: color-mix(in srgb, var(--acento) 92%, black);
 }
+
+.botao:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 2px;
+}
+
+.botao:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* secundario: ghost, texto no acento, borda fina de sussurro */
 
 .botao--fantasma {
   background: transparent;
-  border-color: var(--acento);
+  border-color: var(--sussurro);
   color: var(--acento);
 }
 
 .botao--fantasma:hover {
-  border-color: var(--acento-2);
-  color: var(--acento-2);
+  background: transparent;
+  border-color: var(--acento);
+  color: color-mix(in srgb, var(--acento) 92%, black);
 }
 
 .botao--sutil {
@@ -37,7 +55,42 @@
   padding-inline: var(--espaco-1);
 }
 
-/* campo de formulario */
+.botao--sutil:hover {
+  background: transparent;
+  color: color-mix(in srgb, var(--acento) 92%, black);
+}
+
+/* destrutivo: vinho fechado, nunca vermelho vivo. a confirmacao em
+   linguagem humana mora no data-confirm de quem usa. */
+
+.botao--destrutivo {
+  background: transparent;
+  border-color: var(--sussurro);
+  color: var(--erro);
+}
+
+.botao--destrutivo:hover {
+  background: transparent;
+  border-color: var(--erro);
+  color: color-mix(in srgb, var(--erro) 92%, black);
+}
+
+/* acessibilidade: label presente mesmo quando o design esconde */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* campo de formulario (briefing 4.7): borda de sussurro, raio generoso,
+   foco no acento, label sempre visivel, erro sem vermelho agressivo */
 
 .campo {
   display: flex;
@@ -96,8 +149,140 @@
   color: var(--meta);
 }
 
+/* nome do canto em peso 600; handle e tempo ficam em sussurro (4.2) */
+
+.prosa__autor {
+  font-weight: 600;
+  color: var(--tinta);
+}
+
 .prosa__texto {
   white-space: pre-wrap;
+}
+
+.prosa__acoes {
+  margin-left: auto;
+}
+
+/* feed: uma folha, nao uma grade de cartoes. separacao por espaco em
+   branco e hairline de sussurro (briefing 4.2) */
+
+.feed {
+  max-width: var(--medida-leitura);
+  margin-block: var(--espaco-4);
+}
+
+.feed .prosa {
+  padding-inline: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.feed .prosa + .prosa {
+  border-top: 1px solid var(--sussurro);
+}
+
+.feed__mais {
+  margin-top: var(--espaco-3);
+  text-align: center;
+}
+
+/* fim de feed declarado: quando acaba, acaba, com despedida amiga */
+
+.feed__fim {
+  margin-top: var(--espaco-4);
+  padding-top: var(--espaco-3);
+  border-top: 1px solid var(--sussurro);
+  font-size: 0.875rem;
+  color: var(--meta);
+  text-align: center;
+}
+
+/* prosear: o composer mora na home (briefing 5.2). colapsado e uma
+   caixa quieta; ao focar, expande suave e mostra tipos e publicar */
+
+.prosear {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  max-width: var(--medida-leitura);
+  margin-block: var(--espaco-4);
+}
+
+.prosear .campo__area {
+  min-height: 2.75rem;
+  resize: none;
+  overflow: hidden;
+}
+
+.prosear__rodape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--transicao),
+    max-height var(--transicao),
+    visibility var(--transicao);
+}
+
+.prosear:focus-within .prosear__rodape,
+.prosear--expandido .prosear__rodape {
+  max-height: 6rem;
+  opacity: 1;
+  visibility: visible;
+}
+
+/* tipos sao metadado, nao cerimonia (spec 10.1): pills quietas, trocar
+   o tipo nao muda nada alem da pill */
+
+.prosear__tipos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+}
+
+.prosear__tipos input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.prosear__tipos label {
+  padding: var(--espaco-1) var(--espaco-3);
+  border: 1px solid var(--sussurro);
+  border-radius: var(--raio-pill);
+  font-size: 0.875rem;
+  color: var(--meta);
+  cursor: pointer;
+  transition:
+    background var(--transicao),
+    color var(--transicao),
+    border-color var(--transicao);
+}
+
+.prosear__tipos label:has(input:checked) {
+  background: var(--acento);
+  border-color: var(--acento);
+  color: var(--fundo);
+}
+
+.prosear__tipos label:has(input:focus-visible) {
+  outline: 2px solid var(--acento);
+  outline-offset: 2px;
+}
+
+/* contador invisivel ate faltar pouco (ultimos 500 grafemes, em
+   sussurro); rascunho oferecido de volta na mesma voz */
+
+.prosear__contador,
+.prosear__rascunho {
+  font-size: 0.875rem;
+  color: var(--meta);
 }
 
 /* recado: entrada do livro de visitas */
@@ -114,20 +299,22 @@
   color: var(--meta);
 }
 
-/* selo do compromisso humano */
+/* selo do compromisso humano (briefing 4.9): icone de mao escrevendo,
+   tooltip explica. quieto, ao lado do nome do canto */
 
 .selo {
   display: inline-flex;
   align-items: center;
   gap: var(--espaco-1);
-  padding: var(--espaco-1) var(--espaco-2);
-  border: 1px solid var(--acento-2);
-  border-radius: 999px;
-  font-size: 0.75rem;
   color: var(--acento-2);
 }
 
-/* estado vazio: o axo aparece aqui (spec 7.6) */
+.selo svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* estado vazio: o axo aparece aqui, uma vez por tela (spec 7.6) */
 
 .vazio {
   display: flex;
@@ -140,8 +327,8 @@
 }
 
 .vazio .axo {
-  width: 4rem;
-  height: 4rem;
+  width: 6rem;
+  height: auto;
 }
 
 /* chrome: a moldura da aplicacao */
@@ -192,6 +379,40 @@
   color: var(--tinta);
 }
 
+/* boas-vindas: home deslogada (briefing 5.1). uma tela, uma acao:
+   logo, nome em fraunces, uma linha, entrar com atproto */
+
+.boas-vindas {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espaco-3);
+  padding-block: var(--espaco-5);
+  text-align: center;
+}
+
+.boas-vindas__axo {
+  width: 7rem;
+  height: auto;
+}
+
+.boas-vindas__marca {
+  font-family: var(--fonte-leitura);
+  font-size: 2.5rem;
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--tinta);
+}
+
+.boas-vindas__linha {
+  color: var(--meta);
+}
+
+.boas-vindas__convite {
+  font-size: 0.875rem;
+  color: var(--meta);
+}
+
 /* form de entrar: campo e botao com respiro */
 
 .entrar {
@@ -232,52 +453,6 @@
 .cadastro__link {
   font-size: 0.875rem;
   text-align: center;
-}
-
-/* prosear: o composer da home (m1) */
-
-.prosear {
-  display: flex;
-  flex-direction: column;
-  gap: var(--espaco-3);
-  max-width: var(--medida-leitura);
-  margin-block: var(--espaco-4);
-}
-
-.prosear .botao {
-  align-self: flex-start;
-}
-
-/* lista de prosas, cronológica, sem ranqueamento (spec 2) */
-
-.prosas {
-  display: flex;
-  flex-direction: column;
-  gap: var(--espaco-4);
-  margin-block: var(--espaco-4);
-}
-
-.prosear__rodape {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--espaco-3);
-}
-
-/* tipo é metadado, não rótulo (spec 10.1): select quieto no chrome */
-
-.prosear__tipo {
-  padding: var(--espaco-1) var(--espaco-2);
-  border: 1px solid var(--sussurro);
-  border-radius: var(--raio);
-  background: var(--fundo);
-  color: var(--meta);
-  font-family: var(--fonte-chrome);
-  font-size: 0.875rem;
-}
-
-.prosa__acoes {
-  margin-left: auto;
 }
 
 /* rodape: links quietos de faq e conduta */

@@ -5,7 +5,6 @@ defmodule QuintalWeb.HomeLiveTest do
   import Phoenix.LiveViewTest
 
   alias Quintal.Auth.Mock
-  alias Quintal.PDS.Mock, as: PDSMock
 
   setup :verify_on_exit!
 
@@ -26,20 +25,22 @@ defmodule QuintalWeb.HomeLiveTest do
     init_test_session(conn, %{quintal_did: "did:plc:alice"})
   end
 
-  test "deslogada: sugere entrar com handle atproto", %{conn: conn} do
+  test "deslogada: boas-vindas do spec, uma tela e uma ação", %{conn: conn} do
     {:ok, _view, html} = live(conn, "/")
 
-    assert html =~ "uma vizinhança de blogs"
+    assert html =~ "seu canto na vizinhança"
     assert html =~ ~s(action="/oauth/login")
     assert html =~ ~s(name="handle")
+    assert html =~ "entrar com atproto"
+    assert html =~ "tem um convite? ele entra junto no primeiro acesso"
   end
 
-  test "logada: composer e o vazio do spec, sem prosa ainda", %{conn: conn} do
+  test "logada: composer no topo e o vazio do spec, sem prosa ainda", %{conn: conn} do
     {:ok, _view, html} = live(loga_como_alice(conn), "/")
 
-    assert html =~ "oi, alice.bsky.social"
+    assert html =~ "o que tá passando no seu quintal?"
     assert html =~ "prosear"
-    assert html =~ "por aqui ainda tá quieto"
+    assert html =~ "por aqui ainda tá quieto. que tal escrever a primeira prosa?"
     assert html =~ "/oauth/logout"
   end
 
@@ -51,7 +52,7 @@ defmodule QuintalWeb.HomeLiveTest do
       atualizado_em: DateTime.utc_now()
     })
 
-    stub(PDSMock, :create_record, fn _session, "place.quintal.feed.prosa", _record ->
+    stub(Quintal.PDS.Mock, :create_record, fn _session, "place.quintal.feed.prosa", _record ->
       {:ok, %{uri: "at://did:plc:alice/place.quintal.feed.prosa/abc", cid: "bafy1"}}
     end)
 
@@ -76,43 +77,14 @@ defmodule QuintalWeb.HomeLiveTest do
     assert html =~ "ih, algo deu errado. tenta de novo?"
   end
 
-  test "composer oferece os quatro tipos, quietos no chrome", %{conn: conn} do
+  test "composer oferece os quatro tipos como pills quietas", %{conn: conn} do
     {:ok, _view, html} = live(loga_como_alice(conn), "/")
 
-    assert html =~ ~s(<select name="tipo")
+    assert html =~ ~s(type="radio" name="tipo")
     for tipo <- ["nota", "pergunta", "crônica", "ensaio"], do: assert(html =~ tipo)
   end
 
-  test "apagar: some da lista, do pds e do índice", %{conn: conn} do
-    Quintal.Repo.insert!(%Quintal.Identidade{
-      did: "did:plc:alice",
-      handle: "alice.bsky.social",
-      pds_url: "https://pds.example",
-      atualizado_em: DateTime.utc_now()
-    })
-
-    uri = "at://did:plc:alice/place.quintal.feed.prosa/abc"
-
-    {:ok, _} =
-      Quintal.Prosas.indexar("did:plc:alice", %{
-        uri: uri,
-        cid: "bafy",
-        value: %{text: "prosa efêmera", created_at: "2026-08-01T10:00:00Z"}
-      })
-
-    stub(PDSMock, :delete_record, fn _session, "place.quintal.feed.prosa", "abc", _opts -> :ok end)
-
-    {:ok, view, html} = live(loga_como_alice(conn), "/")
-    assert html =~ "prosa efêmera"
-    assert html =~ "apagar essa prosa? ela sai do seu pds também."
-
-    html = render_click(view, "apagar", %{"uri" => uri})
-
-    refute html =~ "prosa efêmera"
-    assert Quintal.Repo.get(Quintal.Prosa, uri) == nil
-  end
-
-  test "seguir um canto: entra na vizinhança e as prosas dele viram feed", %{conn: conn} do
+  test "feed com fim declarado: a despedida aparece quando acaba", %{conn: conn} do
     for {did, handle} <- [
           {"did:plc:alice", "alice.bsky.social"},
           {"did:plc:beto", "beto.bsky.social"}
@@ -132,40 +104,16 @@ defmodule QuintalWeb.HomeLiveTest do
         value: %{text: "bom dia do beto", created_at: "2026-08-02T10:00:00Z"}
       })
 
-    stub(PDSMock, :create_record, fn _session, "place.quintal.graph.follow", _record ->
-      {:ok, %{uri: "at://did:plc:alice/place.quintal.graph.follow/f1", cid: "bafy"}}
-    end)
+    {:ok, _} =
+      Quintal.Follows.indexar("did:plc:alice", %{
+        uri: "at://did:plc:alice/place.quintal.graph.follow/f1",
+        value: %{subject: "did:plc:beto", created_at: "2026-08-02T10:00:00Z"}
+      })
 
-    stub(PDSMock, :delete_record, fn _session, "place.quintal.graph.follow", "f1", _opts -> :ok end)
+    {:ok, _view, html} = live(loga_como_alice(conn), "/")
 
-    {:ok, view, html} = live(loga_como_alice(conn), "/")
-
-    # feed vazio até seguir alguém
-    assert html =~ "que tal seguir um canto?"
-    refute html =~ "bom dia do beto"
-
-    html =
-      view
-      |> form("form[phx-submit=seguir]", %{quem: "beto.bsky.social"})
-      |> render_submit()
-
-    assert html =~ "agora esse canto tá na sua vizinhança"
-    assert html =~ "beto.bsky.social"
     assert html =~ "bom dia do beto"
-
-    html = render_click(view, "deixar_de_seguir", %{"uri" => "at://did:plc:alice/place.quintal.graph.follow/f1"})
-    refute html =~ "bom dia do beto"
-  end
-
-  test "seguir canto desconhecido mostra o axô procurando", %{conn: conn} do
-    {:ok, view, _html} = live(loga_como_alice(conn), "/")
-
-    html =
-      view
-      |> form("form[phx-submit=seguir]", %{quem: "ninguem.bsky.social"})
-      |> render_submit()
-
-    assert html =~ "o axô procurou, procurou... e não achou esse canto"
+    assert html =~ "você viu tudo do seu quintal por hoje. vai tomar um café."
   end
 
   test "sessão inválida cai no estado deslogado", %{conn: conn} do
@@ -175,6 +123,6 @@ defmodule QuintalWeb.HomeLiveTest do
 
     {:ok, _view, html} = live(conn, "/")
 
-    assert html =~ "uma vizinhança de blogs"
+    assert html =~ "seu canto na vizinhança"
   end
 end

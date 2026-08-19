@@ -39,6 +39,9 @@ config :quintal, QuintalWeb.Endpoint,
   pubsub_server: Quintal.PubSub,
   live_view: [signing_salt: "wCdIpsWV"]
 
+# pt-br primeiro (spec 2): erros de changeset chegam em portugues
+config :quintal, QuintalWeb.Gettext, default_locale: "pt_BR"
+
 config :quintal,
   ecto_repos: [Quintal.Repo],
   generators: [timestamp_type: :utc_datetime]

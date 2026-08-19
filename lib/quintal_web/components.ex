@@ -13,11 +13,12 @@ defmodule QuintalWeb.Components do
   alias Phoenix.HTML.FormField
 
   @doc """
-  Botão do chrome. `variante` é `:primario` (default), `:fantasma` ou
-  `:sutil`. Renderiza `<button>` ou, com `navigate`/`href`, um link com
-  cara de botão.
+  Botão do chrome. `variante` é `:primario` (default), `:fantasma`,
+  `:sutil` ou `:destrutivo` (vinho fechado, sempre com confirmação em
+  linguagem humana no `data-confirm`). Renderiza `<button>` ou, com
+  `navigate`/`href`, um link com cara de botão.
   """
-  attr :variante, :atom, default: :primario, values: [:primario, :fantasma, :sutil]
+  attr :variante, :atom, default: :primario, values: [:primario, :fantasma, :sutil, :destrutivo]
   attr :rest, :global, include: ~w(type disabled navigate href phx-click phx-value-url phx-value-uri data-confirm)
   slot :inner_block, required: true
 
@@ -40,7 +41,7 @@ defmodule QuintalWeb.Components do
   attr :label, :string, default: nil
   attr :area, :boolean, default: false
   attr :errors, :list, default: []
-  attr :rest, :global, include: ~w(type placeholder rows maxlength required autofocus)
+  attr :rest, :global, include: ~w(type placeholder rows maxlength required autofocus aria-label)
 
   def campo(%{field: %FormField{} = field} = assigns) do
     assigns
@@ -77,7 +78,7 @@ defmodule QuintalWeb.Components do
     ~H"""
     <article class={["prosa", @tipo == :pergunta && "prosa--pergunta", @class]}>
       <header class="prosa__meta">
-        <span>{@autor}</span>
+        <span class="prosa__autor">{@autor}</span>
         <time>{@data}</time>
         <span :if={@acoes != []} class="prosa__acoes">{render_slot(@acoes)}</span>
       </header>
@@ -103,28 +104,50 @@ defmodule QuintalWeb.Components do
     """
   end
 
-  @doc "O selo do compromisso de escrita humana (spec 5.1)."
+  @doc """
+  O selo do compromisso de escrita humana (spec 5.1): o ícone de mão
+  escrevendo, quieto, com tooltip explicando o compromisso (briefing 4.9).
+  """
   attr :class, :string, default: nil
 
   def selo(assigns) do
     ~H"""
-    <span class={["selo", @class]}>escrita humana</span>
+    <span
+      class={["selo", @class]}
+      title="essa pessoa assinou o compromisso de escrita humana"
+    >
+      <Lucideicons.signature aria-hidden="true" />
+      <span class="sr-only">compromisso de escrita humana</span>
+    </span>
     """
   end
 
+  @axo_poses %{
+    sentado: "/images/axo-sitting.png",
+    dormindo: "/images/axo-slepping.png",
+    acenando: "/images/axo-front-gretting.png",
+    lupa: "/images/axo-with-glass.png",
+    nadando: "/images/axo-swimming.png"
+  }
+
   @doc """
-  Estado vazio com o axô. Único lugar onde o mascote mora por enquanto:
-  feed vazio, canto novo, visitas quietas.
+  Estado vazio com o axô (briefing 4.8): uma pose, uma frase de
+  microcopy, uma ação. Nunca uma tela morta, nunca mais de um axô
+  por tela (spec 7.6).
   """
   attr :titulo, :string, required: true
+  attr :pose, :atom, default: :sentado, values: [:sentado, :dormindo, :acenando, :lupa, :nadando]
   slot :inner_block
 
   def vazio(assigns) do
-    assigns = assign_new(assigns, :inner_block, fn -> [] end)
+    assigns =
+      assigns
+      |> assign_new(:inner_block, fn -> [] end)
+      |> assign(:axo_src, @axo_poses[assigns.pose])
 
     ~H"""
     <div class="vazio">
-      <div class="axo" aria-hidden="true"></div>
+      <img class="axo" src={@axo_src} alt="" aria-hidden="true" />
       <p>{@titulo}</p>
       {render_slot(@inner_block)}
     </div>

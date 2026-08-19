@@ -15,7 +15,7 @@ defmodule QuintalWeb.Layouts do
   O chrome da aplicação em volta do conteúdo.
   """
   attr :flash, :map, default: %{}
-  slot :inner_block, required: true, required: true
+  slot :inner_block, required: true
 
   def app(assigns) do
     ~H"""

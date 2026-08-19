@@ -25,7 +25,11 @@
   --espaco-5: 2.5rem;
 
   --raio: 0.5rem;
+  --raio-pill: 999px;
   --medida-leitura: 68ch;
+
+  /* movimento gentil: expandir, aparecer e sumir sem chamar atencao */
+  --transicao: 160ms ease-out;
 }
 
 /* lamparina: o papel a noite, mesma paleta com menos claridade */

@@ -2,16 +2,16 @@ defmodule QuintalWeb.HomeLive do
   @moduledoc """
   A porta de entrada do quintal.
 
-  Deslogada: o que é o lugar e o caminho para entrar com a identidade
-  atproto. Logada (m2): prosear, ler as próprias prosas, seguir cantos
-  e ler o feed cronológico da vizinhança, paginado por cursor. Sem
-  contadores, sem ranqueamento: a vizinhança é sua e de mais ninguém.
+  Deslogada (briefing 5.1): uma tela, uma ação. logo, nome em fraunces,
+  uma linha de apresentação e entrar com atproto. Logada (briefing 5.2):
+  o composer mora aqui, no topo, e embaixo o feed cronológico da
+  vizinhança, paginado por cursor, com fim declarado. Sem contadores,
+  sem ranqueamento: a vizinhança é sua e de mais ninguém.
   """
 
   use QuintalWeb, :live_view
 
   alias Quintal.Feed
-  alias Quintal.Follows
   alias Quintal.Prosas
 
   @feed_pagina 20
@@ -27,16 +27,12 @@ defmodule QuintalWeb.HomeLive do
       end
 
     handle = sessao && Map.get(sessao, :handle)
-    prosas = if sessao, do: Prosas.list_por_autor(sessao.did), else: []
-    vizinhanca = if sessao, do: Follows.vizinhanca(sessao.did), else: []
     feed = if sessao, do: Feed.list(sessao.did, limit: @feed_pagina), else: []
 
     {:ok,
      assign(socket,
        sessao: sessao,
        handle: handle,
-       prosas: prosas,
-       vizinhanca: vizinhanca,
        feed: feed,
        feed_cursor: proxima_pagina(feed)
      )}
@@ -49,51 +45,8 @@ defmodule QuintalWeb.HomeLive do
         {:noreply,
          socket
          |> put_flash(:info, "pronto, sua prosa tá no quintal")
-         |> update(:prosas, &[prosa | &1])}
-
-      {:error, _reason} ->
-        {:noreply, put_flash(socket, :error, "ih, algo deu errado. tenta de novo?")}
-    end
-  end
-
-  def handle_event("apagar", %{"uri" => uri}, socket) do
-    case Prosas.apagar(socket.assigns.sessao, uri) do
-      :ok ->
-        {:noreply, update(socket, :prosas, &Enum.reject(&1, fn prosa -> prosa.uri == uri end))}
-
-      {:error, _reason} ->
-        {:noreply, put_flash(socket, :error, "ih, algo deu errado. tenta de novo?")}
-    end
-  end
-
-  def handle_event("seguir", %{"quem" => quem}, socket) do
-    case Follows.seguir(socket.assigns.sessao, quem) do
-      {:ok, _follow} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "agora esse canto tá na sua vizinhança")
-         |> assign(vizinhanca: Follows.vizinhanca(socket.assigns.sessao.did))
-         |> recarrega_feed()}
-
-      {:error, :canto_desconhecido} ->
-        {:noreply, put_flash(socket, :error, "o axô procurou, procurou... e não achou esse canto")}
-
-      {:error, :auto_follow} ->
-        {:noreply, put_flash(socket, :error, "esse canto já é o seu")}
-
-      {:error, _reason} ->
-        {:noreply, put_flash(socket, :error, "ih, algo deu errado. tenta de novo?")}
-    end
-  end
-
-  def handle_event("deixar_de_seguir", %{"uri" => uri}, socket) do
-    case Follows.deixar_de_seguir(socket.assigns.sessao, uri) do
-      :ok ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "esse canto saiu da sua vizinhança")
-         |> assign(vizinhanca: Follows.vizinhanca(socket.assigns.sessao.did))
-         |> recarrega_feed()}
+         |> update(:feed, &[prosa | &1])
+         |> push_event("prosear-publicado", %{})}
 
       {:error, _reason} ->
         {:noreply, put_flash(socket, :error, "ih, algo deu errado. tenta de novo?")}
@@ -109,11 +62,6 @@ defmodule QuintalWeb.HomeLive do
      |> assign(feed_cursor: proxima_pagina(pagina))}
   end
 
-  defp recarrega_feed(socket) do
-    feed = Feed.list(socket.assigns.sessao.did, limit: @feed_pagina)
-    assign(socket, feed: feed, feed_cursor: proxima_pagina(feed))
-  end
-
   # Só há próxima página se a atual veio cheia.
   defp proxima_pagina(pagina) do
     if length(pagina) == @feed_pagina do
@@ -126,121 +74,105 @@ defmodule QuintalWeb.HomeLive do
     ~H"""
     <Layouts.app flash={@flash}>
       <div :if={@sessao}>
-        <p>oi, {@handle || "vizinha"}.</p>
-
-        <form phx-submit="prosear" class="prosear">
+        <form id="prosear" phx-submit="prosear" phx-hook="Prosear" class="prosear">
           <.campo
             name="texto"
             area
-            label="nova prosa"
-            placeholder="o que tá passando no quintal?"
-            rows="4"
+            aria-label="nova prosa"
+            placeholder="o que tá passando no seu quintal?"
+            rows="1"
             maxlength="10000"
             required
           />
+          <p class="prosear__rascunho" hidden>deixou uma prosa pela metade aqui</p>
           <div class="prosear__rodape">
-            <select name="tipo" class="prosear__tipo" aria-label="tipo da prosa">
-              <option value="nota">nota</option>
-              <option value="pergunta">pergunta</option>
-              <option value="cronica">crônica</option>
-              <option value="ensaio">ensaio</option>
-            </select>
+            <div class="prosear__tipos" role="radiogroup" aria-label="tipo da prosa">
+              <label :for={{valor, rotulo} <- tipos()}>
+                <input type="radio" name="tipo" value={valor} checked={valor == "nota"} />
+                {rotulo}
+              </label>
+            </div>
+            <p class="prosear__contador" hidden></p>
             <.botao type="submit">prosear</.botao>
           </div>
         </form>
 
-        <section class="vizinhanca">
-          <h2>sua vizinhança</h2>
-
-          <form phx-submit="seguir" class="seguir">
-            <.campo name="quem" label="seguir um canto" placeholder="maria.bsky.social" required />
-            <.botao type="submit">seguir esse canto</.botao>
-          </form>
-
-          <ul :if={@vizinhanca != []} class="vizinhanca__lista">
-            <li :for={follow <- @vizinhanca}>
-              {follow.seguido.handle}
-              <.botao
-                variante={:sutil}
-                phx-click="deixar_de_seguir"
-                phx-value-uri={follow.uri}
-              >
-                deixar de seguir
-              </.botao>
-            </li>
-          </ul>
-        </section>
-
         <section class="feed">
-          <h2>a vizinhança</h2>
-
-          <.vazio :if={@feed == []} titulo="por aqui ainda tá quieto. que tal seguir um canto?" />
-
-          <.prosa
-            :for={prosa <- @feed}
-            autor={prosa.autor.handle}
-            data={formatar_data(prosa.created_at)}
-            tipo={tipo(prosa.tipo)}
-          >
-            {prosa.texto}
-          </.prosa>
-
-          <.botao :if={@feed_cursor} variante={:sutil} phx-click="mais">mais prosas</.botao>
-        </section>
-
-        <section class="minhas-prosas">
-          <h2>suas prosas</h2>
-
           <.vazio
-            :if={@prosas == []}
+            :if={@feed == []}
+            pose={:sentado}
             titulo="por aqui ainda tá quieto. que tal escrever a primeira prosa?"
           />
 
           <.prosa
-            :for={prosa <- @prosas}
-            autor={@handle || "eu"}
-            data={formatar_data(prosa.created_at)}
+            :for={prosa <- @feed}
+            autor={autor_de(prosa, @handle)}
+            data={tempo_relativo(prosa.created_at)}
             tipo={tipo(prosa.tipo)}
           >
-            <:acoes>
-              <.botao
-                variante={:sutil}
-                phx-click="apagar"
-                phx-value-uri={prosa.uri}
-                data-confirm="apagar essa prosa? ela sai do seu pds também."
-              >
-                apagar
-              </.botao>
-            </:acoes>
             {prosa.texto}
           </.prosa>
+
+          <p :if={@feed_cursor} class="feed__mais">
+            <.botao variante={:sutil} phx-click="mais">mais prosas</.botao>
+          </p>
+
+          <p :if={@feed != [] && !@feed_cursor} class="feed__fim">
+            você viu tudo do seu quintal por hoje. vai tomar um café.
+          </p>
         </section>
 
-        <.link href="/oauth/logout" class="botao botao--sutil">sair</.link>
+        <nav class="rodape">
+          <.link href="/oauth/logout">sair</.link>
+        </nav>
       </div>
 
-      <div :if={!@sessao}>
-        <.vazio titulo="uma vizinhança de blogs sobre o protocolo atproto. público por padrão, seu por princípio.">
-          <form action="/oauth/login" method="get" class="entrar">
-            <.campo name="handle" label="seu handle atproto" placeholder="alice.bsky.social" required />
-            <.botao type="submit">entrar</.botao>
-            <.link navigate={~p"/cadastro"} class="cadastro__link">não tenho conta ainda</.link>
-          </form>
-          <nav class="rodape">
-            <.link navigate={~p"/faq"}>perguntas frequentes</.link>
-            <.link navigate={~p"/conduta"}>código de conduta</.link>
-          </nav>
-        </.vazio>
+      <div :if={!@sessao} class="boas-vindas">
+        <img class="boas-vindas__axo" src="/images/axo-front-gretting.png" alt="" aria-hidden="true" />
+        <h1 class="boas-vindas__marca">quintal</h1>
+        <p class="boas-vindas__linha">seu canto na vizinhança</p>
+
+        <form action="/oauth/login" method="get" class="entrar">
+          <.campo name="handle" label="seu handle atproto" placeholder="alice.bsky.social" required />
+          <.botao type="submit">entrar com atproto</.botao>
+          <.link navigate={~p"/cadastro"} class="cadastro__link">não tenho conta ainda</.link>
+        </form>
+
+        <p class="boas-vindas__convite">tem um convite? ele entra junto no primeiro acesso</p>
+
+        <nav class="rodape">
+          <.link navigate={~p"/faq"}>sobre</.link>
+          <.link navigate={~p"/conduta"}>compromisso de escrita humana</.link>
+          <a href="https://github.com/zoedsoupe/quintal" target="_blank" rel="noopener">código aberto</a>
+        </nav>
       </div>
     </Layouts.app>
     """
   end
 
-  defp formatar_data(%DateTime{} = data), do: Calendar.strftime(data, "%d/%m/%Y %H:%M")
-  defp formatar_data(_outra), do: ""
+  # tipo é metadado interno, nunca rótulo (spec 10.1): no composer vira
+  # pill quieta, na prosa só a pergunta ganha ênfase visual.
+  defp tipos, do: [{"nota", "nota"}, {"pergunta", "pergunta"}, {"cronica", "crônica"}, {"ensaio", "ensaio"}]
 
-  # tipo é metadado interno, nunca rótulo (spec 10.1): só muda a ênfase
-  # visual da pergunta.
   defp tipo(tipo) when tipo in ~w(nota pergunta cronica ensaio), do: String.to_atom(tipo)
   defp tipo(_outro), do: :nota
+
+  # a prosa recém-proseada ainda não tem a identidade carregada: mostra
+  # o próprio handle até o eco da firehose confirmar no índice.
+  defp autor_de(%{autor: %{handle: handle}}, _eu), do: handle
+  defp autor_de(_prosa, eu), do: eu || "eu"
+
+  # tempo relativo em sussurro (briefing 4.2): "há 2h", não carimbo.
+  defp tempo_relativo(%DateTime{} = data) do
+    case DateTime.diff(DateTime.utc_now(), data, :second) do
+      s when s < 60 -> "agora"
+      s when s < 3_600 -> "há #{div(s, 60)}min"
+      s when s < 86_400 -> "há #{div(s, 3_600)}h"
+      s when s < 172_800 -> "ontem"
+      s when s < 604_800 -> "há #{div(s, 86_400)}d"
+      _ -> Calendar.strftime(data, "%d/%m/%Y")
+    end
+  end
+
+  defp tempo_relativo(_outra), do: ""
 end
