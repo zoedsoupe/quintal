@@ -2,7 +2,7 @@ defmodule Quintal.Lexicon do
   @moduledoc """
   Valida records contra os lexicons `place.quintal.*` antes da escrita
   no pds: falhar cedo, falhar em casa (spec 9.4). Os schemas lidos são
-  os mesmos arquivos servidos em `quintal.place/lexicons/` — fonte
+  os mesmos arquivos servidos em `quintal.place/lexicons/`: fonte
   única, nada de schema duplicado em código.
 
   Cobre o que os nossos lexicons usam: `required`, `string` (format,

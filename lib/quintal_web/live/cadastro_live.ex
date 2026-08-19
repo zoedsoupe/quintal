@@ -61,6 +61,11 @@ defmodule QuintalWeb.CadastroLive do
         </p>
 
         <.link navigate={~p"/"} class="botao">voltar e entrar</.link>
+
+        <nav class="rodape">
+          <.link navigate={~p"/faq"}>perguntas frequentes</.link>
+          <.link navigate={~p"/conduta"}>código de conduta</.link>
+        </nav>
       </div>
     </Layouts.app>
     """

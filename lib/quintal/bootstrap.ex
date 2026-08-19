@@ -5,7 +5,7 @@ defmodule Quintal.Bootstrap do
   backfill das prosas já escritas no pds.
 
   Tudo idempotente: roda a cada login, não só no primeiro. Falha aqui
-  nunca derruba o login — roda numa Task supervisionada fora do request.
+  nunca derruba o login. roda numa Task supervisionada fora do request.
 
   ponytail: Task.Supervisor basta no alpha; Oban entra no m2 com os
   jobs recorrentes (cache de blobs, eventos de visitas).
