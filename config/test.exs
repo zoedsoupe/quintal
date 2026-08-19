@@ -14,6 +14,9 @@ config :phoenix,
 config :phoenix_live_view,
   enable_expensive_runtime_checks: true
 
+# proto_rune HTTP transport mocked at the adapter seam
+config :proto_rune, :http_client, Quintal.HTTPMock
+
 # Deterministic client metadata for the endpoint tests
 config :quintal, Quintal.Auth.ProtoRune,
   client_id: "http://localhost:4002/oauth/client-metadata.json",
@@ -41,6 +44,9 @@ config :quintal, QuintalWeb.Endpoint,
 
 # Swap the OAuth boundary for a mock
 config :quintal, :auth_impl, Quintal.Auth.Mock
+
+# Swap the pds boundary for a mock
+config :quintal, :pds_impl, Quintal.PDS.Mock
 
 # No boot-time session restore in test: the sandbox owns the Repo
 config :quintal, :restore_sessions, false
