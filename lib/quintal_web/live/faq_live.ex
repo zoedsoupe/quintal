@@ -10,13 +10,16 @@ defmodule QuintalWeb.FaqLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, socket}
+    sessao = socket.assigns.sessao
+    novidade = if sessao, do: Quintal.Visitas.novidade?(sessao.did), else: false
+
+    {:ok, assign(socket, novidade: novidade)}
   end
 
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash}>
+    <Layouts.app flash={@flash} sessao={@sessao} novidade={@novidade}>
       <div class="cadastro">
         <h1>perguntas frequentes</h1>
 

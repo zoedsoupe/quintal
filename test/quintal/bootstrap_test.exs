@@ -28,8 +28,12 @@ defmodule Quintal.BootstrapTest do
   end
 
   test "canto.config existe: não escreve nada, só faz backfill", %{session: session} do
-    stub(PDSMock, :get_record, fn _session, "did:plc:alice", "place.quintal.canto.config", "self" ->
-      {:ok, %{uri: "at://did:plc:alice/place.quintal.canto.config/self"}}
+    stub(PDSMock, :get_record, fn
+      _session, "did:plc:alice", "place.quintal.canto.config", "self" ->
+        {:ok, %{uri: "at://did:plc:alice/place.quintal.canto.config/self"}}
+
+      _session, _did, _collection, _rkey ->
+        {:error, :record_not_found}
     end)
 
     stub(PDSMock, :list_records, fn
@@ -45,7 +49,7 @@ defmodule Quintal.BootstrapTest do
            ]
          }}
 
-      _session, "did:plc:alice", "place.quintal.graph.follow", _opts ->
+      _session, _did, _collection, _opts ->
         {:ok, %{records: []}}
     end)
 
@@ -63,7 +67,7 @@ defmodule Quintal.BootstrapTest do
   end
 
   test "canto.config ausente: escreve o padrão no pds", %{session: session} do
-    stub(PDSMock, :get_record, fn _session, _did, "place.quintal.canto.config", "self" ->
+    stub(PDSMock, :get_record, fn _session, _did, _collection, "self" ->
       {:error, :record_not_found}
     end)
 
@@ -83,8 +87,9 @@ defmodule Quintal.BootstrapTest do
   end
 
   test "backfill pagina até acabar o cursor", %{session: session} do
-    stub(PDSMock, :get_record, fn _session, _did, "place.quintal.canto.config", "self" ->
-      {:ok, %{}}
+    stub(PDSMock, :get_record, fn
+      _session, _did, "place.quintal.canto.config", "self" -> {:ok, %{}}
+      _session, _did, _collection, _rkey -> {:error, :record_not_found}
     end)
 
     expect(PDSMock, :list_records, fn _session, _did, "place.quintal.feed.prosa", [limit: 100] ->
@@ -114,7 +119,7 @@ defmodule Quintal.BootstrapTest do
        }}
     end)
 
-    stub(PDSMock, :list_records, fn _session, _did, "place.quintal.graph.follow", _opts ->
+    stub(PDSMock, :list_records, fn _session, _did, _collection, _opts ->
       {:ok, %{records: []}}
     end)
 

@@ -18,6 +18,7 @@ defmodule Quintal.Follows do
   alias Quintal.Follow
   alias Quintal.Identidade
   alias Quintal.Repo
+  alias Quintal.Visitas
 
   require Logger
 
@@ -101,6 +102,9 @@ defmodule Quintal.Follows do
     )
     |> case do
       {:ok, follow} ->
+        # vizinho novo te lendo avisa na página visitas (spec 7.5); o
+        # registrar dedupa por (tipo, ref_uri), vale chamar em todo upsert
+        Visitas.registrar(follow.seguido_did, "novo_leitor", follow.uri, follow.seguidor_did)
         {:ok, follow}
 
       {:error, changeset} ->

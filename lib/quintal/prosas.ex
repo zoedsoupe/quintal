@@ -19,6 +19,7 @@ defmodule Quintal.Prosas do
 
   alias Quintal.Prosa
   alias Quintal.Repo
+  alias Quintal.Visitas
 
   require Logger
 
@@ -126,6 +127,7 @@ defmodule Quintal.Prosas do
     )
     |> case do
       {:ok, prosa} ->
+        registra_resposta(prosa)
         {:ok, prosa}
 
       {:error, changeset} ->
@@ -137,6 +139,20 @@ defmodule Quintal.Prosas do
   def indexar(_autor_did, record) do
     Logger.warning("[#{__MODULE__}] record inesperado na indexação: #{inspect(record)}")
     {:error, :record_inesperado}
+  end
+
+  # Resposta avisa o autor da prosa mãe na página visitas (spec 7.5). O
+  # registrar dedupa por (tipo, ref_uri), então vale chamar em todo upsert.
+  defp registra_resposta(%Prosa{reply_parent: nil}), do: :ok
+
+  defp registra_resposta(%Prosa{reply_parent: parent_uri, uri: uri, autor_did: autor_did}) do
+    case Repo.get(Prosa, parent_uri) do
+      %Prosa{autor_did: dono_did} when dono_did != autor_did ->
+        Visitas.registrar(dono_did, "resposta", uri, autor_did)
+
+      _sem_mae_no_indice ->
+        :ok
+    end
   end
 
   # Record values arrive atom-keyed from the XRPC decode and

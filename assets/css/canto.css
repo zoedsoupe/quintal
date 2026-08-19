@@ -1,0 +1,309 @@
+/* canto: a casa da pessoa (briefing 5.3). visitavel, decoravel, viva.
+   o tema do canto mora num wrapper com data-theme, de onde as variaveis
+   cascateiam; a cor de acento propria chega por style inline. */
+
+.canto-tema {
+  background: var(--fundo);
+  color: var(--tinta);
+  min-height: 100dvh;
+  padding-bottom: var(--espaco-5);
+}
+
+/* cabecalho de visitacao: nome em fraunces, bio de uma linha, links em
+   sussurro, um botao quieto de seguir */
+
+.canto__cabeca {
+  margin-bottom: var(--espaco-5);
+}
+
+.canto__bio {
+  max-width: var(--medida-leitura);
+  color: var(--meta);
+}
+
+.canto__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-3);
+  margin-top: var(--espaco-2);
+  font-size: 0.875rem;
+}
+
+.canto__acoes {
+  margin-top: var(--espaco-3);
+}
+
+/* blocos: uma pilha separada por espaco em branco, na ordem que o dono
+   escolheu. bloco ausente da ordem esta escondido. */
+
+.canto-blocos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5);
+}
+
+.canto-bloco__titulo {
+  margin-bottom: var(--espaco-3);
+  font-family: var(--fonte-chrome);
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--meta);
+}
+
+/* bloco de bio: paragrafo na tipografia de leitura */
+
+.canto-bio__texto {
+  max-width: var(--medida-leitura);
+  font-family: var(--fonte-leitura);
+  line-height: 1.7;
+}
+
+.canto-bio__texto--vazio {
+  font-family: var(--fonte-chrome);
+  font-size: 0.875rem;
+  color: var(--meta);
+}
+
+/* modo arrumar: edicao in place, autosave a cada mudanca. barra fina
+   sticky com os tres presets como swatches, a cor de acento e o
+   "guardado" quieto que aparece e some. */
+
+.arrumar__barra {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+  padding-block: var(--espaco-2);
+  margin-bottom: var(--espaco-4);
+  background: var(--fundo);
+  border-bottom: 1px solid var(--sussurro);
+}
+
+.arrumar__tema {
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: 1px solid var(--sussurro);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.arrumar__tema--selecionado {
+  outline: 2px solid var(--acento);
+  outline-offset: 2px;
+}
+
+.arrumar__cor {
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: var(--espaco-1);
+  border: 1px solid var(--sussurro);
+  border-radius: var(--raio);
+  background: transparent;
+  cursor: pointer;
+}
+
+.arrumar__pronto {
+  margin-left: auto;
+}
+
+.guardado {
+  font-size: 0.875rem;
+  color: var(--meta);
+  animation: guardado-some 2s ease-out forwards;
+}
+
+@keyframes guardado-some {
+  0% {
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* controles do bloco no modo arrumar: alca de arrastar (desktop, o grip
+   some no mobile, onde as setas fazem o trabalho), olho para ocultar e
+   setas para mover (briefing 5.3). */
+
+.canto-bloco__controles {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  margin-bottom: var(--espaco-2);
+  color: var(--meta);
+}
+
+.canto-bloco__alca {
+  display: none;
+  align-items: center;
+  cursor: grab;
+}
+
+.canto-bloco__alca svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+@media (min-width: 48rem) {
+  .canto-bloco__alca {
+    display: inline-flex;
+  }
+}
+
+.canto-bloco--arrastando {
+  opacity: 0.5;
+}
+
+/* no modo arrumar o bloco oculto continua visivel para o dono, esmaecido */
+
+.canto-bloco--oculto {
+  opacity: 0.55;
+}
+
+/* recados (briefing 4.4): lista com nome e tempo, entrada sempre
+   visivel no fim, olho discreto do dono em cada recado. */
+
+.recados {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  max-width: var(--medida-leitura);
+}
+
+.recados__item {
+  position: relative;
+}
+
+.recados__olho {
+  position: absolute;
+  top: var(--espaco-1);
+  right: var(--espaco-1);
+}
+
+.recado--oculto {
+  opacity: 0.55;
+}
+
+.recados__mais {
+  text-align: center;
+}
+
+.recados__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+.recados__form .botao {
+  align-self: flex-start;
+}
+
+.recados__convite {
+  font-size: 0.875rem;
+  color: var(--meta);
+}
+
+/* quem eu leio (briefing 4.5): cantos com nota curta opcional em
+   sussurro; a curadoria mora no modo arrumar. */
+
+.quem-leio {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  padding: 0;
+  list-style: none;
+}
+
+.quem-leio li {
+  display: flex;
+  align-items: baseline;
+  gap: var(--espaco-2);
+}
+
+.quem-leio__nota {
+  font-size: 0.875rem;
+  color: var(--meta);
+}
+
+.quem-leio__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  max-width: 22rem;
+  margin-top: var(--espaco-3);
+}
+
+.quem-leio__form .botao {
+  align-self: flex-start;
+}
+
+/* depoimentos aceitos: cartoezinhos com aspas tipograficas grandes no
+   acento 2, hairline de sussurro, sem sombra (briefing 4.5). */
+
+.depoimentos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  max-width: var(--medida-leitura);
+  margin-top: var(--espaco-4);
+}
+
+.depoimento {
+  position: relative;
+  padding: var(--espaco-3) var(--espaco-3) var(--espaco-3) 2.5rem;
+  border: 1px solid var(--sussurro);
+  border-radius: var(--raio);
+  font-family: var(--fonte-leitura);
+  line-height: 1.7;
+}
+
+.depoimento::before {
+  content: "\201C";
+  position: absolute;
+  top: var(--espaco-2);
+  left: var(--espaco-2);
+  font-size: 2.5rem;
+  line-height: 1;
+  color: var(--acento-2);
+}
+
+.depoimento footer {
+  margin-top: var(--espaco-2);
+  font-family: var(--fonte-chrome);
+  font-size: 0.875rem;
+}
+
+.depoimento-form {
+  margin-top: var(--espaco-3);
+}
+
+.depoimento-form form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  max-width: var(--medida-leitura);
+}
+
+.depoimento-form .botao {
+  align-self: flex-start;
+}
+
+/* bloco de links: lista simples em sussurro */
+
+.canto-links {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  padding: 0;
+  list-style: none;
+  font-size: 0.875rem;
+}

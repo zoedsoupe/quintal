@@ -84,13 +84,66 @@ const Prosear = {
   },
 };
 
+// ArrumarBlocos: drag and drop nativo dos blocos do canto no desktop
+// (briefing 5.3). no mobile as setas de cada bloco fazem o trabalho.
+const ArrumarBlocos = {
+  mounted() {
+    this.arrastado = null;
+
+    this.el.addEventListener("dragstart", (e) => {
+      const bloco = e.target.closest("[data-bloco]");
+      if (!bloco) return;
+      this.arrastado = bloco;
+      bloco.classList.add("canto-bloco--arrastando");
+      e.dataTransfer.effectAllowed = "move";
+    });
+
+    this.el.addEventListener("dragend", () => {
+      if (this.arrastado) {
+        this.arrastado.classList.remove("canto-bloco--arrastando");
+      }
+      this.arrastado = null;
+    });
+
+    this.el.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+    });
+
+    this.el.addEventListener("drop", (e) => {
+      e.preventDefault();
+      const alvo = e.target.closest("[data-bloco]");
+      if (!alvo || !this.arrastado || alvo === this.arrastado) return;
+
+      const blocos = [...this.el.querySelectorAll("[data-bloco]")];
+      if (blocos.indexOf(this.arrastado) < blocos.indexOf(alvo)) {
+        alvo.after(this.arrastado);
+      } else {
+        alvo.before(this.arrastado);
+      }
+
+      const ordem = [...this.el.querySelectorAll("[data-bloco]")].map(
+        (b) => b.dataset.bloco,
+      );
+      this.pushEvent("reordenar", { ordem });
+    });
+  },
+};
+
+// limpar-campo: o servidor pede para esvaziar um campo depois de uma
+// escrita otimista (recado deixado, canto adicionado ao quem eu leio)
+window.addEventListener("phx:limpar-campo", (e) => {
+  const campo = document.getElementById(e.detail.id);
+  if (campo) campo.value = "";
+});
+
 const csrfToken = document
   .querySelector("meta[name='csrf-token']")
   .getAttribute("content");
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: { _csrf_token: csrfToken },
-  hooks: { Prosear, ...colocatedHooks },
+  hooks: { Prosear, ArrumarBlocos, ...colocatedHooks },
 });
 
 // Show progress bar on live navigation and form submits

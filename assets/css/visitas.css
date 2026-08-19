@@ -1,0 +1,68 @@
+/* visitas: "alguem passou por aqui?" sem ansiedade (briefing 5.5).
+   uma linha de resumo, eventos em linha unica agrupados por dia com
+   cabecalhos em sussurro, depoimentos pendentes com acoes inline. sem
+   badge vermelho, sem contador permanente: registro de carinho. */
+
+.visitas h1 {
+  margin-bottom: var(--espaco-2);
+}
+
+.visitas__resumo {
+  margin-bottom: var(--espaco-4);
+  color: var(--meta);
+}
+
+.visitas__grupo {
+  margin-top: var(--espaco-4);
+}
+
+.visitas__dia {
+  font-family: var(--fonte-chrome);
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--meta);
+}
+
+.visitas__lista {
+  padding: 0;
+  list-style: none;
+}
+
+.visitas__lista li {
+  padding-block: var(--espaco-2);
+}
+
+/* depoimento pendente: o texto como citacao quieta e duas acoes
+   inline, aceitar e deixar quieto (briefing 4.6) */
+
+.visitas__pendentes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  margin-bottom: var(--espaco-4);
+}
+
+.visita-pendente {
+  max-width: var(--medida-leitura);
+  padding: var(--espaco-3);
+  border: 1px solid var(--sussurro);
+  border-radius: var(--raio);
+}
+
+.visita-pendente__texto {
+  font-family: var(--fonte-leitura);
+  font-style: italic;
+  line-height: 1.7;
+}
+
+.visita-pendente__meta {
+  margin-top: var(--espaco-1);
+  font-size: 0.875rem;
+  color: var(--meta);
+}
+
+.visita-pendente__acoes {
+  display: flex;
+  gap: var(--espaco-2);
+  margin-top: var(--espaco-2);
+}

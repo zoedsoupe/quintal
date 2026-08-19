@@ -2,11 +2,18 @@ defmodule Quintal.IngestaoTest do
   use Quintal.DataCase, async: false
 
   alias ProtoRune.Firehose.Event
+  alias Quintal.Blogroll
+  alias Quintal.Blogrolls
+  alias Quintal.Canto
+  alias Quintal.Cantos
+  alias Quintal.Depoimento
   alias Quintal.FirehoseCursor
   alias Quintal.Follow
   alias Quintal.Ingestao
   alias Quintal.Prosa
+  alias Quintal.Recado
   alias Quintal.Repo
+  alias Quintal.VisitaEvento
 
   setup do
     for {did, handle} <- [
@@ -91,6 +98,109 @@ defmodule Quintal.IngestaoTest do
     )
 
     espera(fn -> Repo.get_by(Follow, uri: uri) == nil end)
+  end
+
+  test "create e delete de recado mantêm o livro de visitas", %{ingestao: ingestao} do
+    uri = "at://did:plc:beto/place.quintal.canto.recado/r1"
+
+    send(
+      ingestao,
+      {:firehose,
+       commit(
+         "did:plc:beto",
+         [op_create("place.quintal.canto.recado/r1", "bafy4")],
+         %{"bafy4" => %{"subject" => "did:plc:alice", "text" => "oi alice", "createdAt" => "2026-08-02T10:00:00Z"}}
+       )}
+    )
+
+    espera(fn -> Repo.get(Recado, uri) end)
+    assert Repo.get!(Recado, uri).subject_did == "did:plc:alice"
+    assert Repo.get_by(VisitaEvento, dono_did: "did:plc:alice", tipo: "recado", ref_uri: uri)
+
+    send(
+      ingestao,
+      {:firehose, commit("did:plc:beto", [%{action: :delete, path: "place.quintal.canto.recado/r1", cid: nil}], %{}, 2)}
+    )
+
+    espera(fn -> Repo.get(Recado, uri) == nil end)
+    assert Repo.get_by(VisitaEvento, ref_uri: uri) == nil
+  end
+
+  test "create e delete de depoimento mantêm o índice", %{ingestao: ingestao} do
+    uri = "at://did:plc:beto/place.quintal.canto.depoimento/d1"
+
+    send(
+      ingestao,
+      {:firehose,
+       commit(
+         "did:plc:beto",
+         [op_create("place.quintal.canto.depoimento/d1", "bafy5")],
+         %{"bafy5" => %{"subject" => "did:plc:alice", "text" => "otima pessoa", "createdAt" => "2026-08-02T10:00:00Z"}}
+       )}
+    )
+
+    espera(fn -> Repo.get(Depoimento, uri) end)
+    assert Repo.get!(Depoimento, uri).aceito == nil
+
+    send(
+      ingestao,
+      {:firehose,
+       commit("did:plc:beto", [%{action: :delete, path: "place.quintal.canto.depoimento/d1", cid: nil}], %{}, 2)}
+    )
+
+    espera(fn -> Repo.get(Depoimento, uri) == nil end)
+  end
+
+  test "create e delete de blogroll mantêm o quem eu leio", %{ingestao: ingestao} do
+    send(
+      ingestao,
+      {:firehose,
+       commit(
+         "did:plc:beto",
+         [op_create("place.quintal.canto.blogroll/self", "bafy6")],
+         %{
+           "bafy6" => %{
+             "items" => [%{"did" => "did:plc:alice", "note" => "vizinha"}],
+             "updatedAt" => "2026-08-02T10:00:00Z"
+           }
+         }
+       )}
+    )
+
+    espera(fn -> Repo.get(Blogroll, "did:plc:beto") end)
+    assert [item] = Blogrolls.get("did:plc:beto").items
+    assert item.did == "did:plc:alice"
+
+    send(
+      ingestao,
+      {:firehose,
+       commit("did:plc:beto", [%{action: :delete, path: "place.quintal.canto.blogroll/self", cid: nil}], %{}, 2)}
+    )
+
+    espera(fn -> Repo.get(Blogroll, "did:plc:beto") == nil end)
+  end
+
+  test "create de canto.config arruma o canto; delete é ignorado", %{ingestao: ingestao} do
+    send(
+      ingestao,
+      {:firehose,
+       commit(
+         "did:plc:beto",
+         [op_create("place.quintal.canto.config/self", "bafy7")],
+         %{"bafy7" => %{"tema" => "madrugada", "blocos" => ~w(bio prosas), "updatedAt" => "2026-08-02T10:00:00Z"}}
+       )}
+    )
+
+    espera(fn -> Repo.get(Canto, "did:plc:beto") end)
+    assert Cantos.get("did:plc:beto").tema == "madrugada"
+
+    send(
+      ingestao,
+      {:firehose, commit("did:plc:beto", [%{action: :delete, path: "place.quintal.canto.config/self", cid: nil}], %{}, 2)}
+    )
+
+    espera_seq(ingestao, 2)
+    assert Repo.get(Canto, "did:plc:beto")
   end
 
   test "commit fora do place.quintal.* é ignorado", %{ingestao: ingestao} do

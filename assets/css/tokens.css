@@ -1,7 +1,9 @@
 /* tokens de design do quintal (spec 7.2).
    papel e o preset default: dia, com lamparina automatica a noite via
    prefers-color-scheme. madrugada e gloss sao escolhas explicitas do
-   canto, aplicadas com data-theme no elemento raiz. */
+   canto, aplicadas com data-theme em qualquer elemento: as variaveis
+   cascateiam do elemento tematizado para dentro (o canto tematiza um
+   wrapper proprio, briefing 5.3). */
 
 :root {
   --fundo: #faf6f1;
@@ -45,7 +47,7 @@
   }
 }
 
-:root[data-theme="madrugada"] {
+[data-theme="madrugada"] {
   --fundo: #14101c;
   --tinta: #ece6f2;
   --acento: #b9a7e0;
@@ -55,7 +57,7 @@
   --erro: #f0a8cc;
 }
 
-:root[data-theme="gloss"] {
+[data-theme="gloss"] {
   --fundo: #fff5fa;
   --fundo-leitura: #fffafd;
   --tinta: #3d2b3a;

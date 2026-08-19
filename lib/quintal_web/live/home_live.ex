@@ -11,28 +11,26 @@ defmodule QuintalWeb.HomeLive do
 
   use QuintalWeb, :live_view
 
+  import QuintalWeb.Formatacao, only: [tempo_relativo: 1, tipo: 1]
+
   alias Quintal.Feed
   alias Quintal.Prosas
+  alias Quintal.Visitas
 
   @feed_pagina 20
 
   @impl true
-  def mount(_params, session, socket) do
-    sessao =
-      with did when is_binary(did) <- session["quintal_did"],
-           {:ok, sessao} <- Quintal.Auth.impl().current_session(did) do
-        sessao
-      else
-        _ -> nil
-      end
-
+  def mount(_params, _session, socket) do
+    # a sessão chega pelo SessaoHook (on_mount do live_session :default)
+    sessao = socket.assigns.sessao
     handle = sessao && Map.get(sessao, :handle)
     feed = if sessao, do: Feed.list(sessao.did, limit: @feed_pagina), else: []
+    novidade = if sessao, do: Visitas.novidade?(sessao.did), else: false
 
     {:ok,
      assign(socket,
-       sessao: sessao,
        handle: handle,
+       novidade: novidade,
        feed: feed,
        feed_cursor: proxima_pagina(feed)
      )}
@@ -72,7 +70,7 @@ defmodule QuintalWeb.HomeLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash}>
+    <Layouts.app flash={@flash} sessao={@sessao} novidade={@novidade}>
       <div :if={@sessao}>
         <form id="prosear" phx-submit="prosear" phx-hook="Prosear" class="prosear">
           <.campo
@@ -154,25 +152,8 @@ defmodule QuintalWeb.HomeLive do
   # pill quieta, na prosa só a pergunta ganha ênfase visual.
   defp tipos, do: [{"nota", "nota"}, {"pergunta", "pergunta"}, {"cronica", "crônica"}, {"ensaio", "ensaio"}]
 
-  defp tipo(tipo) when tipo in ~w(nota pergunta cronica ensaio), do: String.to_atom(tipo)
-  defp tipo(_outro), do: :nota
-
   # a prosa recém-proseada ainda não tem a identidade carregada: mostra
   # o próprio handle até o eco da firehose confirmar no índice.
   defp autor_de(%{autor: %{handle: handle}}, _eu), do: handle
   defp autor_de(_prosa, eu), do: eu || "eu"
-
-  # tempo relativo em sussurro (briefing 4.2): "há 2h", não carimbo.
-  defp tempo_relativo(%DateTime{} = data) do
-    case DateTime.diff(DateTime.utc_now(), data, :second) do
-      s when s < 60 -> "agora"
-      s when s < 3_600 -> "há #{div(s, 60)}min"
-      s when s < 86_400 -> "há #{div(s, 3_600)}h"
-      s when s < 172_800 -> "ontem"
-      s when s < 604_800 -> "há #{div(s, 86_400)}d"
-      _ -> Calendar.strftime(data, "%d/%m/%Y")
-    end
-  end
-
-  defp tempo_relativo(_outra), do: ""
 end

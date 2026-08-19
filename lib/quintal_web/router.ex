@@ -17,11 +17,13 @@ defmodule QuintalWeb.Router do
   scope "/", QuintalWeb do
     pipe_through :browser
 
-    live_session :default do
+    live_session :default, on_mount: [QuintalWeb.SessaoHook] do
       live "/", HomeLive
       live "/cadastro", CadastroLive
       live "/faq", FaqLive
       live "/conduta", CondutaLive
+      live "/canto/:handle", CantoLive
+      live "/visitas", VisitasLive
     end
 
     get "/oauth/login", OAuthController, :login

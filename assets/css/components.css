@@ -354,14 +354,120 @@
   text-decoration: none;
 }
 
+/* navegacao (briefing 3): quatro destinos e so. no desktop, links
+   textuais na barra superior fina; no mobile, barra inferior fixa com
+   icones e rotulos minusculos ao alcance do polegar. sem sidebar, sem
+   menu hamburguer. a troca acontece em 48rem. */
+
 .chrome__nav {
-  display: flex;
+  display: none;
   gap: var(--espaco-3);
   font-size: 0.875rem;
 }
 
+.nav-movel {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  justify-content: space-around;
+  padding-block: var(--espaco-1);
+  background: var(--fundo);
+  border-top: 1px solid var(--sussurro);
+}
+
+.nav-movel__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  font-size: 0.75rem;
+  color: var(--meta);
+  text-decoration: none;
+}
+
+.nav-movel__item:hover {
+  color: var(--acento);
+}
+
+.nav-movel__item svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.nav-movel__icone {
+  position: relative;
+}
+
+/* novidade em visitas: um pontinho lilas quieto, nunca badge vermelho
+   com numero (briefing 2.8) */
+
+.nav-movel__ponto {
+  position: absolute;
+  top: 0;
+  right: -0.25rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--acento);
+}
+
+@media (min-width: 48rem) {
+  .chrome__nav {
+    display: flex;
+  }
+
+  .nav-movel {
+    display: none;
+  }
+}
+
+/* botao de icone fantasma: alvo de toque de 44px no minimo (briefing 2.3) */
+
+.icone-botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  padding: var(--espaco-1);
+  border: 0;
+  border-radius: var(--raio);
+  background: transparent;
+  color: var(--meta);
+  cursor: pointer;
+  transition: color var(--transicao);
+}
+
+.icone-botao:hover {
+  color: var(--acento);
+}
+
+.icone-botao:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 2px;
+}
+
+.icone-botao svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
 .conteudo {
   padding-block: var(--espaco-4);
+}
+
+/* a barra inferior nao cobre o fim do conteudo no mobile */
+
+@media (max-width: 47.99rem) {
+  .conteudo {
+    padding-bottom: 5rem;
+  }
 }
 
 /* avisos */

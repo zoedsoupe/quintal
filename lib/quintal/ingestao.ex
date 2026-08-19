@@ -6,12 +6,14 @@ defmodule Quintal.Ingestao do
   filtra os commits que tocam coleções `place.quintal.*` mais os eventos
   de identidade, e mantém o índice postgres em sincronia:
 
-    * create/update de prosa e follow viram upsert idempotente por uri:
-      a escrita otimista e o eco do firehose são o mesmo evento chegando
-      duas vezes (spec 8.2);
+    * create/update de prosa, follow, recado e depoimento viram upsert
+      idempotente por uri: a escrita otimista e o eco do firehose são o
+      mesmo evento chegando duas vezes (spec 8.2). blogroll e
+      canto.config são records únicos (`literal:self`), upsert por dono;
     * deletes removem a linha do índice (hard delete, como o m1 já faz
       pela interface; os tombstones do spec 8.5 entram quando as threads
-      de resposta forem renderizadas);
+      de resposta forem renderizadas). delete de canto.config é
+      ignorado: sem config, o canto fica no padrão;
     * eventos `identity` e `handle` atualizam a tabela de identidades.
 
   O cursor é persistido na tabela `firehose_cursor` a cada
@@ -30,10 +32,15 @@ defmodule Quintal.Ingestao do
 
   alias ProtoRune.Firehose
   alias ProtoRune.Firehose.Event
+  alias Quintal.Blogroll
+  alias Quintal.Blogrolls
+  alias Quintal.Cantos
+  alias Quintal.Depoimentos
   alias Quintal.FirehoseCursor
   alias Quintal.Follows
   alias Quintal.Identidade
   alias Quintal.Prosas
+  alias Quintal.Recados
   alias Quintal.Repo
 
   require Logger
@@ -44,6 +51,10 @@ defmodule Quintal.Ingestao do
 
   @follow "place.quintal.graph.follow"
   @prosa "place.quintal.feed.prosa"
+  @recado "place.quintal.canto.recado"
+  @depoimento "place.quintal.canto.depoimento"
+  @blogroll "place.quintal.canto.blogroll"
+  @canto_config "place.quintal.canto.config"
 
   def start_link(opts \\ []) do
     GenServer.start_link(__MODULE__, opts, name: Keyword.get(opts, :name, __MODULE__))
@@ -108,6 +119,10 @@ defmodule Quintal.Ingestao do
     case String.split(path, "/", parts: 2) do
       [@prosa, _rkey] -> prosa(event, action, uri, cid)
       [@follow, _rkey] -> follow(event, action, uri, cid)
+      [@recado, _rkey] -> recado(event, action, uri, cid)
+      [@depoimento, _rkey] -> depoimento(event, action, uri, cid)
+      [@blogroll, _rkey] -> blogroll(event, action, cid)
+      [@canto_config, _rkey] -> canto_config(event, action, cid)
       _outra_colecao -> :ok
     end
   end
@@ -131,6 +146,50 @@ defmodule Quintal.Ingestao do
   end
 
   defp follow(_event, :delete, uri, _cid), do: Follows.desindexar(uri)
+
+  defp recado(event, action, uri, cid) when action in [:create, :update] do
+    with %{} = value <- bloco(event, cid) do
+      Recados.indexar(event.repo, %{uri: uri, value: value})
+    end
+
+    :ok
+  end
+
+  defp recado(_event, :delete, uri, _cid), do: Recados.desindexar(uri)
+
+  defp depoimento(event, action, uri, cid) when action in [:create, :update] do
+    with %{} = value <- bloco(event, cid) do
+      Depoimentos.indexar(event.repo, %{uri: uri, value: value})
+    end
+
+    :ok
+  end
+
+  defp depoimento(_event, :delete, uri, _cid), do: Depoimentos.desindexar(uri)
+
+  defp blogroll(event, action, cid) when action in [:create, :update] do
+    with %{} = value <- bloco(event, cid) do
+      Blogrolls.indexar(event.repo, %{value: value})
+    end
+
+    :ok
+  end
+
+  defp blogroll(event, :delete, _cid) do
+    Repo.delete_all(from b in Blogroll, where: b.dono_did == ^event.repo)
+    :ok
+  end
+
+  defp canto_config(event, action, cid) when action in [:create, :update] do
+    with %{} = value <- bloco(event, cid) do
+      Cantos.indexar(event.repo, %{value: value})
+    end
+
+    :ok
+  end
+
+  # delete de canto.config: sem config o canto fica no padrão, nada a fazer
+  defp canto_config(_event, :delete, _cid), do: :ok
 
   defp bloco(_event, nil), do: nil
 
