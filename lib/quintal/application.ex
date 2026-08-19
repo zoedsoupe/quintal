@@ -26,6 +26,14 @@ defmodule Quintal.Application do
         children
       end
 
+    # Firehose consumer (m2): off in test, which feeds events by hand.
+    children =
+      if Application.get_env(:quintal, :ingestao, true) do
+        List.insert_at(children, -1, Quintal.Ingestao)
+      else
+        children
+      end
+
     opts = [strategy: :one_for_one, name: Quintal.Supervisor]
     Supervisor.start_link(children, opts)
   end

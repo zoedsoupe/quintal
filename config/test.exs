@@ -45,6 +45,9 @@ config :quintal, QuintalWeb.Endpoint,
 # Swap the OAuth boundary for a mock
 config :quintal, :auth_impl, Quintal.Auth.Mock
 
+# No firehose consumer in test: ingestão tests feed events by hand
+config :quintal, :ingestao, false
+
 # Swap the pds boundary for a mock
 config :quintal, :pds_impl, Quintal.PDS.Mock
 

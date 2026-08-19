@@ -11,6 +11,7 @@ defmodule Quintal.Bootstrap do
   jobs recorrentes (cache de blobs, eventos de visitas).
   """
 
+  alias Quintal.Follows
   alias Quintal.Identidade
   alias Quintal.Prosas
   alias Quintal.Repo
@@ -18,16 +19,18 @@ defmodule Quintal.Bootstrap do
   require Logger
 
   @canto_config "place.quintal.canto.config"
+  @follow "place.quintal.graph.follow"
   @prosa "place.quintal.feed.prosa"
 
   @blocos_padrao ~w(bio prosas recados quem-eu-leio links)
 
-  @doc "Garante canto.config, indexa a identidade e faz o backfill das prosas."
+  @doc "Garante canto.config, indexa a identidade e faz o backfill das prosas e follows."
   @spec run(Quintal.PDS.session()) :: :ok
   def run(session) do
     with :ok <- index_identidade(session),
          :ok <- ensure_canto_config(session) do
-      backfill_prosas(session)
+      backfill(session, @prosa, &Prosas.indexar/2)
+      backfill(session, @follow, &Follows.indexar/2)
     else
       {:error, reason} ->
         Logger.warning("[#{__MODULE__}] bootstrap de #{session.did} falhou: #{inspect(reason)}")
@@ -75,16 +78,16 @@ defmodule Quintal.Bootstrap do
     end
   end
 
-  defp backfill_prosas(session, cursor \\ nil) do
+  defp backfill(session, collection, indexar, cursor \\ nil) do
     opts = if cursor, do: [limit: 100, cursor: cursor], else: [limit: 100]
 
-    case pds().list_records(session, session.did, @prosa, opts) do
+    case pds().list_records(session, session.did, collection, opts) do
       {:ok, %{records: records} = page} ->
-        Enum.each(records, &Prosas.indexar(session.did, &1))
+        Enum.each(records, &indexar.(session.did, &1))
 
         case Map.get(page, :cursor) do
           nil -> :ok
-          next -> backfill_prosas(session, next)
+          next -> backfill(session, collection, indexar, next)
         end
 
       {:error, _} = error ->

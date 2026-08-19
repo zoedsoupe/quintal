@@ -112,6 +112,62 @@ defmodule QuintalWeb.HomeLiveTest do
     assert Quintal.Repo.get(Quintal.Prosa, uri) == nil
   end
 
+  test "seguir um canto: entra na vizinhança e as prosas dele viram feed", %{conn: conn} do
+    for {did, handle} <- [
+          {"did:plc:alice", "alice.bsky.social"},
+          {"did:plc:beto", "beto.bsky.social"}
+        ] do
+      Quintal.Repo.insert!(%Quintal.Identidade{
+        did: did,
+        handle: handle,
+        pds_url: "https://pds.example",
+        atualizado_em: DateTime.utc_now()
+      })
+    end
+
+    {:ok, _} =
+      Quintal.Prosas.indexar("did:plc:beto", %{
+        uri: "at://did:plc:beto/place.quintal.feed.prosa/abc",
+        cid: "bafy",
+        value: %{text: "bom dia do beto", created_at: "2026-08-02T10:00:00Z"}
+      })
+
+    stub(PDSMock, :create_record, fn _session, "place.quintal.graph.follow", _record ->
+      {:ok, %{uri: "at://did:plc:alice/place.quintal.graph.follow/f1", cid: "bafy"}}
+    end)
+
+    stub(PDSMock, :delete_record, fn _session, "place.quintal.graph.follow", "f1", _opts -> :ok end)
+
+    {:ok, view, html} = live(loga_como_alice(conn), "/")
+
+    # feed vazio até seguir alguém
+    assert html =~ "que tal seguir um canto?"
+    refute html =~ "bom dia do beto"
+
+    html =
+      view
+      |> form("form[phx-submit=seguir]", %{quem: "beto.bsky.social"})
+      |> render_submit()
+
+    assert html =~ "agora esse canto tá na sua vizinhança"
+    assert html =~ "beto.bsky.social"
+    assert html =~ "bom dia do beto"
+
+    html = render_click(view, "deixar_de_seguir", %{"uri" => "at://did:plc:alice/place.quintal.graph.follow/f1"})
+    refute html =~ "bom dia do beto"
+  end
+
+  test "seguir canto desconhecido mostra o axô procurando", %{conn: conn} do
+    {:ok, view, _html} = live(loga_como_alice(conn), "/")
+
+    html =
+      view
+      |> form("form[phx-submit=seguir]", %{quem: "ninguem.bsky.social"})
+      |> render_submit()
+
+    assert html =~ "o axô procurou, procurou... e não achou esse canto"
+  end
+
   test "sessão inválida cai no estado deslogado", %{conn: conn} do
     stub(Mock, :current_session, fn "did:plc:ninguem" -> {:error, :not_found} end)
 

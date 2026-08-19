@@ -32,17 +32,21 @@ defmodule Quintal.BootstrapTest do
       {:ok, %{uri: "at://did:plc:alice/place.quintal.canto.config/self"}}
     end)
 
-    stub(PDSMock, :list_records, fn _session, "did:plc:alice", "place.quintal.feed.prosa", _opts ->
-      {:ok,
-       %{
-         records: [
-           %{
-             uri: "at://did:plc:alice/place.quintal.feed.prosa/3k",
-             cid: "bafy1",
-             value: prosa_value("primeira prosa", "2026-08-01T10:00:00Z")
-           }
-         ]
-       }}
+    stub(PDSMock, :list_records, fn
+      _session, "did:plc:alice", "place.quintal.feed.prosa", _opts ->
+        {:ok,
+         %{
+           records: [
+             %{
+               uri: "at://did:plc:alice/place.quintal.feed.prosa/3k",
+               cid: "bafy1",
+               value: prosa_value("primeira prosa", "2026-08-01T10:00:00Z")
+             }
+           ]
+         }}
+
+      _session, "did:plc:alice", "place.quintal.graph.follow", _opts ->
+        {:ok, %{records: []}}
     end)
 
     assert :ok = Bootstrap.run(session)
@@ -71,7 +75,7 @@ defmodule Quintal.BootstrapTest do
       {:ok, %{uri: "at://x", cid: "bafy"}}
     end)
 
-    stub(PDSMock, :list_records, fn _session, _did, "place.quintal.feed.prosa", _opts ->
+    stub(PDSMock, :list_records, fn _session, _did, _collection, _opts ->
       {:ok, %{records: []}}
     end)
 
@@ -108,6 +112,10 @@ defmodule Quintal.BootstrapTest do
            }
          ]
        }}
+    end)
+
+    stub(PDSMock, :list_records, fn _session, _did, "place.quintal.graph.follow", _opts ->
+      {:ok, %{records: []}}
     end)
 
     assert :ok = Bootstrap.run(session)

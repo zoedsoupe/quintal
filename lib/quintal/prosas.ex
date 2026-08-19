@@ -88,6 +88,13 @@ defmodule Quintal.Prosas do
     )
   end
 
+  @doc "Remove uma prosa do índice (delete vindo da firehose)."
+  @spec desindexar(uri :: String.t()) :: :ok
+  def desindexar(uri) do
+    Repo.delete_all(from p in Prosa, where: p.uri == ^uri)
+    :ok
+  end
+
   @doc """
   Upsert idempotente de uma prosa no índice.
 
