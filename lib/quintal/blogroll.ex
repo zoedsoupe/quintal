@@ -1,9 +1,9 @@
 defmodule Quintal.Blogroll do
   @moduledoc """
-  O "quem eu leio" de um canto (lexicon `place.quintal.canto.blogroll`,
-  spec 10.4): lista curada e pública de cantos. Numa plataforma sem
-  contadores, o blogroll é o que é público por escolha (spec 5.1,
-  feature 2).
+  As cumadis de um canto (lexicon `place.quintal.canto.blogroll`,
+  spec 10.4): lista curada e pública de cantos que a pessoa lê e
+  recomenda. Numa plataforma sem contadores, a lista de cumadis é o que
+  é público por escolha (spec 5.1, feature 2).
 
   Record único com `literal:self`: uma escrita, lista limitada a 150
   cantos. Essa tabela é o índice local, upsert idempotente por

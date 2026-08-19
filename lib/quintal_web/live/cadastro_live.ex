@@ -32,6 +32,12 @@ defmodule QuintalWeb.CadastroLive do
           conversa com ele. quem já tem conta no bluesky já tem tudo pronto.
         </p>
 
+        <p>
+          não sabe o que é isso? sem problema: a página
+          <.link navigate={~p"/faq"}>que lugar é esse?</.link>
+          explica tudo direitinho, sem tecnicês.
+        </p>
+
         <h2>criando num pds existente</h2>
 
         <ol class="cadastro__passos">
@@ -67,8 +73,8 @@ defmodule QuintalWeb.CadastroLive do
         <.link navigate={~p"/"} class="botao">voltar e entrar</.link>
 
         <nav class="rodape">
-          <.link navigate={~p"/faq"}>perguntas frequentes</.link>
-          <.link navigate={~p"/conduta"}>código de conduta</.link>
+          <.link navigate={~p"/faq"}>que lugar é esse?</.link>
+          <.link navigate={~p"/conduta"}>regrinhas de convivência</.link>
         </nav>
       </div>
     </Layouts.app>

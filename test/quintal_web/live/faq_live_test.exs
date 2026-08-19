@@ -3,10 +3,30 @@ defmodule QuintalWeb.FaqLiveTest do
 
   import Phoenix.LiveViewTest
 
+  test "apresenta o quintal, o axô e o compromisso humano", %{conn: conn} do
+    {:ok, _view, html} = live(conn, "/faq")
+
+    assert html =~ "sobre o quintal"
+    assert html =~ "quem é o axô?"
+    assert html =~ "compromisso de escrita humana"
+  end
+
+  test "explica o vocabulário da vizinhança", %{conn: conn} do
+    {:ok, _view, html} = live(conn, "/faq")
+
+    assert html =~ "canto"
+    assert html =~ "prosa"
+    assert html =~ "recado"
+    assert html =~ "depoimento"
+    assert html =~ "cumadi"
+    assert html =~ "vizinhança"
+    assert html =~ "passear"
+    assert html =~ "visitas"
+  end
+
   test "explica os termos técnicos em linguagem simples", %{conn: conn} do
     {:ok, _view, html} = live(conn, "/faq")
 
-    assert html =~ "perguntas frequentes"
     assert html =~ "o que é um pds?"
     assert html =~ "handle e did"
     assert html =~ "oauth"

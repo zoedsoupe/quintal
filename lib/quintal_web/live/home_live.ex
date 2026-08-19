@@ -146,8 +146,8 @@ defmodule QuintalWeb.HomeLive do
         </form>
 
         <nav class="rodape">
-          <.link navigate={~p"/faq"}>sobre</.link>
-          <.link navigate={~p"/conduta"}>compromisso de escrita humana</.link>
+          <.link navigate={~p"/faq"}>que lugar é esse?</.link>
+          <.link navigate={~p"/conduta"}>regrinhas de convivência</.link>
           <a href="https://github.com/zoedsoupe/quintal" target="_blank" rel="noopener">código aberto</a>
         </nav>
       </div>

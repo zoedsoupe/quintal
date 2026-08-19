@@ -1,6 +1,6 @@
 defmodule Quintal.Blogrolls do
   @moduledoc """
-  O blogroll, "quem eu leio" (spec 5.1, features 2 e 6; marco m3):
+  As cumadis, o "quem eu leio" (spec 5.1, features 2 e 6; marco m3):
   lista curada e pública de cantos, descoberta como ato de amor público.
 
   `atualizar/2` escreve o record único `place.quintal.canto.blogroll`

@@ -64,7 +64,7 @@ detalhado na tela 5.2, porque ele mora na home.
 - campo de entrada sempre visível no fim da lista: "deixar um recado", com limite quieto de 500 grafemes.
 - para o dono do canto, cada recado tem um olho discreto para ocultar, visível só para ele.
 
-### 4.5 bloco quem eu leio (blogroll + depoimentos)
+### 4.5 bloco cumadis que recomendo (cumadis + depoimentos)
 
 - lista de cantos e sites com nota curta opcional ("leio sempre", "escreve como ninguém").
 - depoimentos recebidos aparecem como cartõezinhos com aspas tipográficas, depois de aceitos.
@@ -158,7 +158,7 @@ metrics anywhere
 
 **objetivo**: a casa da pessoa. visitável, decorável, viva.
 
-**composição (visitação)**: cabeçalho pequeno com o nome do canto em fraunces, bio de uma linha, links em sussurro. abaixo, os blocos na ordem que o dono escolheu: bio, prosas, recados, quem eu leio, links. botão secundário "seguir esse canto" no cabeçalho, quieto. selo humano ao lado do nome quando presente. se o canto tem morada externa, um link com badge "também mora em..." no cabeçalho.
+**composição (visitação)**: cabeçalho pequeno com o nome do canto em fraunces, bio de uma linha, links em sussurro. abaixo, os blocos na ordem que o dono escolheu: bio, prosas, recados, cumadis que recomendo, links. botão secundário "seguir esse canto" no cabeçalho, quieto. selo humano ao lado do nome quando presente. se o canto tem morada externa, um link com badge "também mora em..." no cabeçalho.
 
 **modo arrumar** (só no próprio canto, logado): um botão "arrumar o canto" acende o modo de edição in place. alças de arrastar aparecem à esquerda de cada bloco, um olho em cada bloco para ocultar, e uma barra fina no topo com os três presets (papel, madrugada, gloss) como swatches visuais mais a cor de acento. salvar é automático a cada mudança, com um "guardado" quieto que aparece e some. sem página de settings separada.
 

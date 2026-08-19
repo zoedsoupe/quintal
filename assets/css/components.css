@@ -6,7 +6,10 @@
    principal por tela, sem sombras em nenhum estado. */
 
 .botao {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
   padding: var(--espaco-2) var(--espaco-3);
   border: 1px solid transparent;
   border-radius: var(--raio-pill);
@@ -15,6 +18,7 @@
   cursor: pointer;
   background: var(--acento);
   color: var(--fundo);
+  touch-action: manipulation;
   transition:
     background var(--transicao),
     color var(--transicao),
@@ -217,6 +221,7 @@
 
 .prosear__rodape {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--espaco-3);
@@ -232,9 +237,16 @@
 
 .prosear:focus-within .prosear__rodape,
 .prosear--expandido .prosear__rodape {
-  max-height: 6rem;
+  max-height: 12rem;
   opacity: 1;
   visibility: visible;
+}
+
+@media (min-width: 48rem) {
+  .prosear:focus-within .prosear__rodape,
+  .prosear--expandido .prosear__rodape {
+    max-height: 6rem;
+  }
 }
 
 /* tipos sao metadado, nao cerimonia (spec 10.1): pills quietas, trocar
@@ -259,6 +271,7 @@
   font-size: 0.875rem;
   color: var(--meta);
   cursor: pointer;
+  touch-action: manipulation;
   transition:
     background var(--transicao),
     color var(--transicao),
@@ -374,8 +387,18 @@
   display: flex;
   justify-content: space-around;
   padding-block: var(--espaco-1);
+  padding-bottom: calc(var(--espaco-1) + env(safe-area-inset-bottom, 0px));
   background: var(--fundo);
   border-top: 1px solid var(--sussurro);
+  transition: transform 200ms ease-out;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* tab bar de app nativo: esconde ao rolar pra baixo, volta ao subir */
+
+html.rolagem-descendo .nav-movel {
+  transform: translateY(100%);
 }
 
 .nav-movel__item {
@@ -389,6 +412,8 @@
   font-size: 0.75rem;
   color: var(--meta);
   text-decoration: none;
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
 }
 
 .nav-movel__item:hover {
@@ -441,6 +466,7 @@
   background: transparent;
   color: var(--meta);
   cursor: pointer;
+  touch-action: manipulation;
   transition: color var(--transicao);
 }
 
@@ -466,7 +492,7 @@
 
 @media (max-width: 47.99rem) {
   .conteudo {
-    padding-bottom: 5rem;
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
   }
 }
 
@@ -537,6 +563,10 @@
 
 .cadastro h2 {
   margin-top: var(--espaco-4);
+}
+
+.cadastro h3 {
+  margin-top: var(--espaco-3);
 }
 
 .cadastro .botao {

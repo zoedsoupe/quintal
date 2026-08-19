@@ -130,8 +130,31 @@ const ArrumarBlocos = {
   },
 };
 
+// nav móvel com cara de tab bar nativa (briefing 3): some ao rolar pra
+// baixo, volta ao rolar pra cima. a classe mora no <html>, fora da
+// árvore que o liveview remenda.
+let ultimaPosicao = window.scrollY;
+let rolagemPendente = false;
+
+window.addEventListener(
+  "scroll",
+  () => {
+    if (rolagemPendente) return;
+    rolagemPendente = true;
+
+    requestAnimationFrame(() => {
+      const posicao = window.scrollY;
+      const descendo = posicao > ultimaPosicao && posicao > 80;
+      document.documentElement.classList.toggle("rolagem-descendo", descendo);
+      ultimaPosicao = posicao;
+      rolagemPendente = false;
+    });
+  },
+  { passive: true },
+);
+
 // limpar-campo: o servidor pede para esvaziar um campo depois de uma
-// escrita otimista (recado deixado, canto adicionado ao quem eu leio)
+// escrita otimista (recado deixado, canto adicionado às cumadis)
 window.addEventListener("phx:limpar-campo", (e) => {
   const campo = document.getElementById(e.detail.id);
   if (campo) campo.value = "";

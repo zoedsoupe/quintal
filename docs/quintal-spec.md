@@ -37,11 +37,11 @@ a linguagem do lugar é a arquitetura da informação. registro cotidiano, popul
 | palavra    | significado                                                                                                                           |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------- |
 | quintal    | a plataforma, a vizinhança inteira                                                                                                    |
-| canto      | sua home pessoal: perfil, prosas, recados, blogroll, links                                                                            |
+| canto      | sua home pessoal: perfil, prosas, recados, cumadis, links                                                                             |
 | prosa      | a unidade de escrita. vale nota de duas linhas e ensaio longo. tipos internos (metadado, não rótulo): nota, pergunta, crônica, ensaio |
 | recado     | entrada no livro de visitas de um canto                                                                                               |
 | depoimento | testemunho público sobre uma pessoa. aparece no canto dela só depois de aceito                                                        |
-| blogroll   | "quem eu leio": lista curada e pública de cantos                                                                                      |
+| cumadi     | um canto que você lê e recomenda publicamente; sua lista de cumadis, o "quem eu leio". no protocolo, o record `canto.blogroll`        |
 | vizinhança | seu grafo de leitura, quem você segue                                                                                                 |
 | passear    | a descoberta serendipita, protagonizada pelo axô                                                                                      |
 | roda       | comunidades temáticas pequenas. v2, namespace reservado                                                                               |
@@ -52,12 +52,12 @@ a linguagem do lugar é a arquitetura da informação. registro cotidiano, popul
 
 ### 5.1 features
 
-1. **canto.** perfil, prosas, arquivo, links, recados, blogroll. blocos reordenáveis por arrastar e soltar, com opção de ocultar. tema por preset.
-2. **seguir e ler.** sem contadores. a vizinhança é sua e de mais ninguém: ninguém vê quantas pessoas te leem. o que é público por escolha é o blogroll.
+1. **canto.** perfil, prosas, arquivo, links, recados, cumadis. blocos reordenáveis por arrastar e soltar, com opção de ocultar. tema por preset.
+2. **seguir e ler.** sem contadores. a vizinhança é sua e de mais ninguém: ninguém vê quantas pessoas te leem. o que é público por escolha é a lista de cumadis.
 3. **feed cronológico.** só prosas de quem você escolheu ler, em ordem de publicação, paginação por cursor, sem fim infinito agressivo.
 4. **respostas em duas marchas.** uma resposta é uma prosa com referência de reply: mesmo record, mesma estrutura. a nota rápida e a resposta ensaio diferem só na apresentação. uma resposta pode viver na thread e no seu canto ao mesmo tempo.
 5. **livro de visitas.** qualquer pessoa pode deixar recado em qualquer canto. o dono do canto pode ocultar. o record fica intacto no repo de quem escreveu: sua fala, seu repo; minha parede, minhas regras.
-6. **blogroll e depoimentos.** descoberta como ato de amor público. depoimentos só aparecem no canto depois de aceitos pelo dono.
+6. **cumadis e depoimentos.** descoberta como ato de amor público. depoimentos só aparecem no canto depois de aceitos pelo dono.
 7. **compromisso humano.** pledge visível no cadastro e selo no canto. sem detecção de ia, sem policiamento: é um manifesto.
 8. **exportação total.** nativa via atproto, mais um zip de um clique com markdown, imagens e json dos records.
 9. **passear com o axô.** caminhada aleatória sobre o grafo indexado. na v1.5, o passeio é enviesado pelas arestas de depoimentos: serendipia seguindo cartas de amor.
@@ -443,7 +443,7 @@ só aparece no canto do subject depois de aceito. na v1 o aceite é estado local
 }
 ```
 
-record único com `literal:self`: uma escrita, lista limitada a 150 cantos, simplicidade total.
+record único com `literal:self`: uma escrita, lista limitada a 150 cantos, simplicidade total. na interface, esse record aparece como "cumadis que recomendo" (spec 4).
 
 ### 10.5 `place.quintal.canto.config`
 
@@ -545,7 +545,7 @@ grafo próprio, separado do bluesky de propósito: ninguém quer seus follows de
 | m0    | lexicons publicados e resolvíveis; proto_rune com oauth, escrita, backfill e firehose (seção 9) | caminho crítico, a incógnita real   |
 | m1    | criar canto, escrever e ler as próprias prosas, sem feed                                        | já dá para usar como diário público |
 | m2    | follows, ingestão de firehose, feed cronológico                                                 | a vizinhança fica legível           |
-| m3    | recados, blogroll, depoimentos com aceite, três presets de tema                                 | a vizinhança fica decorada          |
+| m3    | recados, cumadis, depoimentos com aceite, três presets de tema                                  | a vizinhança fica decorada          |
 | m4    | axô e o passear, convites com cota de 5, polish                                                 | alpha com cerca de 30 amigos        |
 
 ## 13. custos

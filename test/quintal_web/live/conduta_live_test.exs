@@ -3,13 +3,19 @@ defmodule QuintalWeb.CondutaLiveTest do
 
   import Phoenix.LiveViewTest
 
-  test "mostra as regras mínimas da vizinhança", %{conn: conn} do
+  test "mostra as regrinhas de convivência da vizinhança", %{conn: conn} do
     {:ok, _view, html} = live(conn, "/conduta")
 
-    assert html =~ "código de conduta"
-    assert html =~ "o esperado"
+    assert html =~ "regrinhas de convivência"
     assert html =~ "o que não cabe aqui"
     assert html =~ "moderação"
     assert html =~ "denunciar"
+  end
+
+  test "nomeia a transfobia explicitamente", %{conn: conn} do
+    {:ok, _view, html} = live(conn, "/conduta")
+
+    assert html =~ "uma nota sobre transfobia"
+    assert html =~ "transfobia aqui não é opinião"
   end
 end

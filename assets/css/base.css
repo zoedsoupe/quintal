@@ -13,6 +13,46 @@
 
 html {
   color-scheme: light dark;
+  /* o fundo do html acompanha o tema, então o bounce do overscroll no
+     ios nao pisca uma cor estranha atras da pagina */
+  background: var(--fundo);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* scrollbar: escondida no mobile (la o indicador e overlay e some
+   sozinho), fina e quieta no desktop para manter a nocao de posicao */
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--sussurro) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 0.5rem;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--sussurro);
+  border-radius: var(--raio-pill);
+}
+
+@media (max-width: 47.99rem) {
+  html {
+    scrollbar-width: none;
+  }
+
+  ::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @media (min-width: 48rem) {
@@ -27,6 +67,7 @@ body {
   font-family: var(--fonte-chrome);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
 }
 
 img,
