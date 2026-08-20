@@ -97,7 +97,8 @@ defmodule QuintalWeb.CantoLive do
            recados_visiveis: @recados_pagina,
            depoimentos: Depoimentos.aceitos(dono.did),
            depoimento_form: false,
-           blogroll_items: blogroll_items(dono.did)
+           blogroll_items: blogroll_items(dono.did),
+           presets: @presets
          )}
     end
   end
@@ -396,11 +397,6 @@ defmodule QuintalWeb.CantoLive do
   defp autor_recado(%{autor: %{handle: handle}}, _eu), do: handle
   defp autor_recado(_recado, eu), do: eu
 
-  # em ~H, `@presets` vira lookup de assign: o attr precisa de helper
-  defp presets, do: @presets
-
-  defp acento_padrao(tema), do: @presets[tema].acento
-
   @impl true
   def render(assigns) do
     ~H"""
@@ -422,7 +418,7 @@ defmodule QuintalWeb.CantoLive do
         <div :if={@arrumar} class="arrumar__barra">
           <div class="arrumar__temas">
             <button
-              :for={{tema, preset} <- presets()}
+              :for={{tema, preset} <- @presets}
               type="button"
               class={["arrumar__tema", @canto.tema == tema && "arrumar__tema--selecionado"]}
               phx-click="tema"
@@ -437,20 +433,6 @@ defmodule QuintalWeb.CantoLive do
               {tema}
             </button>
           </div>
-
-          <input
-            type="color"
-            name="cor"
-            class="arrumar__cor"
-            aria-label="cor de acento"
-            value={@canto.cor || acento_padrao(@canto.tema)}
-            phx-change="cor"
-            phx-debounce="300"
-          />
-
-          <span :if={@guardado_seq > 0} id={"guardado-#{@guardado_seq}"} class="guardado">
-            guardado
-          </span>
 
           <.botao phx-click="arrumar" class="arrumar__pronto">pronto</.botao>
         </div>
@@ -650,6 +632,7 @@ defmodule QuintalWeb.CantoLive do
                       maxlength="500"
                       required
                     />
+                    <p class="prosear__ajuda">aparece na hora. o dono do canto pode ocultar depois.</p>
                     <.md_ferramentas />
                     <div class="prosear__rodape">
                       <div class="prosear__ferramentas">
