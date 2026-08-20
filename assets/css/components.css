@@ -270,27 +270,32 @@
   text-align: center;
 }
 
-/* prosa-pagina: a leitura e o produto (spec 7.3). medida de 68ch,
-   ritmo de papel: meta quieta, texto com respiro de ensaio */
+/* prosa-pagina: a leitura e o produto (spec 7.3). medida de 65ch, um
+   pouco mais estreita que o feed: ritmo de papel, meta quieta, texto
+   com respiro de ensaio */
+
+.prosa-pagina,
+.thread {
+  max-width: 65ch;
+}
 
 .prosa-pagina {
-  max-width: var(--medida-leitura);
   margin: var(--espaco-4) auto;
   font-family: var(--fonte-leitura);
 }
 
 .prosa-pagina__meta {
   display: flex;
+  align-items: baseline;
   gap: var(--espaco-2);
   margin-bottom: var(--espaco-4);
-  padding-bottom: var(--espaco-3);
-  border-bottom: 1px solid var(--sussurro);
-  font-family: var(--fonte-chrome);
   font-size: 0.875rem;
   color: var(--meta);
 }
 
 .prosa-pagina__autor {
+  font-family: var(--fonte-leitura);
+  font-size: 1rem;
   font-weight: 600;
   color: var(--tinta);
 }
@@ -298,7 +303,10 @@
 .prosa-pagina__texto {
   font-size: 1.125rem;
   line-height: 1.8;
-  white-space: pre-wrap;
+}
+
+.prosa-pagina__texto p + p {
+  margin-top: var(--espaco-3);
 }
 
 .prosa-pagina__imagens {
@@ -318,26 +326,42 @@
 }
 
 /* thread (briefing 5.4): hairline, respostas em ordem cronologica no
-   mesmo formato de card, e no fim o composer de resposta */
+   mesmo formato de card, cada uma ligada para cima por um fio lilas
+   curvo, e no fim o composer de resposta */
 
 .thread {
   display: flex;
   flex-direction: column;
   gap: var(--espaco-4);
-  max-width: var(--medida-leitura);
   margin: var(--espaco-4) auto 0;
   padding-top: var(--espaco-4);
   border-top: 1px solid var(--sussurro);
 }
 
-.thread__responder {
-  display: flex;
-  flex-direction: column;
-  gap: var(--espaco-2);
+.thread .prosa-card {
+  position: relative;
+  margin-left: var(--espaco-4);
 }
 
-.thread__responder .botao {
-  align-self: flex-start;
+.thread .prosa-card::before {
+  content: "";
+  position: absolute;
+  left: calc(-1 * var(--espaco-4) + 0.75rem);
+  top: calc(-1 * var(--espaco-4));
+  width: 1rem;
+  height: calc(var(--espaco-4) + 1.5rem);
+  border-left: 2px solid var(--acento);
+  border-bottom: 2px solid var(--acento);
+  border-bottom-left-radius: 1rem;
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+/* responder: o mesmo composer do prosear, alinhado com os cards da
+   thread */
+
+.thread__responder {
+  margin: 0 0 0 var(--espaco-4);
 }
 
 /* fim de feed declarado: quando acaba, acaba, com despedida amiga */

@@ -251,15 +251,8 @@
   text-align: center;
 }
 
-.recados__form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--espaco-2);
-}
-
-.recados__form .botao {
-  align-self: flex-start;
-}
+/* o form de recado e o mesmo composer do prosear: .prosear carrega o
+   colapso, a expansao e o sheet mobile */
 
 .recados__convite {
   font-size: 0.875rem;

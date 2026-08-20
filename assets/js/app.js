@@ -27,29 +27,34 @@ import { LiveSocket } from "phoenix_live_view";
 import { hooks as colocatedHooks } from "phoenix-colocated/quintal";
 import topbar from "../vendor/topbar";
 
-// Prosear: o composer da home (briefing 5.2). auto-grow, contador que só
-// aparece nos últimos 500 grafemes, rascunho local oferecido de volta,
-// ctrl/cmd+enter publica e, no mobile, o fundo escurecido e o Esc fecham
-// o sheet.
-const Prosear = {
+// Composer: o gesto de escrita do quintal (prosear na home, responder
+// na thread, recado no canto). auto-grow, contador opcional que só
+// aparece nos últimos 500 grafemes, rascunho local opcional oferecido
+// de volta, ctrl/cmd+enter publica e, no mobile, o fundo escurecido e
+// o Esc fecham o sheet. `data-rascunho` liga o rascunho local com a
+// chave dada; sem o atributo, nada fica guardado.
+const Composer = {
   mounted() {
     this.campo = this.el.querySelector("textarea");
     this.botao = this.el.querySelector("button[type=submit]");
     this.contador = this.el.querySelector(".prosear__contador");
     this.aviso = this.el.querySelector(".prosear__rascunho");
-    this.chave = "quintal:rascunho";
-    this.limite = 10000;
+    this.chave = this.el.dataset.rascunho;
+    this.limite = Number(this.campo.getAttribute("maxlength")) || 10000;
 
-    const rascunho = localStorage.getItem(this.chave);
-    if (rascunho && !this.campo.value) {
-      this.campo.value = rascunho;
-      this.aviso.hidden = false;
+    if (this.chave) {
+      const rascunho = localStorage.getItem(this.chave);
+      if (rascunho && !this.campo.value) {
+        this.campo.value = rascunho;
+        if (this.aviso) this.aviso.hidden = false;
+      }
     }
 
     this.campo.addEventListener("input", () => {
       this.cresce();
       this.conta();
       this.expande();
+      if (!this.chave) return;
       if (this.campo.value) {
         localStorage.setItem(this.chave, this.campo.value);
       } else {
@@ -83,10 +88,10 @@ const Prosear = {
     this.fundo = this.el.querySelector("[data-fecha]");
     if (this.fundo) this.fundo.addEventListener("click", () => this.fecha());
 
-    this.handleEvent("prosear-publicado", () => {
+    this.handleEvent("composer-publicado", () => {
       this.campo.value = "";
-      localStorage.removeItem(this.chave);
-      this.aviso.hidden = true;
+      if (this.chave) localStorage.removeItem(this.chave);
+      if (this.aviso) this.aviso.hidden = true;
       this.cresce();
       this.conta();
       this.fecha();
@@ -133,6 +138,7 @@ const Prosear = {
   },
 
   conta() {
+    if (!this.contador) return;
     const faltam = this.limite - [...this.campo.value].length;
     this.contador.hidden = faltam > 500;
     if (!this.contador.hidden) {
@@ -258,7 +264,7 @@ const csrfToken = document
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: { _csrf_token: csrfToken },
-  hooks: { Prosear, ArrumarBlocos, ...colocatedHooks },
+  hooks: { Composer, ArrumarBlocos, ...colocatedHooks },
 });
 
 // Show progress bar on live navigation and form submits

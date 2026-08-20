@@ -120,9 +120,12 @@ defmodule QuintalWeb.Components do
     """
   end
 
-  # parágrafos em bloco: quebra em linha em branco, sem indentação de
-  # primeira linha. quebras simples dentro do parágrafo viram espaço
-  defp paragrafos(texto) do
+  @doc """
+  Parágrafos em bloco: quebra em linha em branco, sem indentação de
+  primeira linha. Quebras simples dentro do parágrafo colapsam em
+  espaço na renderização.
+  """
+  def paragrafos(texto) do
     texto
     |> String.split(~r/\n\s*\n/)
     |> Enum.map(&String.trim/1)

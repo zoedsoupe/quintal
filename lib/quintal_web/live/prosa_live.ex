@@ -75,7 +75,7 @@ defmodule QuintalWeb.ProsaLive do
          socket
          |> put_flash(:info, "pronto, sua prosa tá no quintal")
          |> update(:thread, &(&1 ++ [resposta]))
-         |> push_event("limpar-campo", %{id: "texto"})}
+         |> push_event("composer-publicado", %{})}
 
       {:error, _reason} ->
         {:noreply, put_flash(socket, :error, "ih, algo deu errado. tenta de novo?")}
@@ -114,23 +114,13 @@ defmodule QuintalWeb.ProsaLive do
           <time>{tempo_relativo(@prosa.created_at)}</time>
         </header>
 
-        <div class="prosa-pagina__texto">{@prosa.texto}</div>
+        <div class="prosa-pagina__texto">
+          <p :for={paragrafo <- paragrafos(@prosa.texto)}>{paragrafo}</p>
+        </div>
 
         <div :if={imagens_card(@prosa) != []} class="prosa-pagina__imagens">
           <img :for={img <- imagens_card(@prosa)} src={img.src} alt={img.alt} loading="lazy" />
         </div>
-
-        <nav class="rodape">
-          <.link navigate={~p"/canto/#{@handle}"}>mais prosas de {@handle}</.link>
-          <span :if={@visita_deixada} class="rodape__visita">visita deixada</span>
-          <.botao
-            :if={pode_visitar?(@sessao, @prosa) && !@visita_deixada}
-            variante={:sutil}
-            phx-click="deixar_visita"
-          >
-            li até aqui
-          </.botao>
-        </nav>
       </article>
 
       <section :if={@prosa} class="thread" aria-label="respostas">
@@ -156,18 +146,45 @@ defmodule QuintalWeb.ProsaLive do
           </:acoes>
         </.prosa>
 
-        <form :if={@sessao} phx-submit="responder" class="thread__responder">
+        <form
+          :if={@sessao}
+          id="responder"
+          phx-submit="responder"
+          phx-hook="Composer"
+          class="prosear thread__responder"
+          data-rascunho={"quintal:rascunho:responder:#{@prosa.uri}"}
+        >
+          <span class="prosear__alca" aria-hidden="true"></span>
+          <div class="prosear__fundo" data-fecha aria-hidden="true"></div>
+
           <.campo
             name="texto"
             area
             aria-label="responder com uma prosa"
-            placeholder="responder com uma prosa"
-            rows="2"
+            placeholder="responder com uma prosa..."
+            rows="1"
             maxlength="10000"
             required
           />
-          <.botao type="submit">responder</.botao>
+          <div class="prosear__rodape">
+            <div class="prosear__ferramentas">
+              <span class="prosear__atalho" aria-hidden="true">ctrl+enter pra responder</span>
+              <.botao type="submit">responder</.botao>
+            </div>
+          </div>
         </form>
+
+        <nav class="rodape">
+          <.link navigate={~p"/canto/#{@handle}"}>mais prosas de {@handle}</.link>
+          <span :if={@visita_deixada} class="rodape__visita">visita deixada</span>
+          <.botao
+            :if={pode_visitar?(@sessao, @prosa) && !@visita_deixada}
+            variante={:sutil}
+            phx-click="deixar_visita"
+          >
+            li até aqui
+          </.botao>
+        </nav>
       </section>
     </Layouts.app>
     """

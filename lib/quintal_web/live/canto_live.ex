@@ -116,7 +116,7 @@ defmodule QuintalWeb.CantoLive do
         {:noreply,
          socket
          |> update(:recados, &[recado | &1])
-         |> push_event("limpar-campo", %{id: "texto"})}
+         |> push_event("composer-publicado", %{})}
 
       {:error, _reason} ->
         {:noreply, put_flash(socket, :error, "ih, algo deu errado. tenta de novo?")}
@@ -531,16 +531,32 @@ defmodule QuintalWeb.CantoLive do
                     <.botao variante={:sutil} phx-click="mais_recados">ver mais recados</.botao>
                   </p>
 
-                  <form :if={@sessao} phx-submit="deixar_recado" class="recados__form">
+                  <form
+                    :if={@sessao}
+                    id="recado"
+                    phx-submit="deixar_recado"
+                    phx-hook="Composer"
+                    class="prosear recados__form"
+                    data-rascunho={"quintal:rascunho:recado:#{@dono.did}"}
+                  >
+                    <span class="prosear__alca" aria-hidden="true"></span>
+                    <div class="prosear__fundo" data-fecha aria-hidden="true"></div>
+
                     <.campo
                       name="texto"
                       area
                       aria-label="deixar um recado"
                       placeholder="deixar um recado"
+                      rows="1"
                       maxlength="500"
                       required
                     />
-                    <.botao type="submit">deixar um recado</.botao>
+                    <div class="prosear__rodape">
+                      <div class="prosear__ferramentas">
+                        <span class="prosear__atalho" aria-hidden="true">ctrl+enter pra deixar</span>
+                        <.botao type="submit">deixar um recado</.botao>
+                      </div>
+                    </div>
                   </form>
                   <p :if={!@sessao} class="recados__convite">
                     <.link navigate={~p"/"}>entra com atproto</.link> pra deixar um recado

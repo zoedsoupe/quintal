@@ -64,7 +64,7 @@ defmodule QuintalWeb.HomeLive do
        socket
        |> put_flash(:info, "pronto, sua prosa tá no quintal")
        |> update(:feed, &[prosa | &1])
-       |> push_event("prosear-publicado", %{})}
+       |> push_event("composer-publicado", %{})}
     else
       {:error, :alt_faltando} ->
         {:noreply, put_flash(socket, :error, "descreve cada imagem pra quem não vê, aí a gente prosa")}
@@ -164,8 +164,9 @@ defmodule QuintalWeb.HomeLive do
           id="prosear"
           phx-submit="prosear"
           phx-change="validar"
-          phx-hook="Prosear"
+          phx-hook="Composer"
           class="prosear"
+          data-rascunho="quintal:rascunho"
         >
           <span class="prosear__alca" aria-hidden="true"></span>
           <div class="prosear__fundo" data-fecha aria-hidden="true"></div>
