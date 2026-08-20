@@ -36,8 +36,12 @@ defmodule QuintalWeb.HomeLiveTest do
     assert html =~ "/convite"
   end
 
+  test "logada: a landing vira redirect pro início", %{conn: conn} do
+    assert {:error, {:redirect, %{to: "/inicio"}}} = live(loga_como_alice(conn), "/")
+  end
+
   test "logada: composer no topo e o vazio do spec, sem prosa ainda", %{conn: conn} do
-    {:ok, _view, html} = live(loga_como_alice(conn), "/")
+    {:ok, _view, html} = live(loga_como_alice(conn), "/inicio")
 
     assert html =~ "como foi seu dia?"
     assert html =~ "prosear"
@@ -57,7 +61,7 @@ defmodule QuintalWeb.HomeLiveTest do
       {:ok, %{uri: "at://did:plc:alice/place.quintal.feed.prosa/abc", cid: "bafy1"}}
     end)
 
-    {:ok, view, _html} = live(loga_como_alice(conn), "/")
+    {:ok, view, _html} = live(loga_como_alice(conn), "/inicio")
 
     html =
       view
@@ -69,7 +73,7 @@ defmodule QuintalWeb.HomeLiveTest do
   end
 
   test "prosear com texto vazio mostra o erro genérico do spec", %{conn: conn} do
-    {:ok, view, _html} = live(loga_como_alice(conn), "/")
+    {:ok, view, _html} = live(loga_como_alice(conn), "/inicio")
 
     # o textarea é required, mas a borda também valida: texto em branco
     # nunca sai de casa.
@@ -79,7 +83,7 @@ defmodule QuintalWeb.HomeLiveTest do
   end
 
   test "composer oferece os quatro tipos como pills quietas", %{conn: conn} do
-    {:ok, _view, html} = live(loga_como_alice(conn), "/")
+    {:ok, _view, html} = live(loga_como_alice(conn), "/inicio")
 
     assert html =~ ~s(type="radio" name="tipo")
     for tipo <- ["nota", "pergunta", "crônica", "ensaio"], do: assert(html =~ tipo)
@@ -111,7 +115,7 @@ defmodule QuintalWeb.HomeLiveTest do
         value: %{subject: "did:plc:beto", created_at: "2026-08-02T10:00:00Z"}
       })
 
-    {:ok, _view, html} = live(loga_como_alice(conn), "/")
+    {:ok, _view, html} = live(loga_como_alice(conn), "/inicio")
 
     assert html =~ "bom dia do beto"
     assert html =~ "você viu tudo do seu quintal por hoje. vai tomar um café."

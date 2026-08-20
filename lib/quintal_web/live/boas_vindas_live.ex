@@ -60,7 +60,7 @@ defmodule QuintalWeb.BoasVindasLive do
   end
 
   def handle_event("entrar", _params, socket) do
-    {:noreply, push_navigate(socket, to: ~p"/")}
+    {:noreply, push_navigate(socket, to: ~p"/inicio")}
   end
 
   defp presets, do: @presets

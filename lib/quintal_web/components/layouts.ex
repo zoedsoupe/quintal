@@ -15,6 +15,9 @@ defmodule QuintalWeb.Layouts do
   O menu da conta (meu canto, conta, sair) mora num `<details>` quieto
   com o handle como gatilho, à direita da barra superior — visível
   também no mobile, onde a barra inferior não tem espaço para ele.
+
+  `moldura: false` tira o chrome (barra superior e nav inferior fixa):
+  é a página de escrita, onde nada fica fixo na tela.
   """
 
   use QuintalWeb, :html
@@ -25,11 +28,13 @@ defmodule QuintalWeb.Layouts do
   O chrome da aplicação em volta do conteúdo.
 
   `:sessao` é a sessão atproto (nil deslogada, sem nav). `:novidade`
-  acende o ponto lilás no ícone de visitas.
+  acende o ponto lilás no ícone de visitas. `:moldura` false omite a
+  barra superior e a nav inferior (página de escrita).
   """
   attr :flash, :map, default: %{}
   attr :sessao, :any, default: nil
   attr :novidade, :boolean, default: false
+  attr :moldura, :boolean, default: true
   slot :inner_block, required: true
 
   def app(assigns) do
@@ -38,12 +43,12 @@ defmodule QuintalWeb.Layouts do
 
     ~H"""
     <div class="chrome">
-      <header class="chrome__topo">
-        <.link navigate={~p"/"} class="chrome__marca">quintal</.link>
+      <header :if={@moldura} class="chrome__topo">
+        <.link navigate={if @sessao, do: ~p"/inicio", else: ~p"/"} class="chrome__marca">quintal</.link>
 
         <div :if={@sessao} class="chrome__lado">
           <nav class="chrome__nav">
-            <.link navigate={~p"/"}>início</.link>
+            <.link navigate={~p"/inicio"}>início</.link>
             <.link navigate={~p"/passear"}>passear</.link>
             <.link navigate={~p"/visitas"}>visitas</.link>
           </nav>
@@ -69,8 +74,8 @@ defmodule QuintalWeb.Layouts do
         {render_slot(@inner_block)}
       </main>
 
-      <nav :if={@sessao} class="nav-movel" aria-label="navegação principal">
-        <.link navigate={~p"/"} class="nav-movel__item">
+      <nav :if={@moldura && @sessao} class="nav-movel" aria-label="navegação principal">
+        <.link navigate={~p"/inicio"} class="nav-movel__item">
           <Lucideicons.home aria-hidden="true" />
           <span>início</span>
         </.link>

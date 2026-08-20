@@ -23,7 +23,7 @@ defmodule QuintalWeb.Router do
     pipe_through :browser
 
     live_session :default, on_mount: [QuintalWeb.SessaoHook] do
-      live "/", HomeLive
+      live "/", LandingLive
       live "/cadastro", CadastroLive
       live "/convite", ConviteLive
       live "/faq", FaqLive
@@ -41,7 +41,10 @@ defmodule QuintalWeb.Router do
 
     # conteúdo do quintal: portaria fechada, só com sessão (spec 6.1)
     live_session :privado, on_mount: [{QuintalWeb.SessaoHook, :privado}] do
+      live "/inicio", HomeLive
       live "/boas-vindas", BoasVindasLive
+      live "/prosear", EscreverLive, :prosear
+      live "/recadar", EscreverLive, :recado
       live "/passear", PassearLive
       live "/canto/:handle/prosa/:rkey", ProsaLive
       live "/canto/:handle", CantoLive

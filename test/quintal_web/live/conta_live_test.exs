@@ -34,12 +34,11 @@ defmodule QuintalWeb.ContaLiveTest do
     {:ok, conn: conn}
   end
 
-  test "mostra a conta conectada com handle, did e pds", %{conn: conn} do
+  test "mostra a conexão com handle e pds", %{conn: conn} do
     {:ok, _view, html} = live(conn, "/conta")
 
-    assert html =~ "conta conectada"
+    assert html =~ "conexão"
     assert html =~ "alice.bsky.social"
-    assert html =~ "did:plc:alice"
     assert html =~ "pds.example"
   end
 
@@ -47,7 +46,7 @@ defmodule QuintalWeb.ContaLiveTest do
     {:ok, _view, html} = live(conn, "/conta")
 
     assert html =~ "convites"
-    assert html =~ "você ainda pode chamar 5 pessoas pro quintal"
+    assert html =~ "5 convites restantes"
     assert html =~ "gerar um convite"
   end
 

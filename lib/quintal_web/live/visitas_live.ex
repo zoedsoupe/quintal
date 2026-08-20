@@ -21,7 +21,7 @@ defmodule QuintalWeb.VisitasLive do
   def mount(_params, _session, socket) do
     case socket.assigns.sessao do
       nil ->
-        {:ok, push_navigate(socket, to: ~p"/")}
+        {:ok, redirect(socket, to: ~p"/")}
 
       sessao ->
         did = sessao.did
