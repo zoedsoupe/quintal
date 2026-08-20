@@ -1,15 +1,18 @@
-/* conta: quem esta conectada, convites, exportacao e saida. coluna
-   unica estreita de secoes agrupadas, cada uma um cartao de superficie
-   suave com cantos generosos e borda de um fio. sem vermelho, sem
-   aviso: ate o sair e uma linha quieta em vinho fechado. */
+/* conta: convites, conexao, sobre e saida. coluna unica quieta de
+   secoes agrupadas, cada uma um cartao de borda suave com cantos
+   generosos e respiro entre elas. identidade tipografica, sem avatar.
+   texto secundario em sussurro, divisores de um fio, sem badges nem
+   icones. ate o sair e uma linha de lista quieta em vinho fechado. */
 
 .conta {
-  max-width: 32rem;
+  max-width: 40rem;
   margin-inline: auto;
 }
 
-.conta h1 {
-  margin-bottom: var(--espaco-4);
+.conta__pagina {
+  font-family: var(--fonte-leitura);
+  font-weight: 500;
+  margin-bottom: var(--espaco-5);
 }
 
 .conta__secao {
@@ -27,9 +30,9 @@
 .conta__card {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: stretch;
   gap: var(--espaco-2);
-  padding: var(--espaco-3);
+  padding: var(--espaco-4);
   background: var(--fundo-card);
   border: 1px solid var(--borda-card);
   border-radius: var(--raio-card);
@@ -39,23 +42,60 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--espaco-2);
+  gap: var(--espaco-3);
   width: 100%;
   min-height: 2.75rem;
 }
 
-.conta__handle {
-  font-family: var(--fonte-leitura);
-  font-weight: 600;
+.conta__campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+  min-width: 0;
 }
 
-.conta__did {
+.conta__rotulo {
+  font-family: var(--fonte-chrome);
   font-size: 0.8125rem;
+  color: var(--meta);
+}
+
+.conta__valor {
+  font-family: var(--fonte-leitura);
+}
+
+.conta__mono {
+  font-family: var(--fonte-chrome);
+  font-size: 0.8125rem;
+  letter-spacing: 0.01em;
   color: var(--meta);
   overflow-wrap: anywhere;
 }
 
-.conta__linha code:not(.conta__did) {
+/* link textual quieto na borda direita da linha */
+.conta__link {
+  font-family: var(--fonte-chrome);
+  font-size: 0.875rem;
+  color: var(--meta);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: none;
+  flex-shrink: 0;
+  align-self: flex-start;
+  margin-top: var(--espaco-1);
+}
+
+.conta__link:hover {
+  color: var(--tinta);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.15em;
+}
+
+/* codigos de convite: chip de um fio, copia em texto quieto */
+.conta__linha--codigo code {
   font-size: 0.875rem;
   color: var(--tinta);
   border: 1px solid var(--sussurro);
@@ -63,23 +103,46 @@
   padding: 0.125rem 0.5rem;
 }
 
-.conta__nota {
-  font-size: 0.875rem;
-  color: var(--meta);
+/* listas de linhas (sobre, sair): cara de app nativo, divisores de
+   um fio entre os itens */
+.conta__card--lista {
+  gap: 0;
+  padding-block: var(--espaco-2);
 }
 
-.conta__sair {
+.conta__item {
   display: flex;
   align-items: center;
-  width: 100%;
   min-height: 2.75rem;
-  color: var(--erro);
+  padding-inline: var(--espaco-2);
+  color: var(--tinta);
   text-decoration: none;
+  border-bottom: 1px solid var(--borda-card);
 }
 
-.conta__sair:hover {
-  color: var(--erro);
+.conta__item:hover {
+  color: var(--tinta);
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 0.15em;
+}
+
+.conta__item:last-of-type {
+  border-bottom: none;
+}
+
+/* sair: mesma linha de lista, quieta mas encontravel, em vinho fechado */
+.conta__item--sair {
+  color: var(--erro);
+}
+
+.conta__item--sair:hover {
+  color: var(--erro);
+}
+
+.conta__versao {
+  font-family: var(--fonte-chrome);
+  font-size: 0.75rem;
+  color: var(--meta);
+  padding: var(--espaco-2) var(--espaco-2) 0;
 }
