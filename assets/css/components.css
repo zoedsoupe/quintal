@@ -184,7 +184,7 @@
   line-height: 1.65;
 }
 
-.prosa-card__texto p + p {
+.prosa-card__texto p+p {
   margin-top: var(--espaco-2);
 }
 
@@ -305,7 +305,7 @@
   line-height: 1.8;
 }
 
-.prosa-pagina__texto p + p {
+.prosa-pagina__texto p+p {
   margin-top: var(--espaco-3);
 }
 
@@ -595,6 +595,7 @@
    o atalho de teclado some, teclado virtual nao tem ctrl */
 
 @media (max-width: 47.99rem) {
+
   .prosear--expandido,
   .prosear:focus-within {
     position: fixed;
@@ -698,7 +699,7 @@
 
 .chrome__topo {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: var(--espaco-3);
   padding-block: var(--espaco-3);
@@ -709,6 +710,81 @@
   font-weight: 700;
   color: var(--tinta);
   text-decoration: none;
+}
+
+.chrome__lado {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+  min-width: 0;
+}
+
+/* menu da conta: o handle e o gatilho quieto de um details com meu
+   canto, conta e sair. sem avatar, tipografia pura. */
+
+.menu-conta {
+  position: relative;
+}
+
+.menu-conta__gatilho {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  min-width: fit-content;
+  overflow: hidden;
+  font-size: 0.875rem;
+  color: var(--meta);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.menu-conta__gatilho::-webkit-details-marker {
+  display: none;
+}
+
+.menu-conta__gatilho:hover {
+  color: var(--acento);
+}
+
+.menu-conta__gatilho svg {
+  flex: none;
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.menu-conta[open] .menu-conta__gatilho svg {
+  transform: rotate(180deg);
+}
+
+.menu-conta__lista {
+  position: absolute;
+  top: calc(100% + var(--espaco-1));
+  right: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  min-width: 9rem;
+  padding: var(--espaco-1);
+  background: var(--fundo-card);
+  border: 1px solid var(--borda-card);
+  border-radius: var(--raio);
+  box-shadow: 0 0.5rem 2rem rgb(0 0 0 / 0.18);
+  font-size: 0.875rem;
+}
+
+.menu-conta__lista a {
+  display: block;
+  padding: var(--espaco-2) var(--espaco-3);
+  border-radius: var(--raio);
+  color: var(--tinta);
+  text-decoration: none;
+}
+
+.menu-conta__lista a:hover {
+  background: color-mix(in srgb, var(--acento) 12%, transparent);
 }
 
 /* navegacao (briefing 3): quatro destinos e so. no desktop, links
@@ -837,7 +913,7 @@ html.rolagem-descendo .nav-movel {
    remendos em lugar (prosa nova no feed) nao disparam a animacao. */
 
 @media (prefers-reduced-motion: no-preference) {
-  .conteudo > * {
+  .conteudo>* {
     animation: tela-entra 280ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 }

@@ -6,10 +6,15 @@ defmodule QuintalWeb.Layouts do
   o conteúdo na medida de leitura. O axô não mora aqui: mascote no
   chrome fixo vira anúncio (spec 7.6).
 
-  Navegação (briefing 3): quatro destinos e só. No desktop, links
-  textuais na barra superior fina; no mobile, barra inferior fixa com
-  ícones e rótulos minúsculos, ao alcance do polegar. Novidade em
+  Navegação (briefing 3): quatro destinos e só. No desktop, três
+  links textuais na barra superior fina (o canto chega pelo menu da
+  conta); no mobile, barra inferior fixa com ícones e rótulos
+  minúsculos, ao alcance do polegar. Novidade em
   visitas é um pontinho lilás quieto, nunca badge vermelho (briefing 2.8).
+
+  O menu da conta (meu canto, conta, sair) mora num `<details>` quieto
+  com o handle como gatilho, à direita da barra superior — visível
+  também no mobile, onde a barra inferior não tem espaço para ele.
   """
 
   use QuintalWeb, :html
@@ -36,12 +41,25 @@ defmodule QuintalWeb.Layouts do
       <header class="chrome__topo">
         <.link navigate={~p"/"} class="chrome__marca">quintal</.link>
 
-        <nav :if={@sessao} class="chrome__nav">
-          <.link navigate={~p"/"}>início</.link>
-          <.link navigate={~p"/passear"}>passear</.link>
-          <.link navigate={~p"/visitas"}>visitas</.link>
-          <.link :if={@handle} navigate={~p"/canto/#{@handle}"}>canto</.link>
-        </nav>
+        <div :if={@sessao} class="chrome__lado">
+          <nav class="chrome__nav">
+            <.link navigate={~p"/"}>início</.link>
+            <.link navigate={~p"/passear"}>passear</.link>
+            <.link navigate={~p"/visitas"}>visitas</.link>
+          </nav>
+
+          <details :if={@handle} class="menu-conta">
+            <summary class="menu-conta__gatilho">
+              {@handle}
+              <Lucideicons.chevron_down aria-hidden="true" />
+            </summary>
+            <nav class="menu-conta__lista" aria-label="conta">
+              <.link navigate={~p"/canto/#{@handle}"}>meu canto</.link>
+              <.link navigate={~p"/conta"}>conta</.link>
+              <a href="/oauth/logout">sair</a>
+            </nav>
+          </details>
+        </div>
       </header>
 
       <p :if={msg = Phoenix.Flash.get(@flash, :info)} class="flash flash--info">{msg}</p>

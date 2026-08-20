@@ -228,6 +228,16 @@ window.addEventListener("quintal:copiar", (e) => {
   navigator.clipboard?.writeText(e.detail.texto);
 });
 
+// menu da conta (details no chrome): fecha ao clicar fora ou ao seguir
+// um link dele — o toggle nativo do summary cuida do resto
+document.addEventListener("click", (e) => {
+  document.querySelectorAll(".menu-conta[open]").forEach((menu) => {
+    if (!menu.contains(e.target) || e.target.closest("a")) {
+      menu.removeAttribute("open");
+    }
+  });
+});
+
 // data-confirm: confirmação em linguagem humana antes de ações
 // destrutivas (apagar prosa). capture + stopImmediatePropagation
 // seguram o phx-click quando a pessoa desiste.

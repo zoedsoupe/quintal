@@ -29,8 +29,22 @@
   font-size: 0.875rem;
 }
 
+.canto__titulo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+}
+
 .canto__acoes {
-  margin-top: var(--espaco-3);
+  flex: none;
+}
+
+.canto__acoes .botao {
+  min-height: 2.25rem;
+  padding: var(--espaco-1) var(--espaco-3);
+  font-size: 0.875rem;
 }
 
 /* blocos: uma pilha separada por espaco em branco, na ordem que o dono
@@ -64,41 +78,66 @@
   color: var(--meta);
 }
 
-/* modo arrumar: edicao in place, autosave a cada mudanca. barra fina
-   sticky com os tres presets como swatches, a cor de acento e o
-   "guardado" quieto que aparece e some. */
+/* modo arrumar: edicao in place, autosave a cada mudanca. uma pill
+   flutuante na base da tela com os tres presets como swatches nomeados,
+   a cor de acento, o "guardado" quieto que aparece e some e o "pronto"
+   em rosa suave. */
+
+.canto-tema:has(.arrumar__barra) {
+  padding-bottom: 7rem;
+}
 
 .arrumar__barra {
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  position: fixed;
+  bottom: var(--espaco-3);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
   display: flex;
   align-items: center;
   gap: var(--espaco-3);
-  padding-block: var(--espaco-2);
-  margin-bottom: var(--espaco-4);
-  background: var(--fundo);
-  border-bottom: 1px solid var(--sussurro);
+  padding: var(--espaco-2) var(--espaco-3);
+  background: var(--fundo-card);
+  border: 1px solid var(--borda-card);
+  border-radius: var(--raio-pill);
+  box-shadow: 0 0.5rem 2rem rgb(0 0 0 / 0.18);
+}
+
+.arrumar__temas {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
 }
 
 .arrumar__tema {
-  width: 1.5rem;
-  height: 1.5rem;
-  padding: 0;
-  border: 1px solid var(--sussurro);
-  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: var(--espaco-1);
+  border: 0;
+  background: transparent;
+  font-size: 0.6875rem;
+  color: var(--meta);
   cursor: pointer;
 }
 
-.arrumar__tema--selecionado {
+.arrumar__mini {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 1px solid;
+  border-radius: 50%;
+}
+
+.arrumar__tema--selecionado .arrumar__mini {
   outline: 2px solid var(--acento);
   outline-offset: 2px;
 }
 
 .arrumar__cor {
-  width: 2.75rem;
-  height: 2.75rem;
-  padding: var(--espaco-1);
+  width: 2rem;
+  height: 2rem;
+  padding: 2px;
   border: 1px solid var(--sussurro);
   border-radius: var(--raio);
   background: transparent;
@@ -106,7 +145,23 @@
 }
 
 .arrumar__pronto {
-  margin-left: auto;
+  min-height: 2.25rem;
+  padding: var(--espaco-1) var(--espaco-3);
+  background: var(--acento-2);
+  color: var(--fundo);
+}
+
+.arrumar__pronto:hover {
+  background: color-mix(in srgb, var(--acento-2) 92%, black);
+}
+
+/* no mobile a pill flutua acima da barra inferior de navegacao */
+
+@media (max-width: 47.99rem) {
+  .arrumar__barra {
+    bottom: calc(3.75rem + env(safe-area-inset-bottom, 0px));
+    max-width: calc(100vw - var(--espaco-3));
+  }
 }
 
 .guardado {
@@ -130,21 +185,57 @@
   }
 }
 
-/* controles do bloco no modo arrumar: alca de arrastar (desktop, o grip
-   some no mobile, onde as setas fazem o trabalho), olho para ocultar e
-   setas para mover (briefing 5.3). */
+/* controles do bloco no modo arrumar: o bloco veste uma borda
+   tracejada lilas quieta o tempo todo; os controles sao chips de
+   superficie montados na borda superior. no desktop a alca de arrastar
+   (canto esquerdo) e o olho (canto direito) dormem ate o hover ou o
+   foco chegar no bloco; no mobile, sem hover, olho e setas ficam
+   sempre visiveis (briefing 5.3). */
+
+.canto-blocos--arrumando {
+  gap: var(--espaco-4);
+}
+
+.canto-blocos--arrumando .canto-bloco {
+  position: relative;
+  padding: var(--espaco-3);
+  border: 1px dashed color-mix(in srgb, var(--acento) 45%, transparent);
+  border-radius: var(--raio-card);
+}
 
 .canto-bloco__controles {
+  position: absolute;
+  top: -0.75rem;
+  left: var(--espaco-2);
+  right: var(--espaco-2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--meta);
+}
+
+.canto-bloco__grupo {
   display: flex;
   align-items: center;
   gap: var(--espaco-1);
-  margin-bottom: var(--espaco-2);
-  color: var(--meta);
+}
+
+.canto-bloco__controles .icone-botao {
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  background: var(--fundo-card);
+  border: 1px solid var(--borda-card);
+  border-radius: var(--raio-pill);
 }
 
 .canto-bloco__alca {
   display: none;
   align-items: center;
+  min-height: 2.25rem;
+  padding-inline: var(--espaco-2);
+  background: var(--fundo-card);
+  border: 1px solid var(--borda-card);
+  border-radius: var(--raio-pill);
   cursor: grab;
 }
 
@@ -156,6 +247,25 @@
 @media (min-width: 48rem) {
   .canto-bloco__alca {
     display: inline-flex;
+  }
+
+  /* desktop: o drag assume, as setas sao o caminho do mobile */
+  .canto-bloco__seta {
+    display: none;
+  }
+
+  .canto-bloco__controles {
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity var(--transicao),
+      visibility var(--transicao);
+  }
+
+  .canto-bloco:hover .canto-bloco__controles,
+  .canto-bloco:focus-within .canto-bloco__controles {
+    opacity: 1;
+    visibility: visible;
   }
 }
 
@@ -171,8 +281,9 @@
 
 /* prosas no canto viram indice (estante, nao feed): uma linha por
    prosa, data em sussurro com largura fixa pra alinhar, a primeira
-   frase com reticencias e a linha inteira como link. o dono tem uma
-   lixeira miuda no fim da linha. */
+   frase com reticencias, chip miudo de tipo e a linha inteira como
+   link. o hover e uma surface suave na linha toda; a lixeira so existe
+   no modo arrumar, miuda no fim da linha. */
 
 .indice {
   display: flex;
@@ -185,6 +296,14 @@
 .indice__item {
   display: flex;
   align-items: center;
+  padding-inline: var(--espaco-2);
+  margin-inline: calc(-1 * var(--espaco-2));
+  border-radius: var(--raio);
+  transition: background var(--transicao);
+}
+
+.indice__item:hover {
+  background: color-mix(in srgb, var(--fundo-card) 70%, transparent);
 }
 
 .indice__linha {
@@ -196,10 +315,6 @@
   padding-block: var(--espaco-2);
   color: var(--tinta);
   text-decoration: none;
-}
-
-.indice__linha:hover .indice__frase {
-  color: var(--acento);
 }
 
 .indice__data {
@@ -215,6 +330,16 @@
   font-family: var(--fonte-leitura);
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.indice__tipo {
+  flex: none;
+  padding: 0 var(--espaco-2);
+  border: 1px solid color-mix(in srgb, var(--acento-2) 55%, transparent);
+  border-radius: var(--raio-pill);
+  font-family: var(--fonte-chrome);
+  font-size: 0.6875rem;
+  color: var(--acento-2);
 }
 
 .indice__apagar {
@@ -251,6 +376,13 @@
   text-align: center;
 }
 
+/* livro de visitas vazio: uma frase amiga, nunca uma tela morta */
+
+.recados__vazio {
+  font-size: 0.875rem;
+  color: var(--meta);
+}
+
 /* o form de recado e o mesmo composer do prosear: .prosear carrega o
    colapso, a expansao e o sheet mobile */
 
@@ -281,12 +413,25 @@
   color: var(--meta);
 }
 
+.quem-leio__vazio {
+  max-width: var(--medida-leitura);
+  font-size: 0.875rem;
+  color: var(--meta);
+}
+
+/* no modo arrumar o form ganha casa: um surface card dentro do bloco,
+   nao inputs no vazio */
+
 .quem-leio__form {
   display: flex;
   flex-direction: column;
   gap: var(--espaco-2);
   max-width: 22rem;
   margin-top: var(--espaco-3);
+  padding: var(--espaco-3);
+  background: var(--fundo-card);
+  border: 1px solid var(--borda-card);
+  border-radius: var(--raio-card);
 }
 
 .quem-leio__form .botao {

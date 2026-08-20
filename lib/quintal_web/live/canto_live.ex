@@ -9,9 +9,11 @@ defmodule QuintalWeb.CantoLive do
   wrapper com `data-theme`, de onde as variáveis cascateiam (spec 7.2).
 
   Modo arrumar (só no próprio canto, logado): edição in place, nunca um
-  painel distante. Swatches dos três presets, cor de acento, olho para
-  ocultar bloco, setas no mobile e drag and drop no desktop. Salvar é
-  automático a cada mudança, com um "guardado" quieto que aparece e some.
+  painel distante. Pill flutuante na base com os três presets como
+  swatches nomeados, cor de acento e o "pronto"; os blocos vestem borda
+  tracejada lilás, com alça de arrastar e olho no hover (desktop) e
+  setas no mobile. Salvar é automático a cada mudança, com um
+  "guardado" quieto que aparece e some.
   """
 
   use QuintalWeb, :live_view
@@ -375,15 +377,24 @@ defmodule QuintalWeb.CantoLive do
         style={@canto.cor && "--acento: #{@canto.cor}"}
       >
         <div :if={@arrumar} class="arrumar__barra">
-          <button
-            :for={{tema, preset} <- presets()}
-            type="button"
-            class={["arrumar__tema", @canto.tema == tema && "arrumar__tema--selecionado"]}
-            style={"background: #{preset.fundo}; border-color: #{preset.acento}"}
-            phx-click="tema"
-            phx-value-tema={tema}
-            aria-label={"tema #{tema}"}
-          ></button>
+          <div class="arrumar__temas">
+            <button
+              :for={{tema, preset} <- presets()}
+              type="button"
+              class={["arrumar__tema", @canto.tema == tema && "arrumar__tema--selecionado"]}
+              phx-click="tema"
+              phx-value-tema={tema}
+              aria-pressed={@canto.tema == tema}
+            >
+              <span
+                class="arrumar__mini"
+                style={"background: #{preset.fundo}; border-color: #{preset.acento}"}
+                aria-hidden="true"
+              >
+              </span>
+              {tema}
+            </button>
+          </div>
 
           <input
             type="color"
@@ -399,11 +410,28 @@ defmodule QuintalWeb.CantoLive do
             guardado
           </span>
 
-          <.botao variante={:sutil} phx-click="arrumar" class="arrumar__pronto">pronto</.botao>
+          <.botao phx-click="arrumar" class="arrumar__pronto">pronto</.botao>
         </div>
 
         <header class="canto__cabeca">
-          <h1 class="canto__nome">{@dono.handle}</h1>
+          <div class="canto__titulo">
+            <h1 class="canto__nome">{@dono.handle}</h1>
+            <div class="canto__acoes">
+              <.botao :if={@sessao && !@proprio? && !@seguindo} variante={:fantasma} phx-click="seguir">
+                seguir esse canto
+              </.botao>
+              <.botao
+                :if={@sessao && !@proprio? && @seguindo}
+                variante={:sutil}
+                phx-click="deixar_de_seguir"
+              >
+                você lê esse canto
+              </.botao>
+              <.botao :if={@proprio? && !@arrumar} variante={:fantasma} phx-click="arrumar">
+                arrumar o canto
+              </.botao>
+            </div>
+          </div>
           <p :if={@canto.bio} class="canto__bio">{@canto.bio}</p>
 
           <p :if={@canto.links != []} class="canto__links">
@@ -411,25 +439,13 @@ defmodule QuintalWeb.CantoLive do
               {link.titulo}
             </a>
           </p>
-
-          <div class="canto__acoes">
-            <.botao :if={@sessao && !@proprio? && !@seguindo} variante={:fantasma} phx-click="seguir">
-              seguir esse canto
-            </.botao>
-            <.botao
-              :if={@sessao && !@proprio? && @seguindo}
-              variante={:sutil}
-              phx-click="deixar_de_seguir"
-            >
-              você lê esse canto
-            </.botao>
-            <.botao :if={@proprio? && !@arrumar} variante={:sutil} phx-click="arrumar">
-              arrumar o canto
-            </.botao>
-          </div>
         </header>
 
-        <div class="canto-blocos" id="canto-blocos" phx-hook={@arrumar && "ArrumarBlocos"}>
+        <div
+          class={["canto-blocos", @arrumar && "canto-blocos--arrumando"]}
+          id="canto-blocos"
+          phx-hook={@arrumar && "ArrumarBlocos"}
+        >
           <section
             :for={bloco <- ordem_blocos(@canto, @arrumar)}
             class={["canto-bloco", @arrumar && bloco not in @canto.blocos && "canto-bloco--oculto"]}
@@ -440,36 +456,38 @@ defmodule QuintalWeb.CantoLive do
               <span class="canto-bloco__alca" aria-hidden="true">
                 <Lucideicons.grip_vertical />
               </span>
-              <button
-                type="button"
-                class="icone-botao"
-                phx-click="alternar-bloco"
-                phx-value-bloco={bloco}
-                aria-label={if bloco in @canto.blocos, do: "ocultar bloco", else: "mostrar bloco"}
-              >
-                <Lucideicons.eye_off :if={bloco in @canto.blocos} aria-hidden="true" />
-                <Lucideicons.eye :if={bloco not in @canto.blocos} aria-hidden="true" />
-              </button>
-              <button
-                type="button"
-                class="icone-botao"
-                phx-click="mover-bloco"
-                phx-value-bloco={bloco}
-                phx-value-direcao="sobe"
-                aria-label="subir bloco"
-              >
-                <Lucideicons.chevron_up aria-hidden="true" />
-              </button>
-              <button
-                type="button"
-                class="icone-botao"
-                phx-click="mover-bloco"
-                phx-value-bloco={bloco}
-                phx-value-direcao="desce"
-                aria-label="descer bloco"
-              >
-                <Lucideicons.chevron_down aria-hidden="true" />
-              </button>
+              <span class="canto-bloco__grupo">
+                <button
+                  type="button"
+                  class="icone-botao canto-bloco__seta"
+                  phx-click="mover-bloco"
+                  phx-value-bloco={bloco}
+                  phx-value-direcao="sobe"
+                  aria-label="subir bloco"
+                >
+                  <Lucideicons.chevron_up aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  class="icone-botao canto-bloco__seta"
+                  phx-click="mover-bloco"
+                  phx-value-bloco={bloco}
+                  phx-value-direcao="desce"
+                  aria-label="descer bloco"
+                >
+                  <Lucideicons.chevron_down aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  class="icone-botao"
+                  phx-click="alternar-bloco"
+                  phx-value-bloco={bloco}
+                  aria-label={if bloco in @canto.blocos, do: "ocultar bloco", else: "mostrar bloco"}
+                >
+                  <Lucideicons.eye_off :if={bloco in @canto.blocos} aria-hidden="true" />
+                  <Lucideicons.eye :if={bloco not in @canto.blocos} aria-hidden="true" />
+                </button>
+              </span>
             </div>
 
             <%= case bloco do %>
@@ -487,9 +505,10 @@ defmodule QuintalWeb.CantoLive do
                     >
                       <time class="indice__data">{data_curta(prosa.created_at)}</time>
                       <span class="indice__frase">{primeira_frase(prosa.texto)}</span>
+                      <span :if={prosa.tipo} class="indice__tipo">{prosa.tipo}</span>
                     </.link>
                     <button
-                      :if={@proprio?}
+                      :if={@arrumar}
                       type="button"
                       class="icone-botao indice__apagar"
                       phx-click="apagar_prosa"
@@ -527,12 +546,16 @@ defmodule QuintalWeb.CantoLive do
                     </button>
                   </div>
 
+                  <p :if={@recados == []} class="recados__vazio">
+                    ainda não tem recados por aqui. o livro de visitas tá aberto.
+                  </p>
+
                   <p :if={length(@recados) > @recados_visiveis} class="recados__mais">
                     <.botao variante={:sutil} phx-click="mais_recados">ver mais recados</.botao>
                   </p>
 
                   <form
-                    :if={@sessao}
+                    :if={@sessao && !@proprio?}
                     id="recado"
                     phx-submit="deixar_recado"
                     phx-hook="Composer"
@@ -546,7 +569,7 @@ defmodule QuintalWeb.CantoLive do
                       name="texto"
                       area
                       aria-label="deixar um recado"
-                      placeholder="deixar um recado"
+                      placeholder="escreve aqui teu recado..."
                       rows="1"
                       maxlength="500"
                       required
@@ -554,7 +577,7 @@ defmodule QuintalWeb.CantoLive do
                     <div class="prosear__rodape">
                       <div class="prosear__ferramentas">
                         <span class="prosear__atalho" aria-hidden="true">ctrl+enter pra deixar</span>
-                        <.botao type="submit">deixar um recado</.botao>
+                        <.botao type="submit">recadar</.botao>
                       </div>
                     </div>
                   </form>
@@ -564,6 +587,10 @@ defmodule QuintalWeb.CantoLive do
                 </div>
               <% "quem-eu-leio" -> %>
                 <h2 class="canto-bloco__titulo">cumadis que recomendo</h2>
+                <p :if={@blogroll_items == [] && !@arrumar} class="quem-leio__vazio">
+                  ainda não tem ninguém aqui. recomendar alguém é o jeito mais bonito de
+                  apresentar a vizinhança.
+                </p>
                 <ul class="quem-leio">
                   <li :for={item <- @blogroll_items}>
                     <.link navigate={~p"/canto/#{item.handle}"}>{item.handle}</.link>
@@ -632,10 +659,6 @@ defmodule QuintalWeb.CantoLive do
             <% end %>
           </section>
         </div>
-
-        <nav :if={@proprio? && !@arrumar} class="rodape">
-          <.link navigate={~p"/conta"}>conta</.link>
-        </nav>
       </div>
     </Layouts.app>
     """
