@@ -66,10 +66,9 @@ defmodule QuintalWeb.Components do
   Uma prosa no feed, no canto ou na thread: o card de leitura.
 
   Avatar miúdo de 32px com gradiente blobby semeado pelo handle (não
-  guardamos avatar, a cor nasce do nome), nome do canto em peso 600,
-  tempo em sussurro e um chip miúdo de tipo quando a prosa não é nota
-  (o tipo é metadado, não cerimônia: nota é o estado default e não
-  marca nada, spec 10.1).
+  guardamos avatar, a cor nasce do nome), nome do canto em peso 600 e
+  tempo em sussurro. O tipo da prosa é metadado interno e nunca vira
+  rótulo no card (spec 10.1).
 
   `em_resposta` traz o handle da prosa mãe e acende o fio lilás que
   conecta o card para cima. `respostas` é a contagem sussurrada de
@@ -78,7 +77,6 @@ defmodule QuintalWeb.Components do
   """
   attr :autor, :string, required: true
   attr :data, :string, required: true
-  attr :tipo, :atom, default: :nota, values: [:nota, :pergunta, :cronica, :ensaio]
   attr :path, :string, default: nil
   attr :cortou, :boolean, default: false
   attr :respostas, :integer, default: 0
@@ -107,7 +105,6 @@ defmodule QuintalWeb.Components do
             <span class="prosa-card__autor">{@autor}</span>
             <time class="prosa-card__tempo">{@data}</time>
           </div>
-          <span :if={@tipo != :nota} class="prosa-card__chip">{rotulo_tipo(@tipo)}</span>
           <span :if={@acoes != []} class="prosa-card__acoes">{render_slot(@acoes)}</span>
         </header>
 
@@ -131,11 +128,6 @@ defmodule QuintalWeb.Components do
     </article>
     """
   end
-
-  defp rotulo_tipo(:pergunta), do: "pergunta"
-  defp rotulo_tipo(:cronica), do: "crônica"
-  defp rotulo_tipo(:ensaio), do: "ensaio"
-  defp rotulo_tipo(_outro), do: nil
 
   defp contagem_respostas(1), do: "1 resposta"
   defp contagem_respostas(n), do: "#{n} respostas"

@@ -146,7 +146,7 @@
 }
 
 /* cabecalho: avatar miudo blobby, nome do canto em peso 600, tempo em
-   sussurro, chip de tipo miudo a direita */
+   sussurro, acoes miudas a direita */
 
 .prosa-card__cabeca {
   display: flex;
@@ -190,24 +190,8 @@
   color: var(--meta);
 }
 
-/* chip de tipo: metadado quieto, rosa lavado. nota nao marca nada */
-
-.prosa-card__chip {
-  margin-left: auto;
-  padding: 0.125rem 0.625rem;
-  border: 1px solid color-mix(in srgb, var(--acento-2) 45%, transparent);
-  border-radius: var(--raio-pill);
-  font-size: 0.75rem;
-  color: var(--acento-2);
-  background: color-mix(in srgb, var(--acento-2) 12%, transparent);
-}
-
 .prosa-card__acoes {
   margin-left: auto;
-}
-
-.prosa-card__chip + .prosa-card__acoes {
-  margin-left: 0;
 }
 
 .prosa-card__texto {
@@ -338,13 +322,6 @@
   max-width: var(--medida-leitura);
   margin: var(--espaco-4) auto;
   font-family: var(--fonte-leitura);
-}
-
-/* pergunta e o unico tipo com enfase visual (spec 10.1) */
-
-.prosa--pergunta {
-  border-left: 3px solid var(--acento-2);
-  padding-left: var(--espaco-3);
 }
 
 .prosa-pagina__meta {

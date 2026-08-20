@@ -19,7 +19,7 @@ defmodule QuintalWeb.ProsaLive do
   import Ecto.Query, only: [from: 2]
 
   import QuintalWeb.Formatacao,
-    only: [tempo_relativo: 1, tipo: 1, prosa_path: 2, imagens_card: 1]
+    only: [tempo_relativo: 1, prosa_path: 2, imagens_card: 1]
 
   alias Quintal.Identidade
   alias Quintal.Prosa
@@ -83,6 +83,16 @@ defmodule QuintalWeb.ProsaLive do
     end
   end
 
+  def handle_event("apagar", %{"uri" => uri}, socket) do
+    case Prosas.apagar(socket.assigns.sessao, uri) do
+      :ok ->
+        {:noreply, update(socket, :thread, &Enum.reject(&1, fn prosa -> prosa.uri == uri end))}
+
+      {:error, _reason} ->
+        {:noreply, put_flash(socket, :error, "ih, algo deu errado. tenta de novo?")}
+    end
+  end
+
   # nunca rastreamos leitura: a visita nasce do gesto do leitor
   defp visita_deixada?(%Prosa{uri: uri}, %{did: did}), do: Visitas.leitura_marcada?(uri, did)
   defp visita_deixada?(_prosa, _sessao), do: false
@@ -97,10 +107,7 @@ defmodule QuintalWeb.ProsaLive do
         titulo="o axô procurou, procurou... e não achou essa prosa"
       />
 
-      <article
-        :if={@prosa}
-        class={["prosa-pagina", tipo(@prosa.tipo) == :pergunta && "prosa--pergunta"]}
-      >
+      <article :if={@prosa} class="prosa-pagina">
         <header class="prosa-pagina__meta">
           <.link navigate={~p"/canto/#{@handle}"} class="prosa-pagina__autor">
             {@handle}
@@ -132,11 +139,22 @@ defmodule QuintalWeb.ProsaLive do
           :for={resposta <- @thread}
           autor={resposta.autor.handle}
           data={tempo_relativo(resposta.created_at)}
-          tipo={tipo(resposta.tipo)}
           path={prosa_path(resposta.uri, resposta.autor.handle)}
           respostas={Map.get(@contagens, resposta.uri, 0)}
           imagens={imagens_card(resposta)}
         >
+          <:acoes :if={@sessao && resposta.autor_did == @sessao.did}>
+            <button
+              type="button"
+              class="icone-botao"
+              phx-click="apagar"
+              phx-value-uri={resposta.uri}
+              data-confirm="apagar essa prosa? ela sai do seu pds também."
+              aria-label="apagar prosa"
+            >
+              <Lucideicons.trash_2 aria-hidden="true" />
+            </button>
+          </:acoes>
           {resposta.texto}
         </.prosa>
 

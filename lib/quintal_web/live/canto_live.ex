@@ -19,7 +19,7 @@ defmodule QuintalWeb.CantoLive do
   import Ecto.Query, only: [from: 2]
 
   import QuintalWeb.Formatacao,
-    only: [tempo_relativo: 1, tipo: 1, trecho: 1, prosa_path: 2, imagens_card: 1]
+    only: [tempo_relativo: 1, trecho: 1, prosa_path: 2, imagens_card: 1]
 
   alias Quintal.Blogrolls
   alias Quintal.Canto
@@ -103,6 +103,16 @@ defmodule QuintalWeb.CantoLive do
   end
 
   @impl true
+  def handle_event("apagar_prosa", %{"uri" => uri}, socket) do
+    case Prosas.apagar(socket.assigns.sessao, uri) do
+      :ok ->
+        {:noreply, update(socket, :prosas, &Enum.reject(&1, fn prosa -> prosa.uri == uri end))}
+
+      {:error, _reason} ->
+        {:noreply, put_flash(socket, :error, "ih, algo deu errado. tenta de novo?")}
+    end
+  end
+
   def handle_event("mais_recados", _params, socket) do
     {:noreply, update(socket, :recados_visiveis, &(&1 + @recados_pagina))}
   end
@@ -482,13 +492,24 @@ defmodule QuintalWeb.CantoLive do
                     <.prosa
                       autor={@dono.handle}
                       data={tempo_relativo(prosa.created_at)}
-                      tipo={tipo(prosa.tipo)}
                       path={prosa_path(prosa.uri, @dono.handle)}
                       cortou={cortou?}
                       respostas={Map.get(@contagens, prosa.uri, 0)}
                       em_resposta={prosa.reply_parent && Map.get(@pais, prosa.reply_parent)}
                       imagens={imagens_card(prosa)}
                     >
+                      <:acoes :if={@proprio?}>
+                        <button
+                          type="button"
+                          class="icone-botao"
+                          phx-click="apagar_prosa"
+                          phx-value-uri={prosa.uri}
+                          data-confirm="apagar essa prosa? ela sai do seu pds também."
+                          aria-label="apagar prosa"
+                        >
+                          <Lucideicons.trash_2 aria-hidden="true" />
+                        </button>
+                      </:acoes>
                       {texto}
                     </.prosa>
                   </div>

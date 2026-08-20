@@ -1,8 +1,8 @@
 defmodule QuintalWeb.Formatacao do
   @moduledoc """
-  Formatação compartilhada das telas: tempo relativo em sussurro e o
-  tipo da prosa como atom. Vive fora das LiveViews porque home, canto e
-  visitas falam a mesma língua.
+  Formatação compartilhada das telas: tempo relativo em sussurro, trecho
+  de prosa longa e imagens do card. Vive fora das LiveViews porque home,
+  canto e visitas falam a mesma língua.
   """
 
   @doc """
@@ -20,13 +20,6 @@ defmodule QuintalWeb.Formatacao do
   end
 
   def tempo_relativo(_outra), do: ""
-
-  @doc """
-  O tipo é metadado interno, nunca rótulo (spec 10.1): no composer vira
-  pill quieta, na prosa só a pergunta ganha ênfase visual.
-  """
-  def tipo(tipo) when tipo in ~w(nota pergunta cronica ensaio), do: String.to_atom(tipo)
-  def tipo(_outro), do: :nota
 
   @resumo 600
 

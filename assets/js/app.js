@@ -198,6 +198,21 @@ window.addEventListener("quintal:copiar", (e) => {
   navigator.clipboard?.writeText(e.detail.texto);
 });
 
+// data-confirm: confirmação em linguagem humana antes de ações
+// destrutivas (apagar prosa). capture + stopImmediatePropagation
+// seguram o phx-click quando a pessoa desiste.
+document.addEventListener(
+  "click",
+  (e) => {
+    const alvo = e.target.closest("[data-confirm]");
+    if (alvo && !window.confirm(alvo.dataset.confirm)) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+    }
+  },
+  true,
+);
+
 // aplicar-tema: o canto guardou tema/cor novos; espelha no <html> para o
 // site inteiro sem esperar o próximo carregamento (o TemaPlug estampa no
 // root layout a cada página cheia). papel volta ao default sem atributo,

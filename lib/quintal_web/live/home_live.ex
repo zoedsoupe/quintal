@@ -12,7 +12,7 @@ defmodule QuintalWeb.HomeLive do
   use QuintalWeb, :live_view
 
   import QuintalWeb.Formatacao,
-    only: [tempo_relativo: 1, tipo: 1, trecho: 1, prosa_path: 2, imagens_card: 1]
+    only: [tempo_relativo: 1, trecho: 1, prosa_path: 2, imagens_card: 1]
 
   alias Quintal.Feed
   alias Quintal.Prosas
@@ -69,6 +69,16 @@ defmodule QuintalWeb.HomeLive do
     else
       {:error, :alt_faltando} ->
         {:noreply, put_flash(socket, :error, "descreve cada imagem pra quem não vê, aí a gente prosa")}
+
+      {:error, _reason} ->
+        {:noreply, put_flash(socket, :error, "ih, algo deu errado. tenta de novo?")}
+    end
+  end
+
+  def handle_event("apagar", %{"uri" => uri}, socket) do
+    case Prosas.apagar(socket.assigns.sessao, uri) do
+      :ok ->
+        {:noreply, update(socket, :feed, &Enum.reject(&1, fn prosa -> prosa.uri == uri end))}
 
       {:error, _reason} ->
         {:noreply, put_flash(socket, :error, "ih, algo deu errado. tenta de novo?")}
@@ -238,13 +248,24 @@ defmodule QuintalWeb.HomeLive do
             <.prosa
               autor={autor}
               data={tempo_relativo(prosa.created_at)}
-              tipo={tipo(prosa.tipo)}
               path={prosa_path(prosa.uri, autor)}
               cortou={cortou?}
               respostas={Map.get(@contagens, prosa.uri, 0)}
               em_resposta={prosa.reply_parent && Map.get(@pais, prosa.reply_parent)}
               imagens={imagens_card(prosa)}
             >
+              <:acoes :if={prosa.autor_did == @sessao.did}>
+                <button
+                  type="button"
+                  class="icone-botao"
+                  phx-click="apagar"
+                  phx-value-uri={prosa.uri}
+                  data-confirm="apagar essa prosa? ela sai do seu pds também."
+                  aria-label="apagar prosa"
+                >
+                  <Lucideicons.trash_2 aria-hidden="true" />
+                </button>
+              </:acoes>
               {texto}
             </.prosa>
           </div>
@@ -294,7 +315,7 @@ defmodule QuintalWeb.HomeLive do
   end
 
   # tipo é metadado interno, nunca rótulo (spec 10.1): no composer vira
-  # pill quieta, na prosa só a pergunta ganha ênfase visual.
+  # pill quieta, no card não aparece.
   defp tipos, do: [{"nota", "nota"}, {"pergunta", "pergunta"}, {"cronica", "crônica"}, {"ensaio", "ensaio"}]
 
   # a prosa recém-proseada ainda não tem a identidade carregada: mostra
