@@ -9,8 +9,10 @@ defmodule QuintalWeb.PassearLive do
 
   use QuintalWeb, :live_view
 
+  alias Quintal.Cantos
   alias Quintal.Passear
   alias Quintal.Visitas
+  alias QuintalWeb.Markdown
 
   @trecho 400
 
@@ -19,13 +21,21 @@ defmodule QuintalWeb.PassearLive do
     sessao = socket.assigns.sessao
     novidade = if sessao, do: Visitas.novidade?(sessao.did), else: false
 
-    {:ok, assign(socket, novidade: novidade, page_title: "passear", carta: nil)}
+    {:ok, assign(socket, novidade: novidade, page_title: "passear", carta: nil, nome: nil)}
   end
 
   @impl true
   def handle_event("passear", _params, socket) do
     viewer_did = socket.assigns.sessao && socket.assigns.sessao.did
-    {:noreply, assign(socket, carta: Passear.prosa_aleatoria(viewer_did))}
+
+    case Passear.prosa_aleatoria(viewer_did) do
+      nil ->
+        {:noreply, socket |> assign(carta: nil) |> put_flash(:error, "ih, algo deu errado. tenta de novo?")}
+
+      carta ->
+        nome = [carta.autor_did] |> Cantos.nomes() |> Map.get(carta.autor_did)
+        {:noreply, assign(socket, carta: carta, nome: nome)}
+    end
   end
 
   @impl true
@@ -40,9 +50,9 @@ defmodule QuintalWeb.PassearLive do
 
       <div :if={@carta} class="passear passeio">
         <blockquote class="passeio__trecho">
-          <p>{trecho(@carta.texto)}</p>
+          {Markdown.render(trecho(@carta.texto))}
         </blockquote>
-        <p class="passeio__autor">do canto de {@carta.autor.handle}</p>
+        <p class="passeio__autor">do canto de {@nome || @carta.autor.handle}</p>
 
         <div class="passeio__caminhos">
           <.link navigate={~p"/canto/#{@carta.autor.handle}"} class="botao botao--primario">

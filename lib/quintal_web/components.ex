@@ -67,7 +67,6 @@ defmodule QuintalWeb.Components do
   @doc """
   O gesto de escrita do quintal, em duas superfícies (regra: no mobile,
   entrada de texto é página, nunca overlay).
-
   `pagina: false` é o card inline da home no desktop: linha colapsada
   que expande no foco, com chips de nota, pergunta e crônica. O ensaio
   não é radio aqui: é um link com cara de pill pra `/prosear?tipo=ensaio`,
@@ -240,14 +239,17 @@ defmodule QuintalWeb.Components do
     """
   end
 
-  # os anexos com alt obrigatório, divididos entre o card e a página
+  # os anexos com alt obrigatório, divididos entre o card e a página.
+  # erro de upload vira frase amiga, nunca silêncio (briefing 4.7)
   attr :uploads, :any, required: true
 
   defp anexos(assigns) do
     ~H"""
+    <p :for={erro <- upload_errors(@uploads.imagens)} class="campo__erro">{erro_imagem(erro)}</p>
     <div :for={entry <- @uploads.imagens.entries} class="prosear__anexo">
-      <.live_img_preview entry={entry} class="prosear__thumb" />
+      <.live_img_preview :if={entry.valid?} entry={entry} class="prosear__thumb" />
       <.campo
+        :if={entry.valid?}
         name={"alt-#{entry.ref}"}
         aria-label="descrição da imagem"
         placeholder="descreve essa imagem pra quem não vê"
@@ -262,9 +264,17 @@ defmodule QuintalWeb.Components do
       >
         <Lucideicons.x aria-hidden="true" />
       </button>
+      <p :for={erro <- upload_errors(@uploads.imagens, entry)} class="campo__erro">
+        {erro_imagem(erro)}
+      </p>
     </div>
     """
   end
+
+  defp erro_imagem(:too_large), do: "essa imagem passa de 2MB. comprime ela e tenta de novo"
+  defp erro_imagem(:too_many_files), do: "uma prosa leva no máximo 4 imagens"
+  defp erro_imagem(:not_accepted), do: "só rola jpeg, png ou webp"
+  defp erro_imagem(_outro), do: "ih, essa imagem não subiu. tenta de novo?"
 
   # tipo é metadado interno, nunca rótulo (spec 10.1): no composer vira
   # pill quieta com placeholder próprio, no card não aparece.
@@ -408,24 +418,6 @@ defmodule QuintalWeb.Components do
       </header>
       {render_slot(@inner_block)}
     </div>
-    """
-  end
-
-  @doc """
-  O selo do compromisso de escrita humana (spec 5.1): o ícone de mão
-  escrevendo, quieto, com tooltip explicando o compromisso (briefing 4.9).
-  """
-  attr :class, :string, default: nil
-
-  def selo(assigns) do
-    ~H"""
-    <span
-      class={["selo", @class]}
-      title="essa pessoa assinou o compromisso de escrita humana"
-    >
-      <Lucideicons.signature aria-hidden="true" />
-      <span class="sr-only">compromisso de escrita humana</span>
-    </span>
     """
   end
 

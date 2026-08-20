@@ -16,6 +16,7 @@ defmodule QuintalWeb.HomeLive do
 
   import QuintalWeb.ProsearForm, only: [com_titulo: 2, imagens_dos_anexos: 2]
 
+  alias Quintal.Cantos
   alias Quintal.Feed
   alias Quintal.Prosas
   alias Quintal.Visitas
@@ -39,7 +40,8 @@ defmodule QuintalWeb.HomeLive do
        novidade: Visitas.novidade?(sessao.did),
        feed: feed,
        feed_cursor: proxima_pagina(feed),
-       pais: %{}
+       pais: %{},
+       nomes: %{}
      )
      |> enriquecer(feed)}
   end
@@ -103,12 +105,16 @@ defmodule QuintalWeb.HomeLive do
   end
 
   # handles das mães, em lote e sem N+1: o card amarra o "em resposta
-  # a" das respostas
+  # a" das respostas. nomes de exibição na mesma viagem.
   defp enriquecer(socket, feed) do
     pais_uris =
       feed |> Enum.map(& &1.reply_parent) |> Enum.reject(&is_nil/1) |> Enum.uniq()
 
-    update(socket, :pais, &Map.merge(&1, Prosas.pais(pais_uris)))
+    dids = feed |> Enum.map(& &1.autor_did) |> Enum.uniq()
+
+    socket
+    |> update(:pais, &Map.merge(&1, Prosas.pais(pais_uris)))
+    |> update(:nomes, &Map.merge(&1, Cantos.nomes(dids)))
   end
 
   @impl true
@@ -125,21 +131,33 @@ defmodule QuintalWeb.HomeLive do
 
         <.composer uploads={@uploads} />
 
-        <section class="feed">
+        <section class="feed" id="feed" phx-hook="FeedNovidade">
           <.vazio
             :if={@feed == []}
             pose={:sentado}
-            titulo="por aqui ainda tá quieto. que tal escrever a primeira prosa?"
-          />
+            titulo="por aqui ainda tá quieto. que tal escrever a primeira prosa? ou passear para achar vizinhos."
+          >
+            <div class="vazio__acoes">
+              <.link navigate={~p"/prosear"} class="botao botao--fantasma">
+                escrever a primeira prosa
+              </.link>
+              <.link navigate={~p"/passear"}>passear com o axô</.link>
+            </div>
+          </.vazio>
 
-          <div :for={prosa <- @feed} class="feed__item">
+          <div
+            :for={prosa <- @feed}
+            class="feed__item"
+            data-criado={DateTime.to_iso8601(prosa.created_at)}
+          >
             <% {texto, cortou?} = trecho(prosa.texto) %>
-            <% autor = autor_de(prosa, @handle) %>
+            <% handle = handle_de(prosa, @handle) %>
+            <% autor = Map.get(@nomes, prosa.autor_did, handle) %>
             <.prosa
               autor={autor}
               data={tempo_relativo(prosa.created_at)}
               texto={texto}
-              path={prosa_path(prosa.uri, autor)}
+              path={prosa_path(prosa.uri, handle)}
               cortou={cortou?}
               em_resposta={prosa.reply_parent && Map.get(@pais, prosa.reply_parent)}
               imagens={imagens_card(prosa)}
@@ -176,8 +194,9 @@ defmodule QuintalWeb.HomeLive do
     """
   end
 
-  # a prosa recém-proseada ainda não tem a identidade carregada: mostra
-  # o próprio handle até o eco da firehose confirmar no índice.
-  defp autor_de(%{autor: %{handle: handle}}, _eu), do: handle
-  defp autor_de(_prosa, eu), do: eu || "eu"
+  # o handle da prosa: a recém-proseada ainda não tem a identidade
+  # carregada, mostra o próprio até o eco da firehose confirmar no
+  # índice. nome de exibição é só pra mostrar, nunca entra em url.
+  defp handle_de(%{autor: %{handle: handle}}, _eu), do: handle
+  defp handle_de(_prosa, eu), do: eu || "eu"
 end

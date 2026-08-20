@@ -10,6 +10,9 @@ defmodule Quintal.Cantos do
   `Quintal.Ingestao` e o backfill do `Quintal.Bootstrap`. A decoração
   também é portátil: a ordem dos blocos vive no record.
 
+  O `nome` de exibição é a exceção local: não entra no record, não vai
+  pro pds, é cosmético do appview. Trocar só o nome não toca na rede.
+
   Tema e blocos são validados pelo changeset do `Quintal.Canto` antes de
   qualquer escrita: falhar cedo, falhar em casa (spec 9.4).
   """
@@ -36,16 +39,25 @@ defmodule Quintal.Cantos do
   Arruma o canto: mescla `attrs` sobre a configuração atual, escreve o
   record no pds e indexa otimista.
 
-  `attrs` pode trazer `:tema`, `:cor`, `:blocos`, `:bio` e `:links`
-  (chaves atom ou string); o que não vier fica como está, e o que nunca
-  existiu cai no padrão (tema papel, todos os blocos visíveis). `cor`
-  `nil` ou `""` tira o acento do record.
+  `attrs` pode trazer `:tema`, `:cor`, `:blocos`, `:bio`, `:links` e
+  `:nome` (chaves atom ou string); o que não vier fica como está, e o
+  que nunca existiu cai no padrão (tema papel, todos os blocos
+  visíveis). `cor` `nil` ou `""` tira o acento do record. O `:nome` é
+  local do appview: quando é a única mudança, nem rede acontece.
 
   Tema fora dos presets ou bloco desconhecido falham em casa, antes da
   rede.
   """
   @spec arrumar(Quintal.PDS.session(), attrs :: map()) :: {:ok, Canto.t()} | {:error, Ecto.Changeset.t() | term()}
   def arrumar(session, attrs) when is_map(attrs) do
+    if so_nome?(attrs) do
+      arrumar_nome(session.did, attrs |> fetch(:nome) |> elem(1))
+    else
+      arrumar_config(session, attrs)
+    end
+  end
+
+  defp arrumar_config(session, attrs) do
     config =
       session.did
       |> config_atual()
@@ -57,12 +69,64 @@ defmodule Quintal.Cantos do
     if changeset.valid? do
       record = monta_record(changeset)
 
-      with {:ok, %{uri: _uri, cid: _cid}} <- pds().put_record(session, @canto_config, "self", record, []) do
-        indexar(session.did, %{value: record})
+      with {:ok, %{uri: _uri, cid: _cid}} <- pds().put_record(session, @canto_config, "self", record, []),
+           {:ok, canto} <- indexar(session.did, %{value: record}) do
+        guardar_nome_local(session.did, attrs, canto)
       end
     else
       {:error, changeset}
     end
+  end
+
+  # o nome é local: depois do record escrito, ele entra por fora
+  defp guardar_nome_local(dono_did, attrs, canto) do
+    case fetch(attrs, :nome) do
+      {:ok, nome} -> arrumar_nome(dono_did, nome)
+      :ausente -> {:ok, canto}
+    end
+  end
+
+  defp so_nome?(attrs) do
+    (Map.has_key?(attrs, :nome) or Map.has_key?(attrs, "nome")) and map_size(attrs) == 1
+  end
+
+  # nome de exibição: coluna local, sem record, sem pds. vazio tira o
+  # nome e a casa volta a se apresentar pelo handle.
+  defp arrumar_nome(dono_did, nome) do
+    nome = if is_binary(nome), do: String.trim(nome)
+    nome = if nome in [nil, ""], do: nil, else: nome
+
+    case Repo.get(Canto, dono_did) do
+      %Canto{} = canto ->
+        canto
+        |> Canto.changeset(%{nome: nome})
+        |> Repo.update()
+
+      nil ->
+        %Canto{}
+        |> Canto.changeset(%{
+          dono_did: dono_did,
+          nome: nome,
+          tema: "papel",
+          blocos: @blocos_padrao,
+          links: [],
+          updated_at: DateTime.utc_now()
+        })
+        |> Repo.insert()
+    end
+  end
+
+  @doc "Os nomes de exibição dos dids dados, como `%{did => nome}`. Só quem escolheu um aparece."
+  @spec nomes([String.t()]) :: %{String.t() => String.t()}
+  def nomes(dids) do
+    import Ecto.Query
+
+    from(c in Canto,
+      where: c.dono_did in ^dids and not is_nil(c.nome),
+      select: {c.dono_did, c.nome}
+    )
+    |> Repo.all()
+    |> Map.new()
   end
 
   @doc """

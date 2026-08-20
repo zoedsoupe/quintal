@@ -5,11 +5,12 @@ defmodule QuintalWeb.BoasVindasLive do
   `ConviteLive`, antes do oauth; aqui ficam os passos que precisam de
   sessão, porque arrumar o canto é escrita no pds.
 
-  Passo 2, seu canto: a bio de uma linha, opcional. Passo 3, o tema:
-  os três presets como swatches visuais, escolha com um toque, e o
-  "entrar no quintal" cai na home com o composer esperando. Sem tour,
-  sem tooltip em sequência: o produto é pequeno o suficiente para se
-  explicar sozinho.
+  Passo 2, seu canto: o nome de exibição (só aparece no quintal, o
+  handle segue sendo o endereço oficial) e a bio de uma linha, ambos
+  opcionais. Passo 3, o tema: os três presets como swatches visuais,
+  escolha com um toque, e o "entrar no quintal" cai na home com o
+  composer esperando. Sem tour, sem tooltip em sequência: o produto é
+  pequeno o suficiente para se explicar sozinho.
   """
 
   use QuintalWeb, :live_view
@@ -36,11 +37,14 @@ defmodule QuintalWeb.BoasVindasLive do
   end
 
   @impl true
-  def handle_event("guardar_bio", %{"bio" => bio}, socket) do
-    bio = String.trim(bio)
+  def handle_event("guardar_canto", params, socket) do
+    attrs =
+      %{nome: params["nome"], bio: params["bio"]}
+      |> Enum.reject(fn {_chave, valor} -> String.trim(valor || "") == "" end)
+      |> Map.new()
 
-    if bio != "" do
-      Cantos.arrumar(socket.assigns.sessao, %{bio: bio})
+    if attrs != %{} do
+      Cantos.arrumar(socket.assigns.sessao, attrs)
     end
 
     {:noreply, assign(socket, passo: :tema)}
@@ -72,28 +76,36 @@ defmodule QuintalWeb.BoasVindasLive do
       <div :if={@passo == :canto} class="boas-vindas-onboarding">
         <h1>seu canto</h1>
         <p class="boas-vindas-onboarding__linha">
-          uma linha sobre você, pra quem passar saber quem mora aqui. opcional, dá pra mudar depois.
+          um nome pra sua casa e uma linha sobre você, pra quem passar saber quem mora aqui.
+          os dois opcionais, dá pra mudar depois. o nome só aparece no quintal:
+          teu handle continua sendo teu endereço oficial.
         </p>
 
         <form
-          phx-submit="guardar_bio"
+          phx-submit="guardar_canto"
           id="boas-vindas-onboarding__form"
           phx-hook="MdToolbar"
           class="boas-vindas-onboarding__form"
         >
           <.campo
+            name="nome"
+            label="nome do canto"
+            placeholder="quintal da zoey"
+            maxlength="60"
+            autofocus
+          />
+          <.campo
             name="bio"
             area
-            aria-label="bio de uma linha"
+            label="bio de uma linha"
             placeholder="escrevo sobre plantas, código e domingos"
             rows="2"
             maxlength="500"
-            autofocus
           />
           <.md_ferramentas />
           <div class="boas-vindas-onboarding__acoes">
             <.botao type="submit">guardar e continuar</.botao>
-            <.botao variante={:sutil} phx-click="guardar_bio" phx-value-bio="">pular</.botao>
+            <.botao variante={:sutil} type="button" phx-click="guardar_canto">pular</.botao>
           </div>
         </form>
       </div>
@@ -104,7 +116,7 @@ defmodule QuintalWeb.BoasVindasLive do
           três jeitos de arrumar a casa. dá pra trocar quando quiser.
         </p>
 
-        <div class="tema-opcoes" role="radiogroup" aria-label="tema do canto">
+        <div class="tema-opcoes" role="group" aria-label="tema do canto">
           <button
             :for={{tema, preset} <- presets()}
             type="button"

@@ -43,6 +43,8 @@ defmodule QuintalWeb.Layouts do
 
     ~H"""
     <div class="chrome">
+      <a href="#conteudo" class="pula-conteudo">pular pro conteúdo</a>
+
       <header :if={@moldura} class="chrome__topo">
         <.link navigate={if @sessao, do: ~p"/inicio", else: ~p"/"} class="chrome__marca">quintal</.link>
 
@@ -50,7 +52,9 @@ defmodule QuintalWeb.Layouts do
           <nav class="chrome__nav">
             <.link navigate={~p"/inicio"}>início</.link>
             <.link navigate={~p"/passear"}>passear</.link>
-            <.link navigate={~p"/visitas"}>visitas</.link>
+            <.link navigate={~p"/visitas"} class="chrome__nav-visitas">
+              visitas <span :if={@novidade} class="nav-movel__ponto"></span>
+            </.link>
           </nav>
 
           <details :if={@handle} class="menu-conta">
@@ -67,10 +71,14 @@ defmodule QuintalWeb.Layouts do
         </div>
       </header>
 
-      <p :if={msg = Phoenix.Flash.get(@flash, :info)} class="flash flash--info">{msg}</p>
-      <p :if={msg = Phoenix.Flash.get(@flash, :error)} class="flash flash--erro">{msg}</p>
+      <p :if={msg = Phoenix.Flash.get(@flash, :info)} class="flash flash--info" role="status">
+        {msg}
+      </p>
+      <p :if={msg = Phoenix.Flash.get(@flash, :error)} class="flash flash--erro" role="alert">
+        {msg}
+      </p>
 
-      <main class="conteudo">
+      <main id="conteudo" class="conteudo" tabindex="-1">
         {render_slot(@inner_block)}
       </main>
 

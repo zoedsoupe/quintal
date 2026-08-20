@@ -26,7 +26,7 @@ referências de clima: bear blog (simplicidade), blogosfera brasileira de 2005 (
 10. **loading com cara.** axô nadando só na primeira pintura de uma tela; depois, skeletons suaves.
 11. **medida de leitura de 65 a 75 caracteres** em qualquer texto longo, em qualquer tela.
 12. **um acento por tela.** em cada momento, uma só cor de acento comanda a atenção.
-13. **no mobile, entrada de texto é página, nunca overlay.** prosa, resposta, recado, depoimento: qualquer escrita acontece numa página em fluxo de documento, sem bottom sheet, sem modal, sem nada fixo. o teclado abre e o browser rola a página sozinho; nenhum controle fica embaixo do teclado. no desktop, onde não há teclado virtual, os mesmos gestos acontecem inline.
+13. **no mobile, entrada de texto é página, nunca overlay.** prosa, resposta, recado, depoimento: qualquer escrita acontece numa página em fluxo de documento, sem bottom sheet, sem modal. a única exceção de fluxo é a barra de ações da página de escrita: no mobile, voltar, contador e o pill de publicar ficam fixos na base, ao alcance do polegar (a barra do topo ficou inchada demais na tela pequena); no desktop, onde não há teclado virtual, os mesmos gestos acontecem inline e a barra desce junto com a página.
 
 ## 3. navegação
 
@@ -92,19 +92,15 @@ duas superfícies só, um componente:
 - ilustração do axô, uma frase de microcopy, uma ação. nunca uma tela morta.
 - ex.: visitas vazias: axô dormindo + "ninguém passou por aqui desde sua última visita. aproveita o silêncio."
 
-### 4.9 selo humano
-
-- selo pequeno no canto de quem assinou o compromisso: um ícone de mão escrevendo, com tooltip "essa pessoa assinou o compromisso de escrita humana".
-
 ## 5. telas
 
 ### 5.1 home deslogada (login + convite)
 
 **objetivo**: uma tela, uma ação. nada de landing page longa.
 
-**composição**: centrada. logo da cabana com o laguinho em tamanho médio, o nome "quintal" em fraunces, uma linha de apresentação ("seu canto na vizinhança"), botão primário "entrar com atproto". abaixo, uma linha quieta: "tem um convite? ele entra junto no primeiro acesso". rodapé com três links: sobre, compromisso de escrita humana, código aberto. axô acenando perto da logo, única aparição dele na tela.
+**composição**: centrada. logo da cabana com o laguinho em tamanho médio, o nome "quintal" em fraunces, uma linha de apresentação ("seu canto na vizinhança"). no alpha fechado, o botão primário é "tenho um convite" e leva pra tela de convite; abaixo, o login quieto pra quem já mora: campo de handle com o "entrar com atproto" em ghost e um link miúdo "não tenho conta ainda". rodapé com três links: sobre, compromisso de escrita humana, código aberto. axô acenando perto da logo, única aparição dele na tela.
 
-**decisões de ux**: sem muro de marketing, sem carrossel de features, sem prints. quem chega aqui já foi convidada por um humano; a tela só precisa ser bonita, calma e rápida.
+**decisões de ux**: sem muro de marketing, sem carrossel de features, sem prints. quem chega aqui já foi convidada por um humano; a tela só precisa ser bonita, calma e rápida. enquanto o alpha for fechado, o convite é a porta principal e o login é o caminho de quem já mora; quando abrir, o primário vira o "entrar com atproto" e o convite vira linha quieta.
 
 ```
 minimal cozy login page for a personal blogging platform, warm cream
@@ -136,7 +132,7 @@ sections
 **o feed em detalhe**:
 
 - cronológico, só de quem a pessoa segue. cards de prosa como descritos em 4.2.
-- carregamento: primeiras 20 prosas, auto-load gentil ao chegar perto do fim.
+- carregamento: primeiras 20 prosas, e um botão quieto "mais prosas" no fim. manual de propósito: continuar a ler é escolha, não gatilho de scroll.
 - **fim de feed**: quando acaba, uma linha de despedida: "você viu tudo do seu quintal por hoje. vai tomar um café." sem sugestão infinita embaixo.
 - feed vazio (começo da vida no quintal): axô sentado + "por aqui ainda tá quieto. que tal escrever a primeira prosa? ou passear para achar vizinhos."
 - separador de novidade: uma hairline "a partir daqui você já viu" entre o que é novo e o que já foi lido, quieta, sem contador.
@@ -165,9 +161,9 @@ metrics anywhere
 
 **objetivo**: a casa da pessoa. visitável, decorável, viva.
 
-**composição (visitação)**: cabeçalho pequeno com o nome do canto em fraunces, bio de uma linha, links em sussurro. abaixo, os blocos na ordem que o dono escolheu: bio, prosas, recados, cumadis que recomendo, links. botão secundário "seguir esse canto" no cabeçalho, quieto. selo humano ao lado do nome quando presente. se o canto tem morada externa, um link com badge "também mora em..." no cabeçalho.
+**composição (visitação)**: cabeçalho pequeno com o nome do canto em fraunces, bio de uma linha, links em sussurro. o nome é de exibição, escolhido no quintal: quando existe, o handle aparece quieto embaixo, porque o handle continua sendo o endereço oficial. a bio mora no cabeçalho, sempre visível, fora do rodízio de blocos. abaixo, os blocos na ordem que o dono escolheu: prosas, recados, cumadis que recomendo, links. depoimentos aceitos moram em seção própria no fim: não são bloco, não entram no rodízio nem somem com ele. botão secundário "seguir esse canto" no cabeçalho, quieto. se o canto tem morada externa, um link com badge "também mora em..." no cabeçalho.
 
-**modo arrumar** (só no próprio canto, logado): um botão "arrumar o canto" acende o modo de edição in place. alças de arrastar aparecem à esquerda de cada bloco, um olho em cada bloco para ocultar, e uma barra fina no topo com os três presets (papel, madrugada, gloss) como swatches visuais mais a cor de acento. salvar é automático a cada mudança, com um "guardado" quieto que aparece e some. sem página de settings separada.
+**modo arrumar** (só no próprio canto, logado): um botão "arrumar o canto" acende o modo de edição in place. nome e bio se editam no próprio cabeçalho, em autosave. alças de arrastar aparecem à esquerda de cada bloco, um olho em cada bloco para ocultar, e uma pill flutuante na base da tela com os três presets (papel, madrugada, gloss) como swatches nomeados, a cor de acento e o "pronto". salvar é automático a cada mudança, com um "guardado" quieto que aparece e some. sem página de settings separada.
 
 **decisões de ux**: editar no lugar, nunca num painel distante. a pessoa vê o canto como os outros veem enquanto arruma. drag no desktop, setas no mobile.
 
@@ -242,7 +238,7 @@ style, calm and charming, desktop web layout, no other elements
 
 **passo 1, o convite**: axô acenando, o texto "o quintal é pequeno de propósito. você foi convidada.", campo único para o código. erro de código inválido é gentil ("esse código já foi usado ou não existe. pede pra quem te convidou?").
 
-**passo 2, seu canto**: nome do canto, bio de uma linha (opcional), e só.
+**passo 2, seu canto**: nome do canto e bio de uma linha, ambos opcionais. o nome é só de exibição dentro do quintal: o handle continua sendo o endereço oficial, e a tela diz isso.
 
 **passo 3, o tema**: três swatches visuais lado a lado (papel, madrugada, gloss), escolha com um toque, e o botão "entrar no quintal". cai direto na home com o composer esperando e a sugestão da primeira prosa.
 
@@ -258,17 +254,17 @@ clean vector style, desktop web layout
 
 ### 5.8 página de escrita (/prosear, /recadar)
 
-**objetivo**: no mobile, qualquer entrada de texto é página, nunca overlay (regra 2.13). no desktop, a página é o modo foco do ensaio. uma página só, parametrizada por contexto, tudo em fluxo de documento: nada fixed, nada floating, nenhum hack de viewport. o teclado abre e o browser rola a página sozinho.
+**objetivo**: no mobile, qualquer entrada de texto é página, nunca overlay (regra 2.13). no desktop, a página é o modo foco do ensaio. uma página só, parametrizada por contexto. o conteúdo desce em fluxo de documento e o teclado rola a página sozinho; só a barra de ações ancora na base no mobile.
 
 **anatomia** (a mesma nos três contextos):
 
-- **barra do topo em fluxo**: "voltar" em sussurro à esquerda (volta pra home, pra thread ou pro canto, conforme o contexto); à direita o contador de palavras quieto e o pill de publicar em rosa suave (cheio com texto, ghost de sussurro vazio). a barra desce junto com a página: nunca fica presa, nunca briga com o teclado.
+- **barra de ações**: "voltar" em sussurro à esquerda (volta pra home, pra thread ou pro canto, conforme o contexto); à direita o contador de palavras quieto e o pill de publicar em rosa suave (cheio com texto, ghost de sussurro vazio). no desktop a barra desce junto com a página, em fluxo; no mobile ela ancora fixa na base, voltar à esquerda e contador mais pill à direita, porque a barra do topo ficou inchada demais na tela pequena (regra 2.13).
 - **card de contexto**, quando há: na resposta, a prosa-mãe compacta (handle em serifada, duas linhas do texto em sussurro) com um fio lilás fino à esquerda ligando ao composer — a pessoa responde vendo o que está respondendo. no recado, o card quieto do canto (nome em serifada grande, "livro de visitas aberto" em sussurro).
 - **chips de tipo** (só na prosa nova): nota, pergunta, crônica, ensaio, quebrando linha se preciso, nunca scroll horizontal. cada tipo com seu acento: pergunta ganha barra lilás de 3px na borda esquerda da coluna, caret lilás e a linha de ajuda "perguntas aparecem em destaque na vizinhança"; crônica espelha em rosé com o contador um tiquinho mais presente; nota é neutra.
 - **régua de formatação** sempre visível acima do campo (prosa e resposta; recado é texto puro, sem régua), alvos de 44px, clipe de imagem no fim da fileira na prosa nova.
 - **o campo é uma folha**: auto-grow, sem borda, serifada de leitura, placeholder em itálico serifado que muda com o tipo ("como foi seu dia?", "o que tá te intrigando?", "conta o que você viu hoje", "escreve sem pressa") e com o contexto ("responder com uma prosa...", "deixa um recado pra maria").
 - **ensaio é o modo foco**: título opcional em serifada grande entra no fluxo quando o chip ensaio está marcado, a coluna fica centrada e mais espaçosa. `?tipo=ensaio` abre direto aqui — é pra onde o link-pill do card inline aponta, em qualquer tamanho de tela.
-- **recado é curto**: limite de 500 grafemes com o contador "N/500" à vista o tempo todo.
+- **recado é curto**: limite de 500 grafemes com o contador "N/500" à vista o tempo todo. sem régua de formatação, mas markdown cru renderiza na parede, folk da web velha.
 - fim da página com safe-area: nada encosta no indicador de home, nenhum botão flutuante.
 
 **decisões de ux**: a página substitui a bottom sheet e o overlay de modo foco, que morreram. um componente, três contextos, uma superfície de teste. rascunho local por contexto, oferecido de volta. publicar volta pra origem com o flash quieto de confirmação.

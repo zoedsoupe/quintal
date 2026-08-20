@@ -1,8 +1,7 @@
 defmodule QuintalWeb.FaqLive do
   @moduledoc """
-  A página "que lugar é esse?": o que é o quintal, quem é o axô, o
-  compromisso de escrita humana e os dois vocabulários, o da vizinhança
-  e o técnico.
+  A página "que lugar é esse?": o que é o quintal, quem é o axô e os
+  dois vocabulários, o da vizinhança e o técnico.
 
   As palavras técnicas do atproto vêm explicadas em cadeia, do
   protocolo ao detalhe, cada termo encaixando no anterior. O resto é
@@ -54,14 +53,6 @@ defmodule QuintalWeb.FaqLive do
           do corpo, e por aqui seus dados também: você pode levar tudo e
           replantar em qualquer lugar. o nome é trocadilho com "achou",
           porque é o axô quem descobre cantos novos pra você passear.
-        </p>
-
-        <h2>o compromisso de escrita humana</h2>
-
-        <p>
-          quem entra no quintal assina um compromisso: aqui se escreve com as
-          próprias palavras, sem despejar texto gerado por máquina como se
-          fosse seu. funciona na confiança: eu acredito em você, e você honra o combinado.
         </p>
 
         <h2>as palavras da vizinhança</h2>

@@ -355,6 +355,34 @@
   margin: 0 0 0 var(--espaco-4);
 }
 
+/* separador de novidade: hairline quieta entre o novo e o já lido
+   (briefing 5.2). inserida pelo hook FeedNovidade, sem contador */
+
+.feed__ja-viu {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--meta);
+}
+
+.feed__ja-viu::before,
+.feed__ja-viu::after {
+  content: "";
+  flex: 1;
+  border-top: 1px solid var(--sussurro);
+}
+
+/* estado vazio: a frase vem com os caminhos sugeridos juntos */
+
+.vazio__acoes {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espaco-3);
+}
+
 /* fim de feed declarado: quando acaba, acaba, com despedida amiga */
 
 .feed__fim {
@@ -493,7 +521,7 @@
 .prosear__atalho {
   margin-left: auto;
   font-size: 0.75rem;
-  color: var(--sussurro);
+  color: var(--meta);
 }
 
 /* regua de formatacao markdown: fileira quieta de icones que insere
@@ -529,13 +557,11 @@
 .prosa-card__texto h2,
 .prosa-pagina__texto h2,
 .canto__bio h2,
-.canto-bio__texto h2,
 .recado h2,
 .depoimento h2,
 .prosa-card__texto h3,
 .prosa-pagina__texto h3,
 .canto__bio h3,
-.canto-bio__texto h3,
 .recado h3,
 .depoimento h3 {
   font-family: var(--fonte-leitura);
@@ -556,7 +582,6 @@
 
 .prosa-card__texto h2,
 .canto__bio h2,
-.canto-bio__texto h2,
 .recado h2,
 .depoimento h2 {
   font-size: 1.25rem;
@@ -564,7 +589,6 @@
 
 .prosa-card__texto h3,
 .canto__bio h3,
-.canto-bio__texto h3,
 .recado h3,
 .depoimento h3 {
   font-size: 1.125rem;
@@ -573,7 +597,6 @@
 .prosa-card__texto blockquote,
 .prosa-pagina__texto blockquote,
 .canto__bio blockquote,
-.canto-bio__texto blockquote,
 .recado blockquote,
 .depoimento blockquote {
   margin: var(--espaco-2) 0;
@@ -587,8 +610,6 @@
 .prosa-pagina__texto ol,
 .canto__bio ul,
 .canto__bio ol,
-.canto-bio__texto ul,
-.canto-bio__texto ol,
 .recado ul,
 .recado ol,
 .depoimento ul,
@@ -600,7 +621,6 @@
 .prosa-card__texto code,
 .prosa-pagina__texto code,
 .canto__bio code,
-.canto-bio__texto code,
 .recado code,
 .depoimento code {
   font-family: ui-monospace, monospace;
@@ -613,7 +633,6 @@
 .prosa-card__texto pre,
 .prosa-pagina__texto pre,
 .canto__bio pre,
-.canto-bio__texto pre,
 .recado pre,
 .depoimento pre {
   margin: var(--espaco-2) 0;
@@ -626,7 +645,6 @@
 .prosa-card__texto pre code,
 .prosa-pagina__texto pre code,
 .canto__bio pre code,
-.canto-bio__texto pre code,
 .recado pre code,
 .depoimento pre code {
   padding: 0;
@@ -636,7 +654,6 @@
 .prosa-card__texto a,
 .prosa-pagina__texto a,
 .canto__bio a,
-.canto-bio__texto a,
 .recado a,
 .depoimento a {
   color: var(--acento);
@@ -644,7 +661,6 @@
 
 .prosa-card__texto > * + *,
 .canto__bio > * + *,
-.canto-bio__texto > * + *,
 .recado > * + *,
 .depoimento > * + * {
   margin-top: var(--espaco-2);
@@ -657,23 +673,6 @@
 .prosear__contador {
   font-size: 0.875rem;
   color: var(--meta);
-}
-
-/* anel de progresso miudo: gira enquanto o form esta no ar
-   (a escrita otimista some com ele quando o pds confirma) */
-
-.prosear__anel {
-  display: none;
-  width: 1rem;
-  height: 1rem;
-  border: 2px solid var(--sussurro);
-  border-top-color: var(--acento);
-  border-radius: 50%;
-  animation: anel-gira 0.7s linear infinite;
-}
-
-.prosear.phx-submit-loading .prosear__anel {
-  display: inline-block;
 }
 
 /* anel de progresso do texto: trilha de sussurro sempre quieta, arco
@@ -833,7 +832,7 @@
   display: none;
   margin: 0;
   font-size: 0.75rem;
-  color: var(--sussurro);
+  color: var(--meta);
 }
 
 .prosear:has(input[value="pergunta"]:checked) .prosear__ajuda {
@@ -943,7 +942,7 @@
 .prosear--pagina .prosear__contador {
   margin: 0;
   font-size: 0.75rem;
-  color: var(--sussurro);
+  color: var(--meta);
 }
 
 /* na cronica o contador acorda um tiquinho mais presente */
@@ -1029,7 +1028,7 @@
 .prosear__canto-linha {
   margin: 0;
   font-size: 0.875rem;
-  color: var(--sussurro);
+  color: var(--meta);
 }
 
 /* regua de formatacao na pagina: sempre visivel, uma linha so, o clipe
@@ -1245,21 +1244,6 @@
   color: var(--meta);
 }
 
-/* selo do compromisso humano (briefing 4.9): icone de mao escrevendo,
-   tooltip explica. quieto, ao lado do nome do canto */
-
-.selo {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--espaco-1);
-  color: var(--acento-2);
-}
-
-.selo svg {
-  width: 1rem;
-  height: 1rem;
-}
-
 /* estado vazio: o axo aparece aqui, uma vez por tela (spec 7.6) */
 
 .vazio {
@@ -1384,6 +1368,31 @@
   display: none;
   gap: var(--espaco-3);
   font-size: 0.875rem;
+}
+
+/* o ponto lilás de novidade vale nas duas navs (briefing 2.8) */
+
+.chrome__nav-visitas {
+  position: relative;
+}
+
+/* skip link: invisível até receber foco de teclado */
+
+.pula-conteudo {
+  position: absolute;
+  top: var(--espaco-2);
+  left: var(--espaco-3);
+  z-index: 50;
+  padding: var(--espaco-1) var(--espaco-3);
+  border-radius: var(--raio-pill);
+  background: var(--acento);
+  color: var(--fundo);
+  text-decoration: none;
+  transform: translateY(-400%);
+}
+
+.pula-conteudo:focus-visible {
+  transform: none;
 }
 
 .nav-movel {

@@ -142,7 +142,7 @@ cada canto escolhe um preset e, opcionalmente, uma cor de acento própria dentro
 
 ### 7.4 o canto: arrastar e soltar
 
-blocos fixos, reordenáveis e ocultáveis: **bio, prosas, recados, quem eu leio, links**. sem layout livre. no desktop, arrastar e soltar; no mobile, long-press ou setas. a ordem escolhida vive no record `canto.config`, ou seja, a decoração também é portátil.
+blocos fixos, reordenáveis e ocultáveis: **prosas, recados, quem eu leio, links**. sem layout livre. a bio não é bloco: mora no cabeçalho, sempre visível. o nome do canto é de exibição, guardado local no appview (não entra no record): o handle continua sendo o endereço oficial. no desktop, arrastar e soltar; no mobile, long-press ou setas. a ordem escolhida vive no record `canto.config`, ou seja, a decoração também é portátil.
 
 ### 7.5 notificações quietas
 
@@ -223,7 +223,7 @@ tabelas e colunas principais:
 - **recados**: uri (pk), autor_did, subject_did, texto, oculto (bool), created_at
 - **depoimentos**: uri (pk), autor_did, subject_did, texto, aceito (bool, null até decisão), created_at
 - **blogrolls**: dono_did (pk), items (jsonb), updated_at
-- **cantos**: dono_did (pk), tema, cor, blocos (jsonb), bio, links (jsonb), updated_at
+- **cantos**: dono_did (pk), tema, cor, blocos (jsonb), bio, links (jsonb), nome (de exibição, local do appview, fora do record), updated_at
 - **follows**: seguidor_did, seguido_did, uri, created_at (pk composta; uri guardada para processar deletes)
 - **convites**: codigo (pk), criado_por, usado_por, criado_em, usado_em
 - **visitas_eventos**: id, dono_did, tipo (recado, resposta, novo_leitor, depoimento, leitura), ref_uri, autor_did, created_at. único por (tipo, ref_uri, autor_did): leituras são uma por pessoa por prosa

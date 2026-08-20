@@ -9,6 +9,10 @@ defmodule Quintal.Canto do
   luminosidade do papel (dia e lamparina) é resolvida na renderização,
   não no dado.
 
+  O `nome` é de exibição e local do appview: não mora no record, não
+  viaja pela firehose, só o quintal mostra. O handle continua sendo o
+  endereço oficial da casa.
+
   O record correspondente usa `literal:self`: existe no máximo um canto
   por pessoa, e a decoração também é portátil entre appviews.
   """
@@ -26,6 +30,7 @@ defmodule Quintal.Canto do
     field :cor, :string
     field :blocos, {:array, :string}
     field :bio, :string
+    field :nome, :string
     field :updated_at, :utc_datetime_usec
 
     embeds_many :links, Link, on_replace: :delete do
@@ -43,13 +48,15 @@ defmodule Quintal.Canto do
   @doc false
   def changeset(canto, attrs) do
     canto
-    |> cast(attrs, [:dono_did, :tema, :cor, :blocos, :bio, :updated_at])
+    |> cast(attrs, [:dono_did, :tema, :cor, :blocos, :bio, :nome, :updated_at])
     |> cast_embed(:links, with: &link_changeset/2)
     |> validate_required([:dono_did, :tema, :blocos, :updated_at])
     |> validate_inclusion(:tema, @temas)
     |> validate_subset(:blocos, @blocos)
     |> validate_format(:cor, ~r/^#[0-9a-fA-F]{6}$/)
     |> validate_length(:bio, max: 500)
+    |> validate_length(:nome, max: 60)
+    |> validate_format(:nome, ~r/^[a-zA-Z0-9\-_\.]+$/)
     |> foreign_key_constraint(:dono_did)
   end
 

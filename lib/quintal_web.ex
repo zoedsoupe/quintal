@@ -85,7 +85,7 @@ defmodule QuintalWeb do
       # HTML escaping functionality
       import Phoenix.HTML
 
-      # Base components: botao, campo, prosa, recado, selo, vazio
+      # Base components: botao, campo, prosa, recado, vazio
       import QuintalWeb.Components
 
       # Common modules used in templates

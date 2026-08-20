@@ -12,6 +12,8 @@ defmodule QuintalWeb.VisitasLive do
 
   use QuintalWeb, :live_view
 
+  import QuintalWeb.Formatacao, only: [prosa_path: 2]
+
   alias Quintal.Depoimentos
   alias Quintal.Visitas
 
@@ -110,6 +112,17 @@ defmodule QuintalWeb.VisitasLive do
   defp leitores(1), do: "1 vizinho novo te lendo"
   defp leitores(n), do: "#{n} vizinhos novos te lendo"
 
+  # o destino do evento: resposta abre a prosa resposta (que carrega o
+  # fio pra mãe), leitura abre a prosa lida. recado, depoimento e
+  # novo leitor já resolvem no canto de quem passou.
+  defp path_evento(evento, meu_handle) do
+    case to_string(evento.tipo) do
+      "resposta" -> prosa_path(evento.ref_uri, evento.autor.handle)
+      "leitura" -> prosa_path(evento.ref_uri, meu_handle)
+      _outro -> nil
+    end
+  end
+
   # linha única por evento (briefing 4.6)
   defp frase_evento(tipo) do
     case to_string(tipo) do
@@ -162,7 +175,11 @@ defmodule QuintalWeb.VisitasLive do
             <ul class="visitas__lista">
               <li :for={evento <- eventos}>
                 <.link navigate={~p"/canto/#{evento.autor.handle}"}>{evento.autor.handle}</.link>
-                {frase_evento(evento.tipo)}
+                <% path = path_evento(evento, @sessao.handle) %>
+                <.link :if={path} navigate={path} class="visitas__evento">
+                  {frase_evento(evento.tipo)}
+                </.link>
+                <span :if={!path}>{frase_evento(evento.tipo)}</span>
               </li>
             </ul>
           </section>

@@ -79,14 +79,6 @@ defmodule QuintalWeb.ContaLive do
               <span :if={!@fundadora? && @convites_restantes == 0} class="conta__valor">
                 sua cota de convites acabou por enquanto
               </span>
-              <button
-                :if={@convites != []}
-                type="button"
-                class="conta__link"
-                phx-click={JS.dispatch("quintal:copiar", detail: %{texto: hd(@convites).codigo})}
-              >
-                copiar código
-              </button>
             </div>
 
             <div :for={convite <- @convites} class="conta__linha conta__linha--codigo">

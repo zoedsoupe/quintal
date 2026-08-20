@@ -335,6 +335,48 @@ const ArrumarBlocos = {
   },
 };
 
+// FeedNovidade: a hairline "a partir daqui você já viu" entre o que é
+// novo e o que já foi lido (briefing 5.2). a marca de quando a pessoa
+// esteve no início mora no localStorage, escrita ao sair da página:
+// voltar pra home já conta como "viu". sem contador, sem badge.
+const FeedNovidade = {
+  mounted() {
+    this.chave = "quintal:feed:visto_em";
+    try {
+      this.visto = localStorage.getItem(this.chave);
+    } catch {
+      this.visto = null;
+    }
+    this.marca();
+  },
+
+  // o remendo do liveview some com o separador (ele não existe no dom
+  // do servidor): depois de cada patch, recoloca se ainda fizer sentido
+  updated() {
+    this.marca();
+  },
+
+  destroyed() {
+    try {
+      localStorage.setItem(this.chave, new Date().toISOString());
+    } catch {}
+  },
+
+  marca() {
+    if (!this.visto || this.el.querySelector(".feed__ja-viu")) return;
+
+    const itens = [...this.el.querySelectorAll(".feed__item[data-criado]")];
+    const primeiroVisto = itens.find((el) => el.dataset.criado <= this.visto);
+
+    if (primeiroVisto && itens.indexOf(primeiroVisto) > 0) {
+      const sep = document.createElement("p");
+      sep.className = "feed__ja-viu";
+      sep.textContent = "a partir daqui você já viu";
+      primeiroVisto.before(sep);
+    }
+  },
+};
+
 // nav móvel com cara de tab bar nativa (briefing 3): some ao rolar pra
 // baixo, volta ao rolar pra cima. a classe mora no <html>, fora da
 // árvore que o liveview remenda.
@@ -366,8 +408,18 @@ window.addEventListener("phx:limpar-campo", (e) => {
 });
 
 // quintal:copiar: copia um código de convite para a área de transferência
+// e confirma quieto no próprio botão
 window.addEventListener("quintal:copiar", (e) => {
   navigator.clipboard?.writeText(e.detail.texto);
+
+  const botao = e.target;
+  if (botao instanceof HTMLButtonElement) {
+    const antes = botao.textContent;
+    botao.textContent = "copiado";
+    setTimeout(() => {
+      botao.textContent = antes;
+    }, 1500);
+  }
 });
 
 // menu da conta (details no chrome): fecha ao clicar fora ou ao seguir
@@ -404,7 +456,7 @@ const csrfToken = document
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: { _csrf_token: csrfToken },
-  hooks: { Composer, MdToolbar, ArrumarBlocos, ...colocatedHooks },
+  hooks: { Composer, MdToolbar, ArrumarBlocos, FeedNovidade, ...colocatedHooks },
 });
 
 // Show progress bar on live navigation and form submits

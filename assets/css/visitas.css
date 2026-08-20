@@ -32,6 +32,18 @@
   padding-block: var(--espaco-2);
 }
 
+/* o evento com destino (resposta, leitura) é link na cor do texto:
+   a linha inteira se lê como frase, não como menu */
+
+.visitas__evento {
+  color: var(--tinta);
+  text-decoration: none;
+}
+
+.visitas__evento:hover {
+  color: var(--acento);
+}
+
 /* depoimento pendente: o texto como citacao quieta e duas acoes
    inline, aceitar e deixar quieto (briefing 4.6) */
 

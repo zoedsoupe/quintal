@@ -2,18 +2,22 @@ defmodule QuintalWeb.CantoLive do
   @moduledoc """
   O canto: a casa da pessoa (briefing 5.3).
 
-  Visitação: cabeçalho quieto com o nome do canto em fraunces, bio de
-  uma linha, links em sussurro, e os blocos na ordem que o dono
-  escolheu (bio, prosas, recados, cumadis que recomendo, links). O
-  tema do canto (papel, madrugada, gloss) e a cor de acento vivem num
-  wrapper com `data-theme`, de onde as variáveis cascateiam (spec 7.2).
+  Visitação: cabeçalho quieto com o nome do canto em fraunces (o `nome`
+  de exibição quando existe, o handle sempre em sussurro), bio de uma
+  linha, links em sussurro, e os blocos na ordem que o dono escolheu
+  (prosas, recados, cumadis que recomendo, links). A bio mora no
+  cabeçalho, fora do rodízio de blocos. Depoimentos aceitos moram em
+  seção própria no fim, não pendurados em outro bloco. O tema do canto
+  (papel, madrugada, gloss) e a cor de acento vivem num wrapper com
+  `data-theme`, de onde as variáveis cascateiam (spec 7.2).
 
   Modo arrumar (só no próprio canto, logado): edição in place, nunca um
-  painel distante. Pill flutuante na base com os três presets como
-  swatches nomeados, cor de acento e o "pronto"; os blocos vestem borda
-  tracejada lilás, com alça de arrastar e olho no hover (desktop) e
-  setas no mobile. Salvar é automático a cada mudança, com um
-  "guardado" quieto que aparece e some.
+  painel distante. Nome e bio se editam no próprio cabeçalho; pill
+  flutuante na base com os três presets como swatches nomeados, cor de
+  acento e o "pronto"; os blocos vestem borda tracejada lilás, com
+  alça de arrastar e olho no hover (desktop) e setas no mobile. Salvar
+  é automático a cada mudança, com um "guardado" quieto que aparece e
+  some.
   """
 
   use QuintalWeb, :live_view
@@ -37,8 +41,10 @@ defmodule QuintalWeb.CantoLive do
 
   require Logger
 
-  @blocos_todos ~w(bio prosas recados quem-eu-leio links)
-  @blocos_default ~w(bio prosas recados quem-eu-leio links)
+  # a bio saiu do rodízio: mora no cabeçalho, sempre visível. records
+  # antigos ainda podem trazer "bio" em blocos, o filtro trata disso.
+  @blocos_todos ~w(prosas recados quem-eu-leio links)
+  @blocos_default ~w(prosas recados quem-eu-leio links)
   @recados_pagina 20
 
   # swatches do modo arrumar: fundo e acento de cada preset (spec 7.2)
@@ -67,8 +73,9 @@ defmodule QuintalWeb.CantoLive do
         proprio? = sessao != nil && sessao.did == dono.did
 
         canto =
-          Cantos.get(dono.did) ||
-            %Canto{dono_did: dono.did, tema: "papel", blocos: @blocos_default, links: []}
+          normaliza_blocos(
+            Cantos.get(dono.did) || %Canto{dono_did: dono.did, tema: "papel", blocos: @blocos_default, links: []}
+          )
 
         seguindo =
           if sessao && !proprio? do
@@ -197,6 +204,15 @@ defmodule QuintalWeb.CantoLive do
     end
   end
 
+  # nome e bio se editam no próprio cabeçalho, em autosave como o resto
+  def handle_event("cabeca", %{"nome" => nome, "bio" => bio}, socket) do
+    if socket.assigns.proprio? do
+      guardar(socket, %{nome: nome, bio: bio})
+    else
+      {:noreply, socket}
+    end
+  end
+
   def handle_event("alternar-bloco", %{"bloco" => bloco}, socket) do
     if socket.assigns.proprio? do
       blocos = socket.assigns.canto.blocos
@@ -279,7 +295,7 @@ defmodule QuintalWeb.CantoLive do
       {:ok, canto} ->
         {:noreply,
          socket
-         |> assign(canto: canto)
+         |> assign(canto: normaliza_blocos(canto))
          |> update(:guardado_seq, &(&1 + 1))
          |> push_event("aplicar-tema", %{tema: canto.tema, cor: canto.cor})}
 
@@ -308,6 +324,11 @@ defmodule QuintalWeb.CantoLive do
   defp marca_oculto(%{uri: uri} = recado, uri, oculto), do: %{recado | oculto: oculto}
   defp marca_oculto(recado, _uri, _oculto), do: recado
 
+  # no card o tipo é metadado; no índice do canto ele vira chip miúdo,
+  # com o acento que o valor do lexicon não tem
+  defp rotulo_tipo("cronica"), do: "crônica"
+  defp rotulo_tipo(tipo), do: tipo
+
   # blogroll com os dids resolvidos para handle via índice de identidades
   defp blogroll_items(dono_did) do
     items =
@@ -325,6 +346,14 @@ defmodule QuintalWeb.CantoLive do
       %{did: item.did, note: item.note, handle: Map.get(handles, item.did, item.did)}
     end)
   end
+
+  # blocos que a interface conhece: records antigos podem trazer "bio"
+  # de quando ela era bloco; hoje ela mora no cabeçalho
+  defp normaliza_blocos(%Canto{blocos: blocos} = canto) when is_list(blocos) do
+    %{canto | blocos: Enum.filter(blocos, &(&1 in @blocos_todos))}
+  end
+
+  defp normaliza_blocos(canto), do: canto
 
   # no modo arrumar todos os blocos aparecem (os ocultos, esmaecidos, no
   # fim), para o dono ver o que está escondido; na visitação, só os visíveis
@@ -369,7 +398,9 @@ defmodule QuintalWeb.CantoLive do
         :if={!@encontrou}
         pose={:lupa}
         titulo="o axô procurou, procurou... e não achou esse canto"
-      />
+      >
+        <.link navigate={~p"/inicio"} class="botao botao--fantasma">voltar pro início</.link>
+      </.vazio>
 
       <div
         :if={@encontrou}
@@ -415,7 +446,10 @@ defmodule QuintalWeb.CantoLive do
 
         <header class="canto__cabeca">
           <div class="canto__titulo">
-            <h1 class="canto__nome">{@dono.handle}</h1>
+            <div class="canto__identidade">
+              <h1 class="canto__nome">{@canto.nome || @dono.handle}</h1>
+              <p :if={@canto.nome} class="canto__handle">{@dono.handle}</p>
+            </div>
             <div class="canto__acoes">
               <.botao
                 :if={@sessao && !@proprio? && !@seguindo}
@@ -428,6 +462,7 @@ defmodule QuintalWeb.CantoLive do
                 :if={@sessao && !@proprio? && @seguindo}
                 variante={:sutil}
                 phx-click="deixar_de_seguir"
+                data-confirm="deixar de ler esse canto? as prosas dele somem do seu início."
               >
                 você lê esse canto
               </.botao>
@@ -436,7 +471,29 @@ defmodule QuintalWeb.CantoLive do
               </.botao>
             </div>
           </div>
-          <div :if={@canto.bio} class="canto__bio">{Markdown.render(@canto.bio)}</div>
+
+          <%!-- nome e bio se editam aqui mesmo, no lugar: o canto se
+               arruma como é visto, nunca num painel distante --%>
+          <form :if={@arrumar} phx-change="cabeca" phx-debounce="600" class="canto__cabeca-form">
+            <.campo
+              name="nome"
+              label="nome do canto (só aparece no quintal)"
+              value={@canto.nome}
+              placeholder={@dono.handle}
+              maxlength="60"
+            />
+            <.campo
+              name="bio"
+              area
+              label="bio"
+              value={@canto.bio}
+              placeholder="uma linha sobre você, pra quem passar saber quem mora aqui"
+              rows="2"
+              maxlength="500"
+            />
+          </form>
+
+          <div :if={!@arrumar && @canto.bio} class="canto__bio">{Markdown.render(@canto.bio)}</div>
 
           <p :if={@canto.links != []} class="canto__links">
             <a :for={link <- @canto.links} href={link.url} target="_blank" rel="noopener">
@@ -495,11 +552,6 @@ defmodule QuintalWeb.CantoLive do
             </div>
 
             <%= case bloco do %>
-              <% "bio" -> %>
-                <div :if={@canto.bio} class="canto-bio__texto">{Markdown.render(@canto.bio)}</div>
-                <p :if={@arrumar && !@canto.bio} class="canto-bio__texto canto-bio__texto--vazio">
-                  sua bio aparece aqui
-                </p>
               <% "prosas" -> %>
                 <ul class="indice">
                   <li :for={prosa <- @prosas} class="indice__item">
@@ -509,7 +561,9 @@ defmodule QuintalWeb.CantoLive do
                     >
                       <time class="indice__data">{data_curta(prosa.created_at)}</time>
                       <span class="indice__frase">{Markdown.render_inline(primeira_frase(prosa.texto))}</span>
-                      <span :if={prosa.tipo} class="indice__tipo">{prosa.tipo}</span>
+                      <span :if={prosa.tipo not in [nil, "nota"]} class="indice__tipo">{rotulo_tipo(
+                        prosa.tipo
+                      )}</span>
                     </.link>
                     <button
                       :if={@arrumar}
@@ -630,44 +684,6 @@ defmodule QuintalWeb.CantoLive do
                   <.campo name="note" label="nota (opcional)" placeholder="leio sempre" />
                   <.botao variante={:fantasma} type="submit">adicionar</.botao>
                 </form>
-
-                <div :if={@depoimentos != []} class="depoimentos">
-                  <blockquote :for={depoimento <- @depoimentos} class="depoimento">
-                    {Markdown.render(depoimento.texto)}
-                    <footer>
-                      <.link navigate={~p"/canto/#{depoimento.autor.handle}"}>
-                        {depoimento.autor.handle}
-                      </.link>
-                    </footer>
-                  </blockquote>
-                </div>
-
-                <div :if={@sessao && !@proprio?} class="depoimento-form">
-                  <.botao :if={!@depoimento_form} variante={:sutil} phx-click="abrir_depoimento">
-                    deixar um depoimento
-                  </.botao>
-                  <form
-                    :if={@depoimento_form}
-                    id="depoimento"
-                    phx-submit="deixar_depoimento"
-                    phx-hook="MdToolbar"
-                  >
-                    <div class="campo">
-                      <label class="campo__label" for="depoimento-texto">seu depoimento</label>
-                      <textarea
-                        id="depoimento-texto"
-                        name="texto"
-                        class="campo__area"
-                        rows="3"
-                        maxlength="1000"
-                        required
-                        placeholder="o dono do canto aceita antes de pendurar na parede"
-                      ></textarea>
-                    </div>
-                    <.md_ferramentas />
-                    <.botao variante={:fantasma} type="submit">enviar depoimento</.botao>
-                  </form>
-                </div>
               <% "links" -> %>
                 <ul class="canto-links">
                   <li :for={link <- @canto.links}>
@@ -677,6 +693,50 @@ defmodule QuintalWeb.CantoLive do
             <% end %>
           </section>
         </div>
+
+        <%!-- depoimentos não são bloco: não entram no rodízio nem somem
+             com ele. parede própria no fim do canto --%>
+        <section :if={@depoimentos != [] || (@sessao && !@proprio?)} class="canto-bloco">
+          <h2 class="canto-bloco__titulo">depoimentos</h2>
+
+          <div :if={@depoimentos != []} class="depoimentos">
+            <blockquote :for={depoimento <- @depoimentos} class="depoimento">
+              {Markdown.render(depoimento.texto)}
+              <footer>
+                <.link navigate={~p"/canto/#{depoimento.autor.handle}"}>
+                  {depoimento.autor.handle}
+                </.link>
+              </footer>
+            </blockquote>
+          </div>
+
+          <div :if={@sessao && !@proprio?} class="depoimento-form">
+            <.botao :if={!@depoimento_form} variante={:sutil} phx-click="abrir_depoimento">
+              deixar um depoimento
+            </.botao>
+            <form
+              :if={@depoimento_form}
+              id="depoimento"
+              phx-submit="deixar_depoimento"
+              phx-hook="MdToolbar"
+            >
+              <div class="campo">
+                <label class="campo__label" for="depoimento-texto">seu depoimento</label>
+                <textarea
+                  id="depoimento-texto"
+                  name="texto"
+                  class="campo__area"
+                  rows="3"
+                  maxlength="1000"
+                  required
+                  placeholder="o dono do canto aceita antes de pendurar na parede"
+                ></textarea>
+              </div>
+              <.md_ferramentas />
+              <.botao variante={:fantasma} type="submit">enviar depoimento</.botao>
+            </form>
+          </div>
+        </section>
       </div>
     </Layouts.app>
     """

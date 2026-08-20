@@ -21,6 +21,7 @@ defmodule QuintalWeb.ProsaLive do
   import QuintalWeb.Formatacao,
     only: [tempo_relativo: 1, prosa_path: 2, imagens_card: 1]
 
+  alias Quintal.Cantos
   alias Quintal.Identidade
   alias Quintal.Prosa
   alias Quintal.Prosas
@@ -45,12 +46,15 @@ defmodule QuintalWeb.ProsaLive do
 
     thread = if prosa, do: Prosas.respostas(prosa.uri), else: []
 
+    dids = Enum.reject([prosa && prosa.autor_did | Enum.map(thread, & &1.autor_did)], &is_nil/1)
+
     {:ok,
      assign(socket,
        novidade: novidade,
        handle: handle,
        prosa: prosa,
        thread: thread,
+       nomes: Cantos.nomes(dids),
        visita_deixada: visita_deixada?(prosa, sessao),
        page_title: if(prosa, do: "prosa de #{handle}", else: "prosa não encontrada")
      )}
@@ -105,12 +109,14 @@ defmodule QuintalWeb.ProsaLive do
         :if={!@prosa}
         pose={:lupa}
         titulo="o axô procurou, procurou... e não achou essa prosa"
-      />
+      >
+        <.link navigate={~p"/inicio"} class="botao botao--fantasma">voltar pro início</.link>
+      </.vazio>
 
       <article :if={@prosa} class="prosa-pagina">
         <header class="prosa-pagina__meta">
           <.link navigate={~p"/canto/#{@handle}"} class="prosa-pagina__autor">
-            {@handle}
+            {Map.get(@nomes, @prosa.autor_did, @handle)}
           </.link>
           <time>{tempo_relativo(@prosa.created_at)}</time>
         </header>
@@ -127,7 +133,7 @@ defmodule QuintalWeb.ProsaLive do
       <section :if={@prosa} class="thread" aria-label="respostas">
         <.prosa
           :for={resposta <- @thread}
-          autor={resposta.autor.handle}
+          autor={Map.get(@nomes, resposta.autor_did, resposta.autor.handle)}
           data={tempo_relativo(resposta.created_at)}
           texto={resposta.texto}
           path={prosa_path(resposta.uri, resposta.autor.handle)}
