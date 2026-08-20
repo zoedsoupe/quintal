@@ -136,6 +136,37 @@ defmodule QuintalWeb.OAuthLoginTest do
     refute get_session(conn, :oauth_pending)
   end
 
+  test "login com convite vigente segue para o authorization server", %{conn: conn} do
+    {:ok, convite} = Quintal.Convites.gerar("admin")
+
+    expect(Mock, :authorize_url, fn _handle ->
+      {:ok, "https://bsky.social/oauth/authorize?request_uri=xyz", %{state: "abc"}}
+    end)
+
+    conn =
+      conn
+      |> init_test_session(%{convite: convite.codigo})
+      |> get("/oauth/login", %{"handle" => "nova.bsky.social"})
+
+    assert redirected_to(conn) == "https://bsky.social/oauth/authorize?request_uri=xyz"
+    assert get_session(conn, :convite) == convite.codigo
+  end
+
+  test "login com convite queimado no meio do caminho falha antes do oauth", %{conn: conn} do
+    {:ok, convite} = Quintal.Convites.gerar("admin")
+    :ok = Quintal.Convites.usar(convite.codigo, "did:plc:espertinha")
+
+    conn =
+      conn
+      |> init_test_session(%{convite: convite.codigo})
+      |> get("/oauth/login", %{"handle" => "nova.bsky.social"})
+
+    assert redirected_to(conn) == "/convite"
+    assert Phoenix.Flash.get(conn.assigns.flash, :error) =~ "já foi usado ou não existe"
+    refute get_session(conn, :convite)
+    refute get_session(conn, :oauth_pending)
+  end
+
   test "logout revoga e limpa a sessão", %{conn: conn} do
     expect(Mock, :logout, fn "did:plc:alice" -> :ok end)
 

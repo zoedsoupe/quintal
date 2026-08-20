@@ -24,6 +24,7 @@ defmodule QuintalWeb.LandingLive do
   @impl true
   def render(assigns) do
     ~H"""
+    <Layouts.app flash={@flash} sessao={@sessao} novidade={@novidade} moldura={false}>
     <div class="boas-vindas">
       <img class="boas-vindas__axo" src="/images/axo-front-gretting.png" alt="" aria-hidden="true" />
       <h1 class="boas-vindas__marca">quintal</h1>
@@ -50,6 +51,7 @@ defmodule QuintalWeb.LandingLive do
         <a href="https://github.com/zoedsoupe/quintal" target="_blank" rel="noopener">código aberto</a>
       </nav>
     </div>
+    </Layouts.app>
     """
   end
 end

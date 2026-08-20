@@ -21,6 +21,24 @@ defmodule QuintalWeb.ConviteFlowTest do
     assert get_session(conn, :convite) == convite.codigo
   end
 
+  test "POST /convite tolera artefatos de colagem no código" do
+    {:ok, convite} = Convites.gerar("admin")
+    "axo-" <> sufixo = convite.codigo
+
+    for mangled <- [
+          "axo#{sufixo}",
+          "axo\u{2011}#{sufixo}",
+          "axo—#{sufixo}",
+          "axo\u{200B}-#{sufixo}",
+          "AXO #{sufixo}"
+        ] do
+      conn = post(build_conn(), "/convite", %{"codigo" => mangled})
+
+      assert redirected_to(conn) == "/"
+      assert get_session(conn, :convite) == convite.codigo
+    end
+  end
+
   test "POST /convite com código inválido volta com erro gentil", %{conn: conn} do
     conn = post(conn, "/convite", %{"codigo" => "axo-zzzz"})
 

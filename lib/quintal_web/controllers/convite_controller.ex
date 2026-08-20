@@ -12,7 +12,7 @@ defmodule QuintalWeb.ConviteController do
   use QuintalWeb, :controller
 
   def create(conn, %{"codigo" => codigo}) do
-    codigo = codigo |> String.trim() |> String.downcase()
+    codigo = canonizar(codigo)
 
     if Quintal.Convites.valido?(codigo) do
       conn
@@ -23,6 +23,18 @@ defmodule QuintalWeb.ConviteController do
       conn
       |> put_flash(:error, "esse código já foi usado ou não existe. pede pra quem te convidou?")
       |> redirect(to: "/convite")
+    end
+  end
+
+  # O código se escreve à mão e se cola de mensageiro: aceita case,
+  # espaços, hífens "espertos" (U+2011, em-dash) e invisíveis de colagem
+  # (zero-width space), reduzindo tudo à forma canônica "axo-xxxx".
+  defp canonizar(codigo) do
+    limpo = codigo |> String.downcase() |> String.replace(~r/[^a-z0-9]/u, "")
+
+    case limpo do
+      "axo" <> sufixo when byte_size(sufixo) == 4 -> "axo-" <> sufixo
+      _ -> limpo
     end
   end
 end

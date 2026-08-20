@@ -106,6 +106,25 @@ defmodule QuintalWeb.OAuthController do
   end
 
   def login(conn, %{"handle" => handle}) do
+    case get_session(conn, :convite) do
+      nil ->
+        continuar_login(conn, handle)
+
+      codigo ->
+        # fail-fast: o código pode ter sido queimado entre o POST /convite
+        # e o login; melhor recusar aqui do que depois da dança oauth
+        if Quintal.Convites.valido?(codigo) do
+          continuar_login(conn, handle)
+        else
+          conn
+          |> delete_session(:convite)
+          |> put_flash(:error, "esse código já foi usado ou não existe. pede pra quem te convidou?")
+          |> redirect(to: "/convite")
+        end
+    end
+  end
+
+  defp continuar_login(conn, handle) do
     case Quintal.Auth.impl().authorize_url(handle) do
       {:ok, url, pending} ->
         conn
