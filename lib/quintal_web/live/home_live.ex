@@ -11,7 +11,7 @@ defmodule QuintalWeb.HomeLive do
 
   use QuintalWeb, :live_view
 
-  import QuintalWeb.Formatacao, only: [tempo_relativo: 1, tipo: 1]
+  import QuintalWeb.Formatacao, only: [tempo_relativo: 1, tipo: 1, trecho: 1, prosa_path: 2]
 
   alias Quintal.Feed
   alias Quintal.Prosas
@@ -102,14 +102,21 @@ defmodule QuintalWeb.HomeLive do
             titulo="por aqui ainda tá quieto. que tal escrever a primeira prosa?"
           />
 
-          <.prosa
-            :for={prosa <- @feed}
-            autor={autor_de(prosa, @handle)}
-            data={tempo_relativo(prosa.created_at)}
-            tipo={tipo(prosa.tipo)}
-          >
-            {prosa.texto}
-          </.prosa>
+          <div :for={prosa <- @feed} class="feed__item">
+            <% {texto, cortou?} = trecho(prosa.texto) %>
+            <.prosa
+              autor={autor_de(prosa, @handle)}
+              data={tempo_relativo(prosa.created_at)}
+              tipo={tipo(prosa.tipo)}
+            >
+              {texto}
+            </.prosa>
+            <p :if={cortou?} class="prosa__continua">
+              <.link navigate={prosa_path(prosa.uri, autor_de(prosa, @handle))}>
+                continua lendo aqui
+              </.link>
+            </p>
+          </div>
 
           <p :if={@feed_cursor} class="feed__mais">
             <.botao variante={:sutil} phx-click="mais">mais prosas</.botao>

@@ -21,9 +21,14 @@ defmodule QuintalWeb.Router do
       live "/", HomeLive
       live "/cadastro", CadastroLive
       live "/convite", ConviteLive
-      live "/passear", PassearLive
       live "/faq", FaqLive
       live "/conduta", CondutaLive
+    end
+
+    # conteúdo do quintal: portaria fechada, só com sessão (spec 6.1)
+    live_session :privado, on_mount: [{QuintalWeb.SessaoHook, :privado}] do
+      live "/passear", PassearLive
+      live "/canto/:handle/prosa/:rkey", ProsaLive
       live "/canto/:handle", CantoLive
       live "/visitas", VisitasLive
     end

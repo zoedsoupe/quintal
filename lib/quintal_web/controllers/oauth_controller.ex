@@ -61,6 +61,9 @@ defmodule QuintalWeb.OAuthController do
   # revogada na hora e a pessoa volta para a portaria.
   defp portaria(conn, did) do
     cond do
+      Quintal.Convites.fundadora?(did) ->
+        :ok
+
       Quintal.Convites.entrou?(did) ->
         :ok
 

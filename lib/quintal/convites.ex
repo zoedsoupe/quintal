@@ -28,16 +28,22 @@ defmodule Quintal.Convites do
   @spec cota() :: non_neg_integer()
   def cota, do: @cota
 
+  @doc "A pessoa funda o quintal? Fundadora entra sem convite e gera sem cota."
+  @spec fundadora?(did :: String.t()) :: boolean()
+  def fundadora?(did) do
+    did in Application.get_env(:quintal, :fundadoras, [])
+  end
+
   @doc """
   Gera um código novo para `criado_por` (did ou `"admin"`).
 
-  Pessoa comum respeita a cota de 5 usados; `"admin"` é sempre livre.
+  Pessoa comum respeita a cota de 5 usados; `"admin"` e fundadoras são sempre livres.
   """
   @spec gerar(criado_por :: String.t()) :: {:ok, Convite.t()} | {:error, :cota_esgotada | Ecto.Changeset.t()}
   def gerar(@admin), do: inserir(@admin)
 
   def gerar(criado_por) do
-    if restantes(criado_por) > 0 do
+    if fundadora?(criado_por) or restantes(criado_por) > 0 do
       inserir(criado_por)
     else
       {:error, :cota_esgotada}

@@ -169,7 +169,8 @@
 }
 
 /* feed: uma folha, nao uma grade de cartoes. separacao por espaco em
-   branco e hairline de sussurro (briefing 4.2) */
+   branco e hairline de sussurro (briefing 4.2). respiro enxuto: a lista
+   le como jornal, nao como pilha de cartoes */
 
 .feed {
   max-width: var(--medida-leitura);
@@ -177,13 +178,60 @@
 }
 
 .feed .prosa {
-  padding-inline: 0;
+  padding: var(--espaco-3) 0;
   border-radius: 0;
   background: transparent;
 }
 
-.feed .prosa + .prosa {
+.feed .prosa__meta {
+  margin-bottom: var(--espaco-2);
+}
+
+.feed .prosa__texto {
+  line-height: 1.6;
+}
+
+.feed__item + .feed__item {
   border-top: 1px solid var(--sussurro);
+}
+
+/* prosa longa abre em pagina propria: o trecho termina com convite, em
+   sussurro, colado no texto */
+
+.prosa__continua {
+  margin: calc(-1 * var(--espaco-2)) 0 var(--espaco-3);
+  font-size: 0.875rem;
+}
+
+/* prosa-pagina: a leitura e o produto (spec 7.3). medida de 68ch,
+   ritmo de papel: meta quieta, texto com respiro de ensaio */
+
+.prosa-pagina {
+  max-width: var(--medida-leitura);
+  margin: var(--espaco-4) auto;
+  font-family: var(--fonte-leitura);
+}
+
+.prosa-pagina__meta {
+  display: flex;
+  gap: var(--espaco-2);
+  margin-bottom: var(--espaco-4);
+  padding-bottom: var(--espaco-3);
+  border-bottom: 1px solid var(--sussurro);
+  font-family: var(--fonte-chrome);
+  font-size: 0.875rem;
+  color: var(--meta);
+}
+
+.prosa-pagina__autor {
+  font-weight: 600;
+  color: var(--tinta);
+}
+
+.prosa-pagina__texto {
+  font-size: 1.125rem;
+  line-height: 1.8;
+  white-space: pre-wrap;
 }
 
 .feed__mais {
@@ -504,6 +552,15 @@ html.rolagem-descendo .nav-movel {
   border-radius: var(--raio);
   border: 1px solid var(--acento);
   color: var(--tinta);
+  /* some sozinho depois de 4s: aviso não é decoração permanente */
+  animation: flash-sair 0.4s ease 4s forwards;
+}
+
+@keyframes flash-sair {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
 }
 
 .flash--erro {

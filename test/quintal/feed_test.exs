@@ -40,7 +40,7 @@ defmodule Quintal.FeedTest do
       })
   end
 
-  test "só prosas de quem a pessoa escolheu ler" do
+  test "prosas da vizinhança e as próprias, lado a lado" do
     segue("did:plc:alice", "did:plc:beto")
     prosa("did:plc:beto", "prosa do beto", "2026-08-02T10:00:00Z")
     prosa("did:plc:clara", "prosa da clara", "2026-08-02T11:00:00Z")
@@ -48,8 +48,9 @@ defmodule Quintal.FeedTest do
 
     feed = Feed.list("did:plc:alice")
 
-    assert Enum.map(feed, & &1.texto) == ["prosa do beto"]
-    assert hd(feed).autor.handle == "beto.bsky.social"
+    # clara não é lida por alice, fica de fora; a própria prosa entra
+    assert Enum.map(feed, & &1.texto) == ["prosa da alice", "prosa do beto"]
+    assert hd(feed).autor.handle == "alice.bsky.social"
   end
 
   test "cronológico, da mais nova para a mais antiga, sem ranqueamento" do

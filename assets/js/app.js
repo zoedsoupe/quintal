@@ -46,6 +46,7 @@ const Prosear = {
     this.campo.addEventListener("input", () => {
       this.cresce();
       this.conta();
+      this.expande();
       if (this.campo.value) {
         localStorage.setItem(this.chave, this.campo.value);
       } else {
@@ -59,15 +60,26 @@ const Prosear = {
       this.aviso.hidden = true;
       this.cresce();
       this.conta();
+      this.expande();
     });
 
     this.cresce();
     this.conta();
+    this.expande();
   },
 
   updated() {
     this.cresce();
     this.conta();
+  },
+
+  // com texto no campo o rodape fica aberto mesmo sem foco: trocar o
+  // tipo no mobile nao pode esconder o botao de prosear
+  expande() {
+    this.el.classList.toggle(
+      "prosear--expandido",
+      this.campo.value.trim().length > 0,
+    );
   },
 
   cresce() {

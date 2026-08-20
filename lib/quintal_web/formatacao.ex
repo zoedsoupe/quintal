@@ -27,4 +27,30 @@ defmodule QuintalWeb.Formatacao do
   """
   def tipo(tipo) when tipo in ~w(nota pergunta cronica ensaio), do: String.to_atom(tipo)
   def tipo(_outro), do: :nota
+
+  @resumo 600
+
+  @doc """
+  Trecho de prosa longa para o feed e o canto: crônicas e ensaios abrem
+  em página própria, na lista entra só o começo. Corta no espaço mais
+  perto do limite e devolve `{texto, cortou?}`.
+  """
+  def trecho(texto) when is_binary(texto) do
+    if String.length(texto) <= @resumo do
+      {texto, false}
+    else
+      corte =
+        texto
+        |> String.slice(0, @resumo)
+        |> String.replace(~r/\s+\S*$/u, "")
+
+      {corte <> "…", true}
+    end
+  end
+
+  @doc "O caminho da página de leitura de uma prosa."
+  def prosa_path(uri, handle) do
+    rkey = uri |> String.split("/") |> List.last()
+    "/canto/#{handle}/prosa/#{rkey}"
+  end
 end

@@ -1,9 +1,9 @@
 defmodule Quintal.Feed do
   @moduledoc """
-  O feed cronológico (spec 5.1, feature 3; marco m2): só prosas de quem
-  a pessoa escolheu ler, em ordem de publicação, paginação por cursor.
-  Sem ranqueamento em nenhuma camada: cronológico para sempre é a
-  constituição do quintal (spec 2).
+  O feed cronológico (spec 5.1, feature 3; marco m2): prosas de quem a
+  pessoa escolheu ler mais as próprias, em ordem de publicação, paginação
+  por cursor. Sem ranqueamento em nenhuma camada: cronológico para
+  sempre é a constituição do quintal (spec 2).
 
   O cursor é o par `(created_at, uri)` da última prosa da página,
   serializado como `"<unix_microsegundos>|<uri>"`: estável enquanto a
@@ -18,7 +18,7 @@ defmodule Quintal.Feed do
 
   @doc """
   Lista uma página do feed da pessoa, da prosa mais nova para a mais
-  antiga.
+  antiga. As próprias prosas entram junto: o canto é seu, o feed também.
 
   Opções: `:limit` (padrão 50) e `:cursor` (vem de `cursor/1`).
   """
@@ -27,8 +27,10 @@ defmodule Quintal.Feed do
     limit = Keyword.get(opts, :limit, 50)
 
     Prosa
-    |> join(:inner, [p], f in Follow, on: f.seguido_did == p.autor_did)
-    |> where([_p, f], f.seguidor_did == ^did)
+    |> join(:left, [p], f in Follow,
+      on: f.seguido_did == p.autor_did and f.seguidor_did == ^did
+    )
+    |> where([p, f], p.autor_did == ^did or f.seguidor_did == ^did)
     |> a_partir_do_cursor(Keyword.get(opts, :cursor))
     |> order_by([p, _f], desc: p.created_at, desc: p.uri)
     |> limit(^limit)

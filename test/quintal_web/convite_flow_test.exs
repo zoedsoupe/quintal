@@ -8,7 +8,7 @@ defmodule QuintalWeb.ConviteFlowTest do
   test "GET /convite mostra a portaria com o axô", %{conn: conn} do
     {:ok, _view, html} = live(conn, "/convite")
 
-    assert html =~ "o quintal é pequeno de propósito. você foi convidada."
+    assert html =~ "o quintal é pequeno de propósito. você foi convidade."
     assert html =~ "axo-front-gretting.png"
   end
 

@@ -46,6 +46,17 @@ defmodule Quintal.ConvitesTest do
         assert {:ok, _} = Convites.gerar(did)
       end
     end
+
+    test "fundadora gera sem cota" do
+      did = "did:plc:4rt5dyqvarrbolr7qmfcbcsm"
+
+      for i <- 1..6 do
+        {:ok, convite} = Convites.gerar(did)
+        :ok = Convites.usar(convite.codigo, "did:plc:convidada#{i}")
+      end
+
+      assert {:ok, _} = Convites.gerar(did)
+    end
   end
 
   describe "restantes/1" do

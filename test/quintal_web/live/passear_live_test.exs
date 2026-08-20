@@ -1,10 +1,14 @@
 defmodule QuintalWeb.PassearLiveTest do
   use QuintalWeb.ConnCase, async: true
 
+  import Mox
   import Phoenix.LiveViewTest
 
+  alias Quintal.Auth.Mock
   alias Quintal.Prosas
   alias Quintal.Repo
+
+  setup :verify_on_exit!
 
   setup do
     Repo.insert!(%Quintal.Identidade{
@@ -14,7 +18,24 @@ defmodule QuintalWeb.PassearLiveTest do
       atualizado_em: DateTime.utc_now()
     })
 
-    :ok
+    stub(Mock, :current_session, fn "did:plc:beto" ->
+      {:ok,
+       %ProtoRune.Atproto.OAuth.Session{
+         did: "did:plc:beto",
+         handle: "beto.bsky.social",
+         access_token: "token-abc",
+         dpop_key: "key",
+         dpop_jwk: %{},
+         service_url: "https://pds.example"
+       }}
+    end)
+
+    conn = init_test_session(build_conn(), %{quintal_did: "did:plc:beto"})
+    {:ok, conn: conn}
+  end
+
+  test "portaria fecha o passear para quem não entrou" do
+    assert {:error, {:redirect, %{to: "/"}}} = live(build_conn(), "/passear")
   end
 
   test "abre quase vazia, com o axô de lupa e o botão passear", %{conn: conn} do
@@ -26,9 +47,17 @@ defmodule QuintalWeb.PassearLiveTest do
   end
 
   test "passear sorteia uma carta de descoberta", %{conn: conn} do
+    # a prosa sorteada é de outra pessoa: o passear nunca mostra o próprio canto
+    Repo.insert!(%Quintal.Identidade{
+      did: "did:plc:clara",
+      handle: "clara.bsky.social",
+      pds_url: "https://pds.example",
+      atualizado_em: DateTime.utc_now()
+    })
+
     {:ok, _} =
-      Prosas.indexar("did:plc:beto", %{
-        uri: "at://did:plc:beto/place.quintal.feed.prosa/p1",
+      Prosas.indexar("did:plc:clara", %{
+        uri: "at://did:plc:clara/place.quintal.feed.prosa/p1",
         cid: "bafy",
         value: %{text: "uma prosa para ser descoberta", created_at: "2026-08-01T10:00:00Z"}
       })
@@ -37,7 +66,7 @@ defmodule QuintalWeb.PassearLiveTest do
     html = view |> element("button", "passear") |> render_click()
 
     assert html =~ "uma prosa para ser descoberta"
-    assert html =~ "beto.bsky.social"
+    assert html =~ "clara.bsky.social"
     assert html =~ "visitar esse canto"
     assert html =~ "de novo"
   end

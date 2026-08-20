@@ -17,7 +17,7 @@ defmodule QuintalWeb.CantoLive do
   use QuintalWeb, :live_view
 
   import Ecto.Query, only: [from: 2]
-  import QuintalWeb.Formatacao, only: [tempo_relativo: 1, tipo: 1]
+  import QuintalWeb.Formatacao, only: [tempo_relativo: 1, tipo: 1, trecho: 1, prosa_path: 2]
 
   alias Quintal.Blogrolls
   alias Quintal.Canto
@@ -30,6 +30,8 @@ defmodule QuintalWeb.CantoLive do
   alias Quintal.Recados
   alias Quintal.Repo
   alias Quintal.Visitas
+
+  require Logger
 
   @blocos_todos ~w(bio prosas recados quem-eu-leio links)
   @blocos_default ~w(bio prosas recados quem-eu-leio links)
@@ -89,7 +91,8 @@ defmodule QuintalWeb.CantoLive do
            depoimento_form: false,
            blogroll_items: blogroll_items(dono.did),
            convites: convites,
-           convites_restantes: if(proprio?, do: Convites.restantes(dono.did), else: 0)
+           convites_restantes: if(proprio?, do: Convites.restantes(dono.did), else: 0),
+           fundadora?: proprio? && Convites.fundadora?(dono.did)
          )}
     end
   end
@@ -288,7 +291,8 @@ defmodule QuintalWeb.CantoLive do
          |> assign(canto: canto)
          |> update(:guardado_seq, &(&1 + 1))}
 
-      {:error, _reason} ->
+      {:error, reason} ->
+        Logger.warning("[#{__MODULE__}] falha ao arrumar o canto: #{inspect(reason)}")
         {:noreply, put_flash(socket, :error, "ih, algo deu errado. tenta de novo?")}
     end
   end
@@ -360,6 +364,9 @@ defmodule QuintalWeb.CantoLive do
   defp autor_recado(%{autor: %{handle: handle}}, _eu), do: handle
   defp autor_recado(_recado, eu), do: eu
 
+  # em ~H, `@presets` vira lookup de assign: o attr precisa de helper
+  defp presets, do: @presets
+
   defp acento_padrao(tema), do: @presets[tema].acento
 
   # microcopy da cota, no tom da casa (spec 7.7)
@@ -384,7 +391,7 @@ defmodule QuintalWeb.CantoLive do
       >
         <div :if={@arrumar} class="arrumar__barra">
           <button
-            :for={{tema, preset} <- @presets}
+            :for={{tema, preset} <- presets()}
             type="button"
             class={["arrumar__tema", @canto.tema == tema && "arrumar__tema--selecionado"]}
             style={"background: #{preset.fundo}; border-color: #{preset.acento}"}
@@ -487,14 +494,23 @@ defmodule QuintalWeb.CantoLive do
                   sua bio aparece aqui
                 </p>
               <% "prosas" -> %>
-                <.prosa
-                  :for={prosa <- @prosas}
-                  autor={@dono.handle}
-                  data={tempo_relativo(prosa.created_at)}
-                  tipo={tipo(prosa.tipo)}
-                >
-                  {prosa.texto}
-                </.prosa>
+                <div class="feed">
+                  <div :for={prosa <- @prosas} class="feed__item">
+                    <% {texto, cortou?} = trecho(prosa.texto) %>
+                    <.prosa
+                      autor={@dono.handle}
+                      data={tempo_relativo(prosa.created_at)}
+                      tipo={tipo(prosa.tipo)}
+                    >
+                      {texto}
+                    </.prosa>
+                    <p :if={cortou?} class="prosa__continua">
+                      <.link navigate={prosa_path(prosa.uri, @dono.handle)}>
+                        continua lendo aqui
+                      </.link>
+                    </p>
+                  </div>
+                </div>
               <% "recados" -> %>
                 <h2 class="canto-bloco__titulo">recados</h2>
                 <div class="recados">
@@ -613,10 +629,13 @@ defmodule QuintalWeb.CantoLive do
 
         <section :if={@proprio? && !@arrumar} class="convidar">
           <h2 class="canto-bloco__titulo">convidar</h2>
-          <p :if={@convites_restantes > 0} class="convidar__linha">
+          <p :if={@fundadora?} class="convidar__linha">
+            você fundou o quintal, chame quem quiser
+          </p>
+          <p :if={!@fundadora? && @convites_restantes > 0} class="convidar__linha">
             {convites_linha(@convites_restantes)}
           </p>
-          <p :if={@convites_restantes == 0} class="convidar__linha">
+          <p :if={!@fundadora? && @convites_restantes == 0} class="convidar__linha">
             sua cota de convites acabou por enquanto
           </p>
 
@@ -634,7 +653,7 @@ defmodule QuintalWeb.CantoLive do
             </li>
           </ul>
 
-          <.botao :if={@convites_restantes > 0} variante={:sutil} phx-click="gerar_convite">
+          <.botao :if={@fundadora? || @convites_restantes > 0} variante={:sutil} phx-click="gerar_convite">
             gerar um convite
           </.botao>
         </section>

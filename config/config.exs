@@ -39,6 +39,10 @@ config :quintal, QuintalWeb.Endpoint,
   pubsub_server: Quintal.PubSub,
   live_view: [signing_salt: "wCdIpsWV"]
 
+# Quem funda o quintal entra sem convite: a portaria do alpha fecha para
+# cara nova, nunca para as fundadoras (spec 6.1).
+config :quintal, :fundadoras, ["did:plc:4rt5dyqvarrbolr7qmfcbcsm"]
+
 # pt-br primeiro (spec 2): erros de changeset chegam em portugues
 config :quintal, QuintalWeb.Gettext, default_locale: "pt_BR"
 config :quintal, :env, config_env()
