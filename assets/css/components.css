@@ -134,45 +134,24 @@
    leitura fica calma e a saturacao mora nos detalhes (spec 7.2). */
 
 .prosa-card {
-  position: relative;
   max-width: var(--medida-leitura);
 }
 
 .prosa-card__corpo {
-  padding: var(--espaco-3) var(--espaco-4);
+  padding: var(--espaco-2) var(--espaco-3);
   border: 1px solid var(--borda-card);
   border-radius: var(--raio-card);
   background: var(--fundo-card);
 }
 
-/* cabecalho: casinha miuda em squircle, nome do canto em peso 600,
-   tempo em sussurro, acoes miudas a direita */
+/* cabecalho: nome do canto em peso 600, tempo em sussurro, acoes
+   miudas a direita. sem avatar: a identidade da casa e o nome */
 
 .prosa-card__cabeca {
   display: flex;
   align-items: center;
   gap: var(--espaco-2);
-  margin-bottom: var(--espaco-3);
-}
-
-/* a casinha e a identidade da casa: squircle de 26px com gradiente
-   lilas-rosa da paleta. nao guardamos avatar, guardamos uma casa */
-
-.prosa-card__avatar {
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.625rem;
-  height: 1.625rem;
-  border-radius: 35%;
-  background: linear-gradient(135deg, var(--acento), var(--acento-2));
-  color: var(--fundo);
-}
-
-.prosa-card__avatar svg {
-  width: 0.875rem;
-  height: 0.875rem;
+  margin-bottom: var(--espaco-2);
 }
 
 .prosa-card__identidade {
@@ -203,7 +182,10 @@
   font-family: var(--fonte-leitura);
   font-size: 1.0625rem;
   line-height: 1.65;
-  white-space: pre-wrap;
+}
+
+.prosa-card__texto p + p {
+  margin-top: var(--espaco-2);
 }
 
 /* prosa longa abre em pagina propria: link textual quieto, sem pill */
@@ -245,7 +227,7 @@
   display: flex;
   align-items: center;
   gap: var(--espaco-3);
-  margin-top: var(--espaco-3);
+  margin-top: var(--espaco-2);
 }
 
 .prosa-card__responder {
@@ -260,29 +242,11 @@
   border-color: var(--acento);
 }
 
-/* resposta no feed: o fio lilas curva do card de cima ate este, e a
-   etiqueta "em resposta a" explica a ligacao */
-
-.prosa-card--resposta {
-  margin-left: var(--espaco-4);
-}
-
-.prosa-card--resposta::before {
-  content: "";
-  position: absolute;
-  left: calc(-1 * var(--espaco-4) + 0.75rem);
-  top: calc(-1 * var(--espaco-4));
-  width: 1rem;
-  height: calc(var(--espaco-4) + 1.5rem);
-  border-left: 2px solid var(--acento);
-  border-bottom: 2px solid var(--acento);
-  border-bottom-left-radius: 1rem;
-  opacity: 0.45;
-  pointer-events: none;
-}
+/* resposta no feed: a etiqueta "em resposta a" explica a ligacao, sem
+   indentacao do conteudo */
 
 .prosa-card__fio {
-  margin: 0 0 var(--espaco-1) var(--espaco-4);
+  margin-bottom: var(--espaco-1);
   font-size: 0.8125rem;
   color: var(--meta);
 }

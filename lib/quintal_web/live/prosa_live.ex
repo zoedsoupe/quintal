@@ -138,6 +138,7 @@ defmodule QuintalWeb.ProsaLive do
           :for={resposta <- @thread}
           autor={resposta.autor.handle}
           data={tempo_relativo(resposta.created_at)}
+          texto={resposta.texto}
           path={prosa_path(resposta.uri, resposta.autor.handle)}
           imagens={imagens_card(resposta)}
         >
@@ -153,7 +154,6 @@ defmodule QuintalWeb.ProsaLive do
               <Lucideicons.trash_2 aria-hidden="true" />
             </button>
           </:acoes>
-          {resposta.texto}
         </.prosa>
 
         <form :if={@sessao} phx-submit="responder" class="thread__responder">

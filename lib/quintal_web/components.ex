@@ -65,10 +65,9 @@ defmodule QuintalWeb.Components do
   @doc """
   Uma prosa no feed, no canto ou na thread: o card de leitura.
 
-  Ícone miúdo de 26px: uma casinha em squircle com gradiente lilás-rosa
-  (não guardamos avatar, a casinha é a identidade da casa), nome do
-  canto em peso 600 e tempo em sussurro. O tipo da prosa é metadado
-  interno e nunca vira rótulo no card (spec 10.1).
+  Nome do canto em peso 600 e tempo em sussurro, sem avatar: a
+  identidade da casa é o nome. O tipo da prosa é metadado interno e
+  nunca vira rótulo no card (spec 10.1).
 
   `em_resposta` traz o handle da prosa mãe e acende o fio lilás que
   conecta o card para cima. `path` é a página de leitura: o "continuar
@@ -77,6 +76,7 @@ defmodule QuintalWeb.Components do
   """
   attr :autor, :string, required: true
   attr :data, :string, required: true
+  attr :texto, :string, required: true
   attr :path, :string, default: nil
   attr :cortou, :boolean, default: false
   attr :em_resposta, :string, default: nil
@@ -84,20 +84,16 @@ defmodule QuintalWeb.Components do
   attr :class, :string, default: nil
   attr :imagens, :list, default: []
   slot :acoes
-  slot :inner_block, required: true
 
   def prosa(assigns) do
     ~H"""
-    <article class={["prosa-card", @em_resposta && "prosa-card--resposta", @class]}>
+    <article class={["prosa-card", @class]}>
       <p :if={@em_resposta} class="prosa-card__fio">
         em resposta a <span class="prosa-card__fio-autor">{@em_resposta}</span>
       </p>
 
       <div class="prosa-card__corpo">
         <header class="prosa-card__cabeca">
-          <span class="prosa-card__avatar" aria-hidden="true">
-            <Lucideicons.house />
-          </span>
           <div class="prosa-card__identidade">
             <span class="prosa-card__autor">{@autor}</span>
             <time class="prosa-card__tempo">{@data}</time>
@@ -105,7 +101,9 @@ defmodule QuintalWeb.Components do
           <span :if={@acoes != []} class="prosa-card__acoes">{render_slot(@acoes)}</span>
         </header>
 
-        <div class="prosa-card__texto">{render_slot(@inner_block)}</div>
+        <div class="prosa-card__texto">
+          <p :for={paragrafo <- paragrafos(@texto)}>{paragrafo}</p>
+        </div>
 
         <div :if={@imagens != []} class="prosa-card__imagens">
           <img :for={img <- @imagens} src={img.src} alt={img.alt} loading="lazy" />
@@ -120,6 +118,15 @@ defmodule QuintalWeb.Components do
       </div>
     </article>
     """
+  end
+
+  # parágrafos em bloco: quebra em linha em branco, sem indentação de
+  # primeira linha. quebras simples dentro do parágrafo viram espaço
+  defp paragrafos(texto) do
+    texto
+    |> String.split(~r/\n\s*\n/)
+    |> Enum.map(&String.trim/1)
+    |> Enum.reject(&(&1 == ""))
   end
 
   @doc "Um recado no livro de visitas de um canto."

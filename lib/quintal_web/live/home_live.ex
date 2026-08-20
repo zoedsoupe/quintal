@@ -236,6 +236,7 @@ defmodule QuintalWeb.HomeLive do
             <.prosa
               autor={autor}
               data={tempo_relativo(prosa.created_at)}
+              texto={texto}
               path={prosa_path(prosa.uri, autor)}
               cortou={cortou?}
               em_resposta={prosa.reply_parent && Map.get(@pais, prosa.reply_parent)}
@@ -253,7 +254,6 @@ defmodule QuintalWeb.HomeLive do
                   <Lucideicons.trash_2 aria-hidden="true" />
                 </button>
               </:acoes>
-              {texto}
             </.prosa>
           </div>
 

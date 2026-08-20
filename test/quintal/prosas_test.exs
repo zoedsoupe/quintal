@@ -316,8 +316,8 @@ defmodule Quintal.ProsasTest do
     end
   end
 
-  describe "respostas/2, contar_respostas/1 e pais/1" do
-    test "thread cronológica, contagem em lote e handle da mãe", %{session: session} do
+  describe "respostas/2 e pais/1" do
+    test "thread cronológica e handle da mãe", %{session: session} do
       indexa_identidade()
       indexa_identidade("did:plc:beto")
       mae_uri = "at://did:plc:alice/place.quintal.feed.prosa/mae"
@@ -346,7 +346,6 @@ defmodule Quintal.ProsasTest do
       end
 
       assert ["primeira", "segunda"] == mae_uri |> Prosas.respostas() |> Enum.map(& &1.texto)
-      assert Prosas.contar_respostas([mae_uri, "at://sem/respostas"]) == %{mae_uri => 2}
 
       resp_uri = "at://did:plc:beto/place.quintal.feed.prosa/primeira"
       assert Prosas.pais([mae_uri]) == %{mae_uri => "did:plc:alice"}

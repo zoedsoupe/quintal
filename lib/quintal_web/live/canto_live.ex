@@ -19,7 +19,7 @@ defmodule QuintalWeb.CantoLive do
   import Ecto.Query, only: [from: 2]
 
   import QuintalWeb.Formatacao,
-    only: [tempo_relativo: 1, trecho: 1, prosa_path: 2, imagens_card: 1]
+    only: [tempo_relativo: 1, data_curta: 1, primeira_frase: 1, prosa_path: 2]
 
   alias Quintal.Blogrolls
   alias Quintal.Canto
@@ -86,12 +86,6 @@ defmodule QuintalWeb.CantoLive do
            guardado_seq: 0,
            seguindo: seguindo,
            prosas: prosas,
-           pais:
-             prosas
-             |> Enum.map(& &1.reply_parent)
-             |> Enum.reject(&is_nil/1)
-             |> Enum.uniq()
-             |> Prosas.pais(),
            recados: Recados.listar_por_canto(dono.did, viewer_did),
            recados_visiveis: @recados_pagina,
            depoimentos: Depoimentos.aceitos(dono.did),
@@ -485,33 +479,28 @@ defmodule QuintalWeb.CantoLive do
                   sua bio aparece aqui
                 </p>
               <% "prosas" -> %>
-                <div class="feed">
-                  <div :for={prosa <- @prosas} class="feed__item">
-                    <% {texto, cortou?} = trecho(prosa.texto) %>
-                    <.prosa
-                      autor={@dono.handle}
-                      data={tempo_relativo(prosa.created_at)}
-                      path={prosa_path(prosa.uri, @dono.handle)}
-                      cortou={cortou?}
-                      em_resposta={prosa.reply_parent && Map.get(@pais, prosa.reply_parent)}
-                      imagens={imagens_card(prosa)}
+                <ul class="indice">
+                  <li :for={prosa <- @prosas} class="indice__item">
+                    <.link
+                      navigate={prosa_path(prosa.uri, @dono.handle)}
+                      class="indice__linha"
                     >
-                      <:acoes :if={@proprio?}>
-                        <button
-                          type="button"
-                          class="icone-botao"
-                          phx-click="apagar_prosa"
-                          phx-value-uri={prosa.uri}
-                          data-confirm="apagar essa prosa? ela sai do seu pds também."
-                          aria-label="apagar prosa"
-                        >
-                          <Lucideicons.trash_2 aria-hidden="true" />
-                        </button>
-                      </:acoes>
-                      {texto}
-                    </.prosa>
-                  </div>
-                </div>
+                      <time class="indice__data">{data_curta(prosa.created_at)}</time>
+                      <span class="indice__frase">{primeira_frase(prosa.texto)}</span>
+                    </.link>
+                    <button
+                      :if={@proprio?}
+                      type="button"
+                      class="icone-botao indice__apagar"
+                      phx-click="apagar_prosa"
+                      phx-value-uri={prosa.uri}
+                      data-confirm="apagar essa prosa? ela sai do seu pds também."
+                      aria-label="apagar prosa"
+                    >
+                      <Lucideicons.trash_2 aria-hidden="true" />
+                    </button>
+                  </li>
+                </ul>
               <% "recados" -> %>
                 <h2 class="canto-bloco__titulo">recados</h2>
                 <div class="recados">

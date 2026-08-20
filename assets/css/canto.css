@@ -169,6 +169,60 @@
   opacity: 0.55;
 }
 
+/* prosas no canto viram indice (estante, nao feed): uma linha por
+   prosa, data em sussurro com largura fixa pra alinhar, a primeira
+   frase com reticencias e a linha inteira como link. o dono tem uma
+   lixeira miuda no fim da linha. */
+
+.indice {
+  display: flex;
+  flex-direction: column;
+  max-width: var(--medida-leitura);
+  padding: 0;
+  list-style: none;
+}
+
+.indice__item {
+  display: flex;
+  align-items: center;
+}
+
+.indice__linha {
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  gap: var(--espaco-3);
+  min-width: 0;
+  padding-block: var(--espaco-2);
+  color: var(--tinta);
+  text-decoration: none;
+}
+
+.indice__linha:hover .indice__frase {
+  color: var(--acento);
+}
+
+.indice__data {
+  flex: none;
+  width: 8ch;
+  font-family: var(--fonte-chrome);
+  font-size: 0.8125rem;
+  color: var(--meta);
+}
+
+.indice__frase {
+  overflow: hidden;
+  font-family: var(--fonte-leitura);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.indice__apagar {
+  flex: none;
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+}
+
 /* recados (briefing 4.4): lista com nome e tempo, entrada sempre
    visivel no fim, olho discreto do dono em cada recado. */
 

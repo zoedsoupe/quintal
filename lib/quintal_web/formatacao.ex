@@ -21,7 +21,43 @@ defmodule QuintalWeb.Formatacao do
 
   def tempo_relativo(_outra), do: ""
 
-  @resumo 600
+  @doc """
+  Data curta para o índice de prosas do canto: "12/03" no ano corrente,
+  "12/03/25" quando o ano já virou.
+  """
+  def data_curta(%DateTime{} = data) do
+    if data.year == DateTime.utc_now().year do
+      Calendar.strftime(data, "%d/%m")
+    else
+      Calendar.strftime(data, "%d/%m/%y")
+    end
+  end
+
+  def data_curta(_outra), do: ""
+
+  @frase 90
+
+  @doc """
+  A primeira frase de uma prosa, para a linha do índice do canto: corta
+  no fim da frase ou da primeira linha, o que vier antes, e no máximo
+  em #{@frase} caracteres (no espaço mais perto do limite).
+  """
+  def primeira_frase(texto) when is_binary(texto) do
+    frase =
+      texto
+      |> String.trim()
+      |> String.split(~r/(?<=[.!?…])\s+|\n/u, parts: 2)
+      |> hd()
+
+    if String.length(frase) > @frase do
+      corte = frase |> String.slice(0, @frase) |> String.replace(~r/\s+\S*$/u, "")
+      corte <> "…"
+    else
+      frase
+    end
+  end
+
+  @resumo 350
 
   @doc """
   Trecho de prosa longa para o feed e o canto: crônicas e ensaios abrem
