@@ -140,7 +140,6 @@ defmodule QuintalWeb.Components do
         required
       />
       <p class="prosear__rascunho" hidden>deixou uma prosa pela metade aqui</p>
-      <p class="prosear__ajuda">perguntas aparecem em destaque na vizinhança</p>
       <.md_ferramentas />
 
       <div :if={@uploads.imagens.entries != []} class="prosear__anexos">
@@ -233,9 +232,6 @@ defmodule QuintalWeb.Components do
         required
       />
       <p class="prosear__rascunho" hidden>deixou uma prosa pela metade aqui</p>
-      <p :if={@modo == :prosa} class="prosear__ajuda">
-        perguntas aparecem em destaque na vizinhança
-      </p>
 
       <div :if={@modo == :prosa && @uploads.imagens.entries != []} class="prosear__anexos">
         <.anexos uploads={@uploads} />
