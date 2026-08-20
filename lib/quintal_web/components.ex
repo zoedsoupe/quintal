@@ -11,6 +11,7 @@ defmodule QuintalWeb.Components do
   use Phoenix.Component
 
   alias Phoenix.HTML.FormField
+  alias QuintalWeb.Markdown
 
   @doc """
   Botão do chrome. `variante` é `:primario` (default), `:fantasma`,
@@ -102,7 +103,7 @@ defmodule QuintalWeb.Components do
         </header>
 
         <div class="prosa-card__texto">
-          <p :for={paragrafo <- paragrafos(@texto)}>{paragrafo}</p>
+          {Markdown.render(@texto)}
         </div>
 
         <div :if={@imagens != []} class="prosa-card__imagens">
@@ -121,15 +122,59 @@ defmodule QuintalWeb.Components do
   end
 
   @doc """
-  Parágrafos em bloco: quebra em linha em branco, sem indentação de
-  primeira linha. Quebras simples dentro do parágrafo colapsam em
-  espaço na renderização.
+  A régua de formatação markdown dos composers: insere markers no
+  textarea (o texto continua sendo a fonte), nunca um editor rico.
+  Cada botão carrega `data-md-wrap`, `data-md-prefix` ou
+  `data-md-link`; o hook (`Composer` nos proseares, `MdToolbar` nos
+  forms soltos) faz o gesto e devolve o foco pro campo.
   """
-  def paragrafos(texto) do
-    texto
-    |> String.split(~r/\n\s*\n/)
-    |> Enum.map(&String.trim/1)
-    |> Enum.reject(&(&1 == ""))
+  def md_ferramentas(assigns) do
+    ~H"""
+    <div class="md-ferramentas" role="toolbar" aria-label="formatação do texto">
+      <button type="button" class="icone-botao" data-md-wrap="**" aria-label="negrito" title="negrito">
+        <Lucideicons.bold aria-hidden="true" />
+      </button>
+      <button
+        type="button"
+        class="icone-botao"
+        data-md-wrap="*"
+        aria-label="itálico"
+        title="itálico"
+      >
+        <Lucideicons.italic aria-hidden="true" />
+      </button>
+      <button type="button" class="icone-botao" data-md-wrap="~~" aria-label="riscado" title="riscado">
+        <Lucideicons.strikethrough aria-hidden="true" />
+      </button>
+      <button type="button" class="icone-botao" data-md-wrap="`" aria-label="código" title="código">
+        <Lucideicons.code aria-hidden="true" />
+      </button>
+      <button type="button" class="icone-botao" data-md-link aria-label="link" title="link">
+        <Lucideicons.link aria-hidden="true" />
+      </button>
+      <button
+        type="button"
+        class="icone-botao"
+        data-md-prefix="## "
+        aria-label="título"
+        title="título"
+      >
+        <Lucideicons.heading_2 aria-hidden="true" />
+      </button>
+      <button
+        type="button"
+        class="icone-botao"
+        data-md-prefix="> "
+        aria-label="citação"
+        title="citação"
+      >
+        <Lucideicons.quote aria-hidden="true" />
+      </button>
+      <button type="button" class="icone-botao" data-md-prefix="- " aria-label="lista" title="lista">
+        <Lucideicons.list aria-hidden="true" />
+      </button>
+    </div>
+    """
   end
 
   @doc "Um recado no livro de visitas de um canto."

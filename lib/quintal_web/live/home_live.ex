@@ -123,14 +123,18 @@ defmodule QuintalWeb.HomeLive do
         if Enum.any?(entradas, &(alts[&1.ref] == "")) do
           {:error, :alt_faltando}
         else
-          arquivos =
-            consume_uploaded_entries(socket, :imagens, fn %{path: path}, entry ->
-              {:ok, %{bin: File.read!(path), tipo: entry.client_type, alt: alts[entry.ref]}}
-            end)
-
-          subir_imagens(socket.assigns.sessao, arquivos)
+          subir_anexos(socket, alts)
         end
     end
+  end
+
+  defp subir_anexos(socket, alts) do
+    arquivos =
+      consume_uploaded_entries(socket, :imagens, fn %{path: path}, entry ->
+        {:ok, %{bin: File.read!(path), tipo: entry.client_type, alt: alts[entry.ref]}}
+      end)
+
+    subir_imagens(socket.assigns.sessao, arquivos)
   end
 
   defp subir_imagens(sessao, arquivos) do
@@ -181,6 +185,7 @@ defmodule QuintalWeb.HomeLive do
             required
           />
           <p class="prosear__rascunho" hidden>deixou uma prosa pela metade aqui</p>
+          <.md_ferramentas />
 
           <div :if={@uploads.imagens.entries != []} class="prosear__anexos">
             <div :for={entry <- @uploads.imagens.entries} class="prosear__anexo">

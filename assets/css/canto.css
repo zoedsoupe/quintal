@@ -332,6 +332,23 @@
   white-space: nowrap;
 }
 
+/* a frase é uma linha só: bloco de markdown vira inline neutro nela */
+.indice__frase h2,
+.indice__frase h3,
+.indice__frase blockquote,
+.indice__frase ul,
+.indice__frase ol,
+.indice__frase pre {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font: inherit;
+  text-transform: none;
+  background: none;
+  white-space: normal;
+}
+
 .indice__tipo {
   flex: none;
   padding: 0 var(--espaco-2);

@@ -26,6 +26,7 @@ defmodule QuintalWeb.ProsaLive do
   alias Quintal.Prosas
   alias Quintal.Repo
   alias Quintal.Visitas
+  alias QuintalWeb.Markdown
 
   @prosa "place.quintal.feed.prosa"
 
@@ -115,7 +116,7 @@ defmodule QuintalWeb.ProsaLive do
         </header>
 
         <div class="prosa-pagina__texto">
-          <p :for={paragrafo <- paragrafos(@prosa.texto)}>{paragrafo}</p>
+          {Markdown.render(@prosa.texto)}
         </div>
 
         <div :if={imagens_card(@prosa) != []} class="prosa-pagina__imagens">
@@ -166,6 +167,7 @@ defmodule QuintalWeb.ProsaLive do
             maxlength="10000"
             required
           />
+          <.md_ferramentas />
           <div class="prosear__rodape">
             <div class="prosear__ferramentas">
               <span class="prosear__atalho" aria-hidden="true">ctrl+enter pra responder</span>

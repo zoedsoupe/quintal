@@ -75,7 +75,12 @@ defmodule QuintalWeb.BoasVindasLive do
           uma linha sobre você, pra quem passar saber quem mora aqui. opcional, dá pra mudar depois.
         </p>
 
-        <form phx-submit="guardar_bio" class="boas-vindas-onboarding__form">
+        <form
+          phx-submit="guardar_bio"
+          id="boas-vindas-onboarding__form"
+          phx-hook="MdToolbar"
+          class="boas-vindas-onboarding__form"
+        >
           <.campo
             name="bio"
             area
@@ -85,6 +90,7 @@ defmodule QuintalWeb.BoasVindasLive do
             maxlength="500"
             autofocus
           />
+          <.md_ferramentas />
           <div class="boas-vindas-onboarding__acoes">
             <.botao type="submit">guardar e continuar</.botao>
             <.botao variante={:sutil} phx-click="guardar_bio" phx-value-bio="">pular</.botao>

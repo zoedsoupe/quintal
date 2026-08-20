@@ -19,6 +19,7 @@ defmodule Quintal.Prosas do
 
   alias Quintal.Prosa
   alias Quintal.Repo
+  alias Quintal.RichText
   alias Quintal.Visitas
 
   require Logger
@@ -75,6 +76,12 @@ defmodule Quintal.Prosas do
       record = if tipo in @tipos, do: Map.put(record, "tipo", tipo), else: record
       record = if reply, do: Map.put(record, "reply", reply), else: record
       record = if imagens == [], do: record, else: Map.put(record, "images", imagens)
+
+      record =
+        case RichText.facets(texto) do
+          [] -> record
+          facets -> Map.put(record, "facets", facets)
+        end
 
       with {:ok, %{uri: uri, cid: cid}} <- pds().create_record(session, @prosa, record) do
         indexar(session.did, %{uri: uri, cid: cid, value: record})

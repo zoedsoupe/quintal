@@ -58,6 +58,33 @@ defmodule Quintal.ProsasTest do
       assert Repo.aggregate(Prosa, :count) == 0
     end
 
+    test "markdown vira facets no record", %{session: session} do
+      indexa_identidade()
+
+      expect(PDSMock, :create_record, fn _session, "place.quintal.feed.prosa", record ->
+        assert [facet] = record["facets"]
+
+        assert facet["index"] == %{"byteStart" => 2, "byteEnd" => 6}
+        assert [%{"$type" => "place.quintal.richtext.facet#bold"}] = facet["features"]
+
+        {:ok, %{uri: "at://did:plc:alice/place.quintal.feed.prosa/fac", cid: "bafy2"}}
+      end)
+
+      assert {:ok, _prosa} = Prosas.prosear(session, "**bold** dia")
+    end
+
+    test "texto sem markdown sai sem facets", %{session: session} do
+      indexa_identidade()
+
+      expect(PDSMock, :create_record, fn _session, "place.quintal.feed.prosa", record ->
+        refute Map.has_key?(record, "facets")
+
+        {:ok, %{uri: "at://did:plc:alice/place.quintal.feed.prosa/sem", cid: "bafy3"}}
+      end)
+
+      assert {:ok, _prosa} = Prosas.prosear(session, "bom dia, quintal")
+    end
+
     test "tipo vai pro record quando é um valor conhecido", %{session: session} do
       indexa_identidade()
 

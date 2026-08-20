@@ -27,12 +27,77 @@ import { LiveSocket } from "phoenix_live_view";
 import { hooks as colocatedHooks } from "phoenix-colocated/quintal";
 import topbar from "../vendor/topbar";
 
+// A régua de formatação markdown dos composers (componente
+// `md_ferramentas`): os botões escrevem a sintaxe no cursor e deixam o
+// cursor no lugar certo, estilo app do github — sem mágica de seleção.
+// Depois de cada gesto dispara `input` pro Composer (rascunho,
+// contador, auto-grow) ver a mudança, e devolve o foco pro campo.
+
+function mdInsere(campo, snippet, cursorDentro) {
+  const { selectionStart: s, selectionEnd: e, value } = campo;
+  campo.value = value.slice(0, s) + snippet + value.slice(e);
+  const cursor = s + (cursorDentro ?? snippet.length);
+  campo.setSelectionRange(cursor, cursor);
+  campo.dispatchEvent(new Event("input", { bubbles: true }));
+  campo.focus();
+}
+
+function ligaMd(el, campo) {
+  if (!campo) return;
+  el.querySelectorAll("[data-md-wrap],[data-md-prefix],[data-md-link]").forEach((botao) => {
+    botao.addEventListener("click", (e) => {
+      e.preventDefault();
+      if (botao.dataset.mdWrap !== undefined) {
+        const m = botao.dataset.mdWrap;
+        mdInsere(campo, m + m, m.length);
+      } else if (botao.dataset.mdPrefix !== undefined) {
+        // prefixo de bloco só faz sentido no começo de linha
+        const antes = campo.value.slice(0, campo.selectionStart);
+        const quebra = antes === "" || antes.endsWith("\n") ? "" : "\n";
+        mdInsere(campo, quebra + botao.dataset.mdPrefix);
+      } else {
+        mdInsere(campo, "[]()", 1);
+      }
+    });
+  });
+}
+
+// MdToolbar: a régua nos forms soltos (bio do onboarding, depoimento),
+// que não têm o Composer — aqui ela é o único hook do form.
+const MdToolbar = {
+  mounted() {
+    ligaMd(this.el, this.el.querySelector("textarea"));
+  },
+};
+
 // Composer: o gesto de escrita do quintal (prosear na home, responder
 // na thread, recado no canto). auto-grow, contador opcional que só
 // aparece nos últimos 500 grafemes, rascunho local opcional oferecido
 // de volta, ctrl/cmd+enter publica e, no mobile, o fundo escurecido e
 // o Esc fecham o sheet. `data-rascunho` liga o rascunho local com a
 // chave dada; sem o atributo, nada fica guardado.
+// rascunho local: em alguns contextos de PWA o localStorage lanca
+// SecurityError; sem o rascunho o composer ainda precisa abrir
+const rascunhoStore = {
+  get(k) {
+    try {
+      return localStorage.getItem(k);
+    } catch {
+      return null;
+    }
+  },
+  set(k, v) {
+    try {
+      localStorage.setItem(k, v);
+    } catch {}
+  },
+  remove(k) {
+    try {
+      localStorage.removeItem(k);
+    } catch {}
+  },
+};
+
 const Composer = {
   mounted() {
     this.campo = this.el.querySelector("textarea");
@@ -42,8 +107,10 @@ const Composer = {
     this.chave = this.el.dataset.rascunho;
     this.limite = Number(this.campo.getAttribute("maxlength")) || 10000;
 
+    ligaMd(this.el, this.campo);
+
     if (this.chave) {
-      const rascunho = localStorage.getItem(this.chave);
+      const rascunho = rascunhoStore.get(this.chave);
       if (rascunho && !this.campo.value) {
         this.campo.value = rascunho;
         if (this.aviso) this.aviso.hidden = false;
@@ -56,9 +123,9 @@ const Composer = {
       this.expande();
       if (!this.chave) return;
       if (this.campo.value) {
-        localStorage.setItem(this.chave, this.campo.value);
+        rascunhoStore.set(this.chave, this.campo.value);
       } else {
-        localStorage.removeItem(this.chave);
+        rascunhoStore.remove(this.chave);
       }
     });
 
@@ -88,9 +155,23 @@ const Composer = {
     this.fundo = this.el.querySelector("[data-fecha]");
     if (this.fundo) this.fundo.addEventListener("click", () => this.fecha());
 
+    // teclado virtual: no PWA standalone o bottom:0 fixo fica embaixo do
+    // teclado e o sheet "some" atras do fundo escuro. ancora no
+    // visualViewport, que encolhe com o teclado nos dois modos
+    this.ancoraTeclado = () => {
+      if (!this.el.classList.contains("prosear--expandido")) return;
+      const vv = window.visualViewport;
+      const desloc = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      this.el.style.bottom = desloc > 0 ? `${desloc}px` : "";
+    };
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", this.ancoraTeclado);
+      window.visualViewport.addEventListener("scroll", this.ancoraTeclado);
+    }
+
     this.handleEvent("composer-publicado", () => {
       this.campo.value = "";
-      if (this.chave) localStorage.removeItem(this.chave);
+      if (this.chave) rascunhoStore.remove(this.chave);
       if (this.aviso) this.aviso.hidden = true;
       this.cresce();
       this.conta();
@@ -104,6 +185,10 @@ const Composer = {
 
   destroyed() {
     document.removeEventListener("click", this.cliqueFora);
+    if (window.visualViewport) {
+      window.visualViewport.removeEventListener("resize", this.ancoraTeclado);
+      window.visualViewport.removeEventListener("scroll", this.ancoraTeclado);
+    }
   },
 
   updated() {
@@ -127,6 +212,7 @@ const Composer = {
   fecha() {
     this.aberto = false;
     this.campo.blur();
+    this.el.style.bottom = "";
     if (!this.campo.value.trim()) {
       this.el.classList.remove("prosear--expandido");
     }
@@ -262,7 +348,7 @@ const csrfToken = document
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: { _csrf_token: csrfToken },
-  hooks: { Composer, ArrumarBlocos, ...colocatedHooks },
+  hooks: { Composer, MdToolbar, ArrumarBlocos, ...colocatedHooks },
 });
 
 // Show progress bar on live navigation and form submits

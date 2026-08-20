@@ -40,7 +40,9 @@ defmodule QuintalWeb.Formatacao do
   @doc """
   A primeira frase de uma prosa, para a linha do índice do canto: corta
   no fim da frase ou da primeira linha, o que vier antes, e no máximo
-  em #{@frase} caracteres (no espaço mais perto do limite).
+  em #{@frase} caracteres (no espaço mais perto do limite). Devolve
+  fonte markdown — quem renderiza é o `Markdown.render_inline/1`, que
+  completa um marker aberto pelo corte.
   """
   def primeira_frase(texto) when is_binary(texto) do
     frase =
@@ -62,7 +64,9 @@ defmodule QuintalWeb.Formatacao do
   @doc """
   Trecho de prosa longa para o feed e o canto: crônicas e ensaios abrem
   em página própria, na lista entra só o começo. Corta no espaço mais
-  perto do limite e devolve `{texto, cortou?}`.
+  perto do limite e devolve `{texto, cortou?}` — fonte markdown, que o
+  card renderiza (o modo streaming do comrak completa marker aberto
+  pelo corte).
   """
   def trecho(texto) when is_binary(texto) do
     if String.length(texto) <= @resumo do

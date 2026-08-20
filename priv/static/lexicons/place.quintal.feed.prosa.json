@@ -12,7 +12,10 @@
           "text": { "type": "string", "maxGraphemes": 10000 },
           "facets": {
             "type": "array",
-            "items": { "type": "ref", "ref": "app.bsky.richtext.facet" }
+            "items": {
+              "type": "union",
+              "refs": ["app.bsky.richtext.facet", "place.quintal.richtext.facet"]
+            }
           },
           "tipo": {
             "type": "string",

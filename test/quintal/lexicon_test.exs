@@ -64,6 +64,28 @@ defmodule Quintal.LexiconTest do
       assert {:error, errors} = Lexicon.validate("place.quintal.feed.prosa", prosa)
       assert "$.text: at most 10000 graphemes, got 10001" in errors
     end
+
+    test "facets bsky e quintal passam na union" do
+      facets = [
+        %{
+          "index" => %{"byteStart" => 2, "byteEnd" => 6},
+          "features" => [%{"$type" => "place.quintal.richtext.facet#bold"}]
+        },
+        %{
+          "index" => %{"byteStart" => 10, "byteEnd" => 15},
+          "features" => [%{"$type" => "app.bsky.richtext.facet#link", "uri" => "https://exemplo.co"}]
+        }
+      ]
+
+      prosa = Map.put(@prosa, "facets", facets)
+      assert :ok = Lexicon.validate("place.quintal.feed.prosa", prosa)
+    end
+
+    test "facet que não é objeto acusa" do
+      prosa = Map.put(@prosa, "facets", ["bold"])
+      assert {:error, errors} = Lexicon.validate("place.quintal.feed.prosa", prosa)
+      assert Enum.any?(errors, &String.contains?(&1, "union"))
+    end
   end
 
   describe "place.quintal.canto.recado" do

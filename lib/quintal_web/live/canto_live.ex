@@ -33,6 +33,7 @@ defmodule QuintalWeb.CantoLive do
   alias Quintal.Recados
   alias Quintal.Repo
   alias Quintal.Visitas
+  alias QuintalWeb.Markdown
 
   require Logger
 
@@ -390,8 +391,7 @@ defmodule QuintalWeb.CantoLive do
                 class="arrumar__mini"
                 style={"background: #{preset.fundo}; border-color: #{preset.acento}"}
                 aria-hidden="true"
-              >
-              </span>
+              ></span>
               {tema}
             </button>
           </div>
@@ -417,7 +417,11 @@ defmodule QuintalWeb.CantoLive do
           <div class="canto__titulo">
             <h1 class="canto__nome">{@dono.handle}</h1>
             <div class="canto__acoes">
-              <.botao :if={@sessao && !@proprio? && !@seguindo} variante={:fantasma} phx-click="seguir">
+              <.botao
+                :if={@sessao && !@proprio? && !@seguindo}
+                variante={:fantasma}
+                phx-click="seguir"
+              >
                 seguir esse canto
               </.botao>
               <.botao
@@ -432,7 +436,7 @@ defmodule QuintalWeb.CantoLive do
               </.botao>
             </div>
           </div>
-          <p :if={@canto.bio} class="canto__bio">{@canto.bio}</p>
+          <div :if={@canto.bio} class="canto__bio">{Markdown.render(@canto.bio)}</div>
 
           <p :if={@canto.links != []} class="canto__links">
             <a :for={link <- @canto.links} href={link.url} target="_blank" rel="noopener">
@@ -492,7 +496,7 @@ defmodule QuintalWeb.CantoLive do
 
             <%= case bloco do %>
               <% "bio" -> %>
-                <p :if={@canto.bio} class="canto-bio__texto">{@canto.bio}</p>
+                <div :if={@canto.bio} class="canto-bio__texto">{Markdown.render(@canto.bio)}</div>
                 <p :if={@arrumar && !@canto.bio} class="canto-bio__texto canto-bio__texto--vazio">
                   sua bio aparece aqui
                 </p>
@@ -504,7 +508,7 @@ defmodule QuintalWeb.CantoLive do
                       class="indice__linha"
                     >
                       <time class="indice__data">{data_curta(prosa.created_at)}</time>
-                      <span class="indice__frase">{primeira_frase(prosa.texto)}</span>
+                      <span class="indice__frase">{Markdown.render_inline(primeira_frase(prosa.texto))}</span>
                       <span :if={prosa.tipo} class="indice__tipo">{prosa.tipo}</span>
                     </.link>
                     <button
@@ -531,7 +535,7 @@ defmodule QuintalWeb.CantoLive do
                       autor={autor_recado(recado, @sessao && Map.get(@sessao, :handle))}
                       data={tempo_relativo(recado.created_at)}
                     >
-                      {recado.texto}
+                      {Markdown.render(recado.texto)}
                     </.recado>
                     <button
                       :if={@proprio?}
@@ -574,6 +578,7 @@ defmodule QuintalWeb.CantoLive do
                       maxlength="500"
                       required
                     />
+                    <.md_ferramentas />
                     <div class="prosear__rodape">
                       <div class="prosear__ferramentas">
                         <span class="prosear__atalho" aria-hidden="true">ctrl+enter pra deixar</span>
@@ -621,7 +626,7 @@ defmodule QuintalWeb.CantoLive do
 
                 <div :if={@depoimentos != []} class="depoimentos">
                   <blockquote :for={depoimento <- @depoimentos} class="depoimento">
-                    <p>{depoimento.texto}</p>
+                    {Markdown.render(depoimento.texto)}
                     <footer>
                       <.link navigate={~p"/canto/#{depoimento.autor.handle}"}>
                         {depoimento.autor.handle}
@@ -634,7 +639,12 @@ defmodule QuintalWeb.CantoLive do
                   <.botao :if={!@depoimento_form} variante={:sutil} phx-click="abrir_depoimento">
                     deixar um depoimento
                   </.botao>
-                  <form :if={@depoimento_form} phx-submit="deixar_depoimento">
+                  <form
+                    :if={@depoimento_form}
+                    id="depoimento"
+                    phx-submit="deixar_depoimento"
+                    phx-hook="MdToolbar"
+                  >
                     <div class="campo">
                       <label class="campo__label" for="depoimento-texto">seu depoimento</label>
                       <textarea
@@ -647,6 +657,7 @@ defmodule QuintalWeb.CantoLive do
                         placeholder="o dono do canto aceita antes de pendurar na parede"
                       ></textarea>
                     </div>
+                    <.md_ferramentas />
                     <.botao variante={:fantasma} type="submit">enviar depoimento</.botao>
                   </form>
                 </div>
