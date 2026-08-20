@@ -1,9 +1,14 @@
 defmodule Quintal.Bootstrap do
   @moduledoc """
-  O que acontece depois do consentimento (spec 8.2, fluxo 1): garante o
-  record `canto.config` no repo da pessoa, indexa a identidade e faz o
-  backfill do que ela já escreveu no pds (prosas, follows, recados,
-  depoimentos) mais os records únicos (canto.config, blogroll).
+  O que acontece depois do consentimento (spec 8.2, fluxo 1): indexa a
+  identidade e faz o backfill do que a pessoa já escreveu no pds
+  (prosas, follows, recados, depoimentos) mais os records únicos
+  (canto.config, blogroll).
+
+  O `canto.config` é só lido aqui, nunca escrito: o record nasce na
+  primeira arrumação (boas-vindas ou modo arrumar), com a cara que a
+  pessoa escolheu, e um default escrito pelo bootstrap correria contra
+  essa primeira escrita.
 
   Tudo idempotente: roda a cada login, não só no primeiro. Falha aqui
   nunca derruba o login. roda numa Task supervisionada fora do request.
@@ -30,13 +35,11 @@ defmodule Quintal.Bootstrap do
   @depoimento "place.quintal.canto.depoimento"
   @blogroll "place.quintal.canto.blogroll"
 
-  @blocos_padrao ~w(bio prosas recados quem-eu-leio links)
-
-  @doc "Garante canto.config, indexa a identidade e faz o backfill das prosas, follows, recados, depoimentos e blogroll."
+  @doc "Indexa a identidade e faz o backfill das prosas, follows, recados, depoimentos, canto.config e blogroll."
   @spec run(Quintal.PDS.session()) :: :ok
   def run(session) do
-    with :ok <- index_identidade(session),
-         :ok <- ensure_canto_config(session) do
+    with :ok <- indexar_identidade(session),
+         :ok <- indexa_canto_config(session) do
       backfill(session, @prosa, &Prosas.indexar/2)
       backfill(session, @follow, &Follows.indexar/2)
       backfill(session, @recado, &Recados.indexar/2)
@@ -50,7 +53,13 @@ defmodule Quintal.Bootstrap do
     :ok
   end
 
-  defp index_identidade(session) do
+  @doc """
+  Upsert da identidade da sessão no índice. Só banco, sem rede: seguro
+  de chamar inline no callback oauth, antes de qualquer escrita que
+  dependa da foreign key de `identidades`.
+  """
+  @spec indexar_identidade(Quintal.PDS.session()) :: :ok | {:error, Ecto.Changeset.t()}
+  def indexar_identidade(session) do
     attrs = %{
       did: session.did,
       handle: session.handle || session.did,
@@ -70,22 +79,13 @@ defmodule Quintal.Bootstrap do
     end
   end
 
-  defp ensure_canto_config(session) do
+  # só leitura: config existente (escrita em outro cliente, ou antes de
+  # uma reinstalação) volta pro índice; ausente não é erro nem vira
+  # escrita, o record nasce na primeira arrumação
+  defp indexa_canto_config(session) do
     case pds().get_record(session, session.did, @canto_config, "self") do
-      {:ok, record} ->
-        index_singleton(session.did, record, &Cantos.indexar/2)
-
-      {:error, _not_found} ->
-        config = %{
-          "tema" => "papel",
-          "blocos" => @blocos_padrao,
-          "updatedAt" => DateTime.to_iso8601(DateTime.utc_now())
-        }
-
-        case pds().put_record(session, @canto_config, "self", config, []) do
-          {:ok, _written} -> :ok
-          {:error, _} = error -> error
-        end
+      {:ok, record} -> index_singleton(session.did, record, &Cantos.indexar/2)
+      {:error, _ausente} -> :ok
     end
   end
 

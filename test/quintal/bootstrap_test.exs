@@ -66,17 +66,11 @@ defmodule Quintal.BootstrapTest do
     assert DateTime.compare(prosa.created_at, esperado) == :eq
   end
 
-  test "canto.config ausente: escreve o padrão no pds", %{session: session} do
-    stub(PDSMock, :get_record, fn _session, _did, _collection, "self" ->
+  test "canto.config ausente: não escreve nada, o record nasce na primeira arrumação", %{
+    session: session
+  } do
+    stub(PDSMock, :get_record, fn _session, _did, _collection, _rkey ->
       {:error, :record_not_found}
-    end)
-
-    expect(PDSMock, :put_record, fn _session, "place.quintal.canto.config", "self", config, _opts ->
-      assert config["tema"] == "papel"
-      assert config["blocos"] == ~w(bio prosas recados quem-eu-leio links)
-      assert is_binary(config["updatedAt"])
-
-      {:ok, %{uri: "at://x", cid: "bafy"}}
     end)
 
     stub(PDSMock, :list_records, fn _session, _did, _collection, _opts ->
@@ -84,6 +78,7 @@ defmodule Quintal.BootstrapTest do
     end)
 
     assert :ok = Bootstrap.run(session)
+    assert Repo.get(Quintal.Canto, "did:plc:alice") == nil
   end
 
   test "backfill pagina até acabar o cursor", %{session: session} do
@@ -134,7 +129,7 @@ defmodule Quintal.BootstrapTest do
       {:error, :pds_fora_do_ar}
     end)
 
-    stub(PDSMock, :put_record, fn _session, _collection, _rkey, _record, _opts ->
+    stub(PDSMock, :list_records, fn _session, _did, _collection, _opts ->
       {:error, :pds_fora_do_ar}
     end)
 

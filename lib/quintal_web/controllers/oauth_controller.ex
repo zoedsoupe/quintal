@@ -92,11 +92,13 @@ defmodule QuintalWeb.OAuthController do
      |> redirect(to: "/convite")}
   end
 
-  # Cria o canto.config e indexa o histórico (spec 8.2, fluxo 1), fora
-  # do caminho do request: o login nunca espera nem quebra por causa
-  # do bootstrap.
+  # Indexa a identidade inline (só banco, sem rede: as escritas das
+  # boas-vindas dependem da FK de identidades) e dispara o backfill do
+  # histórico fora do caminho do request: o login nunca espera nem
+  # quebra por causa do bootstrap.
   defp bootstrap_async(did) do
-    with {:ok, session} <- Quintal.Auth.impl().current_session(did) do
+    with {:ok, session} <- Quintal.Auth.impl().current_session(did),
+         :ok <- Quintal.Bootstrap.indexar_identidade(session) do
       Task.Supervisor.start_child(Quintal.TaskSupervisor, Quintal.Bootstrap, :run, [session])
     end
 

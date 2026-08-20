@@ -189,7 +189,7 @@ o quintal é um **appview atproto, não um host**. a pessoa autentica com sua id
 
 ### 8.2 fluxos
 
-1. **entrar.** oauth atproto com escopo restrito às coleções do quintal (nunca pedimos escrita no bluesky). depois do consentimento, criamos o record `canto.config` e um job de backfill indexa o histórico da pessoa.
+1. **entrar.** oauth atproto com escopo restrito às coleções do quintal (nunca pedimos escrita no bluesky). depois do consentimento, um job de backfill indexa o histórico da pessoa. o record `canto.config` não é criado no login: nasce na primeira arrumação (boas-vindas ou modo arrumar), já com a cara escolhida.
 2. **prosear.** interface otimista, `putRecord` no pds, e o eco do firehose confirma no índice. **ingestão idempotente por design**: nossas próprias escritas chegam duas vezes (otimista e firehose), então é upsert, nunca append.
 3. **ler.** consulta direta no índice: prosas onde autor está na vizinhança, ordem cronológica, cursor. sem ranqueamento em nenhuma camada.
 4. **passear.** sorteia um repo ativo do índice, sorteia uma prosa dele, serve com a carinha do axô.
