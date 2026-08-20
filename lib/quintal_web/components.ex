@@ -254,7 +254,7 @@ defmodule QuintalWeb.Components do
         :if={entry.valid?}
         name={"alt-#{entry.ref}"}
         aria-label="descrição da imagem"
-        placeholder="descreve essa imagem pra quem não vê"
+        placeholder="descreve a imagem aí, namoralzinha"
         required
       />
       <button
