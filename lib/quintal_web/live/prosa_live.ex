@@ -155,8 +155,9 @@ defmodule QuintalWeb.ProsaLive do
           class="prosear thread__responder"
           data-rascunho={"quintal:rascunho:responder:#{@prosa.uri}"}
         >
-          <span class="prosear__alca" aria-hidden="true"></span>
-          <div class="prosear__fundo" data-fecha aria-hidden="true"></div>
+          <button type="button" class="icone-botao prosear__fechar" data-fecha aria-label="fechar">
+            <Lucideicons.x aria-hidden="true" />
+          </button>
 
           <.campo
             name="texto"

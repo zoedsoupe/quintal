@@ -39,7 +39,7 @@ defmodule QuintalWeb.HomeLiveTest do
   test "logada: composer no topo e o vazio do spec, sem prosa ainda", %{conn: conn} do
     {:ok, _view, html} = live(loga_como_alice(conn), "/")
 
-    assert html =~ "o que tá passando no seu quintal?"
+    assert html =~ "como foi seu dia?"
     assert html =~ "prosear"
     assert html =~ "por aqui ainda tá quieto. que tal escrever a primeira prosa?"
     assert html =~ "/oauth/logout"

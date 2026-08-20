@@ -36,6 +36,14 @@
   --raio-pill: 999px;
   --medida-leitura: 68ch;
 
+  /* acento de cada tipo de prosa no composer: nota neutra, pergunta
+     lilas, cronica rose, ensaio roxo fechado. derivam dos acentos do
+     tema, entao madrugada e gloss cascateiam de graca */
+  --tipo-nota: var(--meta);
+  --tipo-pergunta: var(--acento);
+  --tipo-cronica: var(--acento-2);
+  --tipo-ensaio: color-mix(in srgb, var(--acento) 65%, #2e2833);
+
   /* movimento gentil: expandir, aparecer e sumir sem chamar atencao */
   --transicao: 160ms ease-out;
 }

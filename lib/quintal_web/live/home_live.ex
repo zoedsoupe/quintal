@@ -58,6 +58,8 @@ defmodule QuintalWeb.HomeLive do
   end
 
   def handle_event("prosear", %{"texto" => texto} = params, socket) do
+    texto = com_titulo(texto, params)
+
     with {:ok, imagens} <- imagens_dos_anexos(socket, params),
          {:ok, prosa} <- Prosas.prosear(socket.assigns.sessao, texto, Map.get(params, "tipo"), imagens) do
       {:noreply,
@@ -100,6 +102,17 @@ defmodule QuintalWeb.HomeLive do
       pagina |> List.last() |> Feed.cursor()
     end
   end
+
+  # ensaio tem título opcional e o record não tem campo pra ele: vira o
+  # heading markdown que abre o texto (h2, o nível que o card já estiliza)
+  defp com_titulo(texto, %{"tipo" => "ensaio", "titulo" => titulo}) do
+    case String.trim(titulo || "") do
+      "" -> texto
+      titulo -> "## #{titulo}\n\n#{texto}"
+    end
+  end
+
+  defp com_titulo(texto, _params), do: texto
 
   # handles das mães, em lote e sem N+1: o card amarra o "em resposta
   # a" das respostas
@@ -172,14 +185,30 @@ defmodule QuintalWeb.HomeLive do
           class="prosear"
           data-rascunho="quintal:rascunho"
         >
-          <span class="prosear__alca" aria-hidden="true"></span>
-          <div class="prosear__fundo" data-fecha aria-hidden="true"></div>
+          <button type="button" class="icone-botao prosear__fechar" data-fecha aria-label="fechar">
+            <Lucideicons.x aria-hidden="true" />
+          </button>
+
+          <div class="prosear__topo">
+            <div class="prosear__tipos" role="radiogroup" aria-label="tipo da prosa">
+              <label :for={{valor, rotulo, placeholder} <- tipos()}>
+                <input
+                  type="radio"
+                  name="tipo"
+                  value={valor}
+                  checked={valor == "nota"}
+                  data-placeholder={placeholder}
+                />
+                {rotulo}
+              </label>
+            </div>
+          </div>
 
           <.campo
             name="texto"
             area
             aria-label="nova prosa"
-            placeholder="o que tá passando no seu quintal?"
+            placeholder="como foi seu dia?"
             rows="1"
             maxlength="10000"
             required
@@ -209,13 +238,6 @@ defmodule QuintalWeb.HomeLive do
           </div>
 
           <div class="prosear__rodape">
-            <div class="prosear__tipos" role="radiogroup" aria-label="tipo da prosa">
-              <label :for={{valor, rotulo} <- tipos()}>
-                <input type="radio" name="tipo" value={valor} checked={valor == "nota"} />
-                {rotulo}
-              </label>
-            </div>
-
             <div class="prosear__ferramentas">
               <label class="icone-botao prosear__clipe" aria-label="anexar imagem">
                 <Lucideicons.paperclip aria-hidden="true" />
@@ -223,7 +245,44 @@ defmodule QuintalWeb.HomeLive do
               </label>
               <p class="prosear__contador" hidden></p>
               <span class="prosear__atalho" aria-hidden="true">ctrl+enter pra prosear</span>
-              <span class="prosear__anel" aria-hidden="true"></span>
+              <svg class="prosear__progresso" viewBox="0 0 24 24" aria-hidden="true">
+                <circle class="prosear__progresso-trilha" cx="12" cy="12" r="9" />
+                <circle class="prosear__progresso-arco" cx="12" cy="12" r="9" />
+              </svg>
+              <.botao type="submit">prosear</.botao>
+            </div>
+          </div>
+
+          <%!-- ensaio abre o modo foco em tela cheia: titulo opcional em
+               serifada grande, corpo sem borda, contador de palavras
+               quieto e o prosear sempre a vista. o Composer troca o
+               name="texto" entre os dois campos, entao so um viaja no
+               submit --%>
+          <div class="ensaio" hidden>
+            <div class="ensaio__coluna">
+              <button type="button" class="icone-botao ensaio__voltar" data-voltar aria-label="voltar">
+                <Lucideicons.x aria-hidden="true" />
+              </button>
+              <input
+                type="text"
+                id="titulo-ensaio"
+                name="titulo"
+                class="ensaio__titulo"
+                placeholder="título, se quiser"
+                maxlength="120"
+                disabled
+              />
+              <textarea
+                id="texto-ensaio"
+                name="texto"
+                class="ensaio__corpo"
+                placeholder="escreve sem pressa"
+                maxlength="10000"
+                disabled
+              ></textarea>
+            </div>
+            <div class="ensaio__rodape">
+              <p class="ensaio__palavras" aria-live="polite"></p>
               <.botao type="submit">prosear</.botao>
             </div>
           </div>
@@ -308,8 +367,15 @@ defmodule QuintalWeb.HomeLive do
   end
 
   # tipo é metadado interno, nunca rótulo (spec 10.1): no composer vira
-  # pill quieta, no card não aparece.
-  defp tipos, do: [{"nota", "nota"}, {"pergunta", "pergunta"}, {"cronica", "crônica"}, {"ensaio", "ensaio"}]
+  # pill quieta com placeholder próprio, no card não aparece.
+  defp tipos do
+    [
+      {"nota", "nota", "como foi seu dia?"},
+      {"pergunta", "pergunta", "o que tá te intrigando?"},
+      {"cronica", "crônica", "conta o que você viu hoje"},
+      {"ensaio", "ensaio", ""}
+    ]
+  end
 
   # a prosa recém-proseada ainda não tem a identidade carregada: mostra
   # o próprio handle até o eco da firehose confirmar no índice.

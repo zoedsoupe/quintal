@@ -98,16 +98,82 @@ const rascunhoStore = {
   },
 };
 
+// tamanho de referencia por tipo, so cosmetico: o anel enche e o
+// contador acorda perto do tamanho esperado daquele tipo de prosa.
+// o maxlength real (10000) continua valendo pra todo mundo
+const REF_TIPO = { nota: 280, pergunta: 280, cronica: 2000, ensaio: 10000 };
+
 const Composer = {
   mounted() {
     this.campo = this.el.querySelector("textarea");
     this.botao = this.el.querySelector("button[type=submit]");
     this.contador = this.el.querySelector(".prosear__contador");
+    this.progresso = this.el.querySelector(".prosear__progresso-arco");
     this.aviso = this.el.querySelector(".prosear__rascunho");
     this.chave = this.el.dataset.rascunho;
     this.limite = Number(this.campo.getAttribute("maxlength")) || 10000;
 
     ligaMd(this.el, this.campo);
+
+    // ensaio: modo foco em tela cheia. so o composer da home tem o
+    // overlay e as pills de tipo; responder e recado passam reto
+    this.ensaio = this.el.querySelector(".ensaio");
+
+    if (this.ensaio) {
+      this.ensaioTitulo = this.ensaio.querySelector(".ensaio__titulo");
+      this.ensaioCorpo = this.ensaio.querySelector(".ensaio__corpo");
+      this.ensaioPalavras = this.ensaio.querySelector(".ensaio__palavras");
+      this.ensaioBotao = this.ensaio.querySelector("button[type=submit]");
+      this.tipoAnterior = "nota";
+
+      // trocar de tipo troca o placeholder junto; ensaio abre o overlay
+      this.el.querySelectorAll("input[name=tipo]").forEach((radio) => {
+        radio.addEventListener("change", () => {
+          if (radio.value === "ensaio") {
+            this.abreEnsaio();
+          } else {
+            this.tipoAnterior = radio.value;
+            this.campo.placeholder = radio.dataset.placeholder;
+            this.fechaEnsaio();
+          }
+          this.conta();
+        });
+      });
+
+      this.ensaio
+        .querySelector("[data-voltar]")
+        .addEventListener("click", () => this.voltaDoEnsaio());
+
+      this.ensaioCorpo.addEventListener("input", () => {
+        this.contaPalavras();
+        this.ensaioBotao.disabled = this.ensaioCorpo.value.trim().length === 0;
+        if (!this.chave) return;
+        if (this.ensaioCorpo.value) {
+          rascunhoStore.set(this.chave + ":ensaio", this.ensaioCorpo.value);
+        } else {
+          rascunhoStore.remove(this.chave + ":ensaio");
+        }
+      });
+
+      this.ensaioTitulo.addEventListener("input", () => {
+        if (!this.chave) return;
+        if (this.ensaioTitulo.value) {
+          rascunhoStore.set(this.chave + ":ensaio:titulo", this.ensaioTitulo.value);
+        } else {
+          rascunhoStore.remove(this.chave + ":ensaio:titulo");
+        }
+      });
+
+      this.ensaio.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+          e.preventDefault();
+          this.el.requestSubmit();
+        }
+        if (e.key === "Escape") this.voltaDoEnsaio();
+      });
+
+      this.ensaioBotao.disabled = true;
+    }
 
     if (this.chave) {
       const rascunho = rascunhoStore.get(this.chave);
@@ -130,13 +196,16 @@ const Composer = {
     });
 
     // clicar fora recolhe o composer so quando o campo ta vazio;
-    // com texto ele fica aberto pra nao perder o fio da prosa
+    // com texto ele fica aberto pra nao perder o fio da prosa.
+    // pointerdown, nao click: no PWA standalone do iOS o foco rola a
+    // pagina e o click sintetizado cai retargetado num elemento fora do
+    // composer, o que desfocava o campo no mesmo gesto que abria
     this.cliqueFora = (e) => {
       if (!this.el.contains(e.target) && !this.campo.value.trim()) {
         this.fecha();
       }
     };
-    document.addEventListener("click", this.cliqueFora);
+    document.addEventListener("pointerdown", this.cliqueFora);
 
     this.el.addEventListener("focusin", () => {
       this.aberto = true;
@@ -152,17 +221,29 @@ const Composer = {
       if (e.key === "Escape") this.fecha();
     });
 
-    this.fundo = this.el.querySelector("[data-fecha]");
-    if (this.fundo) this.fundo.addEventListener("click", () => this.fecha());
+    // qualquer [data-fecha] fecha: o botao x do composer em tela
+    // cheia (mobile) e o fundo escurecido, onde ele existir
+    this.el.querySelectorAll("[data-fecha]").forEach((alvo) => {
+      alvo.addEventListener("click", () => this.fecha());
+    });
 
-    // teclado virtual: no PWA standalone o bottom:0 fixo fica embaixo do
-    // teclado e o sheet "some" atras do fundo escuro. ancora no
-    // visualViewport, que encolhe com o teclado nos dois modos
+    // teclado virtual: o composer em tela cheia e o ensaio tomam a
+    // altura visivel, nao a da janela — o teclado encolhe o
+    // visualViewport nos dois modos (safari e pwa) e o rodape com o
+    // prosear fica sempre acima dele. o textarea cresce com flex e
+    // rola por dentro (o cresce() sai de cena nesse modo)
+    this.movel = window.matchMedia("(max-width: 47.99rem)");
     this.ancoraTeclado = () => {
-      if (!this.el.classList.contains("prosear--expandido")) return;
       const vv = window.visualViewport;
-      const desloc = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
-      this.el.style.bottom = desloc > 0 ? `${desloc}px` : "";
+      if (!vv) return;
+      if (this.movel.matches && this.el.classList.contains("prosear--expandido")) {
+        this.el.style.height = `${vv.height}px`;
+        this.el.style.top = `${vv.offsetTop}px`;
+      }
+      if (this.ensaio && !this.ensaio.hidden) {
+        this.ensaio.style.height = `${vv.height}px`;
+        this.ensaio.style.top = `${vv.offsetTop}px`;
+      }
     };
     if (window.visualViewport) {
       window.visualViewport.addEventListener("resize", this.ancoraTeclado);
@@ -173,6 +254,24 @@ const Composer = {
       this.campo.value = "";
       if (this.chave) rascunhoStore.remove(this.chave);
       if (this.aviso) this.aviso.hidden = true;
+
+      if (this.ensaio && !this.ensaio.hidden) {
+        this.ensaioCorpo.value = "";
+        this.ensaioTitulo.value = "";
+        if (this.chave) {
+          rascunhoStore.remove(this.chave + ":ensaio");
+          rascunhoStore.remove(this.chave + ":ensaio:titulo");
+        }
+        this.contaPalavras();
+        this.fechaEnsaio();
+        // depois de prosear um ensaio o composer volta pra nota
+        const nota = this.el.querySelector("input[name=tipo][value=nota]");
+        if (nota) {
+          nota.checked = true;
+          this.campo.placeholder = nota.dataset.placeholder;
+        }
+      }
+
       this.cresce();
       this.conta();
       this.fecha();
@@ -184,7 +283,8 @@ const Composer = {
   },
 
   destroyed() {
-    document.removeEventListener("click", this.cliqueFora);
+    document.removeEventListener("pointerdown", this.cliqueFora);
+    document.documentElement.classList.remove("ensaio-aberto");
     if (window.visualViewport) {
       window.visualViewport.removeEventListener("resize", this.ancoraTeclado);
       window.visualViewport.removeEventListener("scroll", this.ancoraTeclado);
@@ -194,41 +294,124 @@ const Composer = {
   updated() {
     this.cresce();
     this.conta();
+    // patch do liveview no meio de um gesto nao pode deixar restos
+    if (!this.el.classList.contains("prosear--expandido")) {
+      this.el.style.transform = "";
+    }
+  },
+
+  // ensaio aberto: o name="texto" viaja no corpo do overlay, entao o
+  // campo principal sai do form (disabled nao submete). o rascunho do
+  // ensaio tem chave propria, nao mistura com a nota rapida
+  abreEnsaio() {
+    this.ensaio.hidden = false;
+    this.campo.disabled = true;
+    this.ensaioTitulo.disabled = false;
+    this.ensaioCorpo.disabled = false;
+    document.documentElement.classList.add("ensaio-aberto");
+
+    if (this.chave) {
+      const corpo = rascunhoStore.get(this.chave + ":ensaio");
+      const titulo = rascunhoStore.get(this.chave + ":ensaio:titulo");
+      if (corpo && !this.ensaioCorpo.value) this.ensaioCorpo.value = corpo;
+      if (titulo && !this.ensaioTitulo.value) this.ensaioTitulo.value = titulo;
+    }
+
+    this.contaPalavras();
+    this.ensaioBotao.disabled = this.ensaioCorpo.value.trim().length === 0;
+    this.ensaioCorpo.focus();
+  },
+
+  fechaEnsaio() {
+    if (!this.ensaio || this.ensaio.hidden) return;
+    this.ensaio.hidden = true;
+    this.ensaio.style.height = "";
+    this.ensaio.style.top = "";
+    this.campo.disabled = false;
+    this.ensaioTitulo.disabled = true;
+    this.ensaioCorpo.disabled = true;
+    document.documentElement.classList.remove("ensaio-aberto");
+  },
+
+  // voltar devolve a pill anterior: ensaio aberto por engano nao
+  // sequestra o tipo da prosa
+  voltaDoEnsaio() {
+    this.fechaEnsaio();
+    const anterior = this.el.querySelector(
+      `input[name=tipo][value=${this.tipoAnterior}]`,
+    );
+    if (anterior) {
+      anterior.checked = true;
+      this.campo.placeholder = anterior.dataset.placeholder;
+    }
+    this.campo.focus();
+  },
+
+  contaPalavras() {
+    const n = this.ensaioCorpo.value.trim().split(/\s+/).filter(Boolean).length;
+    this.ensaioPalavras.textContent = n > 0 ? `${n} palavras` : "";
   },
 
   // com texto no campo o rodape fica aberto mesmo sem foco: trocar o
   // tipo no mobile nao pode esconder o botao de prosear. vazio, o botao
   // dorme em ghost ate a primeira letra
   expande() {
-    this.el.classList.toggle(
-      "prosear--expandido",
-      this.aberto || this.campo.value.trim().length > 0,
-    );
+    const expandido = this.aberto || this.campo.value.trim().length > 0;
+    this.el.classList.toggle("prosear--expandido", expandido);
+    // trava a rolagem da pagina atras do sheet (o CSS so aplica no
+    // mobile; no desktop o card expandido nao mexe no fundo)
+    document.documentElement.classList.toggle("rolagem-travada", expandido);
     this.botao.disabled = this.campo.value.trim().length === 0;
   },
 
-  // fechar o sheet: tira a expansao e o foco junto, senao o
-  // :focus-within reabre na hora
+  // fechar o composer em tela cheia: tira a expansao e o foco junto,
+  // senao o :focus-within reabre na hora. limpa a ancora do teclado
   fecha() {
     this.aberto = false;
     this.campo.blur();
-    this.el.style.bottom = "";
-    if (!this.campo.value.trim()) {
-      this.el.classList.remove("prosear--expandido");
-    }
+    this.el.style.height = "";
+    this.el.style.top = "";
+    this.el.style.transform = "";
+    this.expande();
   },
 
   cresce() {
+    // mobile expandido: o campo e flex e rola por dentro; altura
+    // inline aqui quebraria o encolhimento com o teclado aberto
+    if (this.movel?.matches && this.el.classList.contains("prosear--expandido")) {
+      this.campo.style.height = "";
+      return;
+    }
     this.campo.style.height = "auto";
     this.campo.style.height = `${this.campo.scrollHeight}px`;
   },
 
   conta() {
-    if (!this.contador) return;
-    const faltam = this.limite - [...this.campo.value].length;
-    this.contador.hidden = faltam > 500;
-    if (!this.contador.hidden) {
-      this.contador.textContent = `tá chegando no limite, faltam ${faltam}`;
+    const len = [...this.campo.value].length;
+    const tipo = this.el.querySelector("input[name=tipo]:checked")?.value;
+    const ref = REF_TIPO[tipo] || REF_TIPO.nota;
+
+    if (this.contador) {
+      // acorda nos ultimos 20% da referencia do tipo, ou na reta final
+      // do limite real (500 grafemes, ou 10% em campos curtos tipo o
+      // recado) — o que chegar primeiro
+      const faltamRef = ref - len;
+      const faltamReal = this.limite - len;
+      const margemReal = Math.min(500, this.limite * 0.1);
+      let faltam = null;
+      if (faltamRef >= 0 && faltamRef <= ref * 0.2) faltam = faltamRef;
+      if (faltamReal <= margemReal) faltam = faltamReal;
+      this.contador.hidden = faltam == null;
+      if (faltam != null) {
+        this.contador.textContent = `tá chegando no limite, faltam ${faltam}`;
+      }
+    }
+
+    // anel de progresso: o arco acompanha o tanto escrito na escala do
+    // tipo; cheio na referencia
+    if (this.progresso) {
+      const frac = Math.min(1, len / ref);
+      this.progresso.style.strokeDashoffset = (56.55 * (1 - frac)).toFixed(2);
     }
   },
 };

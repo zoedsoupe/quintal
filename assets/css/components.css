@@ -342,7 +342,6 @@
   top: calc(-1 * var(--espaco-4));
   width: 1rem;
   height: calc(var(--espaco-4) + 1.5rem);
-  border-left: 2px solid var(--acento);
   border-bottom: 2px solid var(--acento);
   border-bottom-left-radius: 1rem;
   opacity: 0.45;
@@ -431,14 +430,14 @@
   opacity: 1;
 }
 
-/* o fundo escurecido do sheet mobile; no desktop nunca aparece */
+/* fechar: so aparece no composer em tela cheia do mobile; no desktop
+   o Esc e o clique fora bastam */
 
-.prosear__fundo {
+.prosear__fechar {
   display: none;
-}
-
-.prosear__alca {
-  display: none;
+  position: absolute;
+  top: var(--espaco-2);
+  right: var(--espaco-2);
 }
 
 /* anexos: thumb, campo de alt obrigatorio e o x para tirar */
@@ -466,7 +465,8 @@
   border-radius: var(--raio);
 }
 
-.prosear__rodape {
+.prosear__rodape,
+.prosear__topo {
   display: flex;
   flex-direction: column;
   gap: var(--espaco-3);
@@ -481,7 +481,9 @@
 }
 
 .prosear:focus-within .prosear__rodape,
-.prosear--expandido .prosear__rodape {
+.prosear--expandido .prosear__rodape,
+.prosear:focus-within .prosear__topo,
+.prosear--expandido .prosear__topo {
   max-height: 12rem;
   opacity: 1;
   visibility: visible;
@@ -589,7 +591,6 @@
 .depoimento blockquote {
   margin: var(--espaco-2) 0;
   padding-left: var(--espaco-3);
-  border-left: 2px solid var(--acento);
   color: var(--meta);
 }
 
@@ -654,15 +655,15 @@
   color: var(--acento);
 }
 
-.prosa-card__texto > * + *,
-.canto__bio > * + *,
-.canto-bio__texto > * + *,
-.recado > * + *,
-.depoimento > * + * {
+.prosa-card__texto>*+*,
+.canto__bio>*+*,
+.canto-bio__texto>*+*,
+.recado>*+*,
+.depoimento>*+* {
   margin-top: var(--espaco-2);
 }
 
-.prosa-pagina__texto > * + * {
+.prosa-pagina__texto>*+* {
   margin-top: var(--espaco-3);
 }
 
@@ -688,14 +689,65 @@
   display: inline-block;
 }
 
+/* anel de progresso do texto: trilha de sussurro sempre quieta, arco
+   cresce com o tanto escrito. na cronica ja nasce mais presente,
+   avisando que o texto pede mais espaço. durante o submit o arco
+   gira como spinner */
+
+.prosear__progresso {
+  width: 1.25rem;
+  height: 1.25rem;
+  transform: rotate(-90deg);
+  flex-shrink: 0;
+}
+
+.prosear__progresso-trilha,
+.prosear__progresso-arco {
+  fill: none;
+  stroke-width: 2.5;
+}
+
+.prosear__progresso-trilha {
+  stroke: var(--sussurro);
+  opacity: 0.4;
+}
+
+.prosear__progresso-arco {
+  stroke: var(--acento-2);
+  stroke-linecap: round;
+  /* circunferencia de r=9: 2*pi*9 ~ 56.55; o hook atualiza o offset */
+  stroke-dasharray: 56.55;
+  stroke-dashoffset: 56.55;
+  transition: stroke-dashoffset var(--transicao);
+}
+
+.prosear:has(input[value=cronica]:checked) .prosear__progresso {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.prosear:has(input[value=cronica]:checked) .prosear__progresso-trilha {
+  opacity: 0.7;
+}
+
+.prosear.phx-submit-loading .prosear__progresso {
+  animation: anel-gira 0.7s linear infinite;
+}
+
+.prosear.phx-submit-loading .prosear__progresso-arco {
+  stroke-dashoffset: 42;
+  transition: none;
+}
+
 @keyframes anel-gira {
   to {
     transform: rotate(1turn);
   }
 }
 
-/* tipos sao metadado, nao cerimonia (spec 10.1): pills quietas, a
-   selecionada cheia de lilas, as demais ghost de sussurro */
+/* tipos sao metadado, nao cerimonia (spec 10.1): pills quietas, cada
+   uma cheia do acento do seu tipo quando selecionada, as demais ghost
+   de sussurro */
 
 .prosear__tipos {
   display: flex;
@@ -724,14 +776,94 @@
 }
 
 .prosear__tipos label:has(input:checked) {
-  background: var(--acento);
-  border-color: var(--acento);
   color: var(--fundo);
+}
+
+.prosear__tipos label:has(input[value=nota]:checked) {
+  background: var(--tipo-nota);
+  border-color: var(--tipo-nota);
+}
+
+.prosear__tipos label:has(input[value=pergunta]:checked) {
+  background: var(--tipo-pergunta);
+  border-color: var(--tipo-pergunta);
+}
+
+.prosear__tipos label:has(input[value=cronica]:checked) {
+  background: var(--tipo-cronica);
+  border-color: var(--tipo-cronica);
+}
+
+.prosear__tipos label:has(input[value=ensaio]:checked) {
+  background: var(--tipo-ensaio);
+  border-color: var(--tipo-ensaio);
 }
 
 .prosear__tipos label:has(input:focus-visible) {
   outline: 2px solid var(--acento);
   outline-offset: 2px;
+}
+
+/* a caixa inteira toma o acento do tipo: cursor e anel de foco na
+   mesma cor. nota fica neutra. escopo :has(.prosear__tipos): responder
+   e recado dividem a base .prosear e nao tem tipo */
+
+.prosear:has(input[value=pergunta]:checked) .campo__area {
+  caret-color: var(--tipo-pergunta);
+}
+
+.prosear:has(input[value=cronica]:checked) .campo__area {
+  caret-color: var(--tipo-cronica);
+}
+
+.prosear:has(input[value=pergunta]:checked):focus-within,
+.prosear:has(input[value=pergunta]:checked).prosear--expandido {
+  border-color: color-mix(in srgb, var(--tipo-pergunta) 45%, transparent);
+}
+
+.prosear:has(input[value=cronica]:checked):focus-within,
+.prosear:has(input[value=cronica]:checked).prosear--expandido {
+  border-color: color-mix(in srgb, var(--tipo-cronica) 45%, transparent);
+}
+
+/* placeholder em serifada italica: a pergunta do composer e um
+   convite, nao uma etiqueta de formulario */
+
+.prosear:has(.prosear__tipos) .campo__area::placeholder {
+  font-family: var(--fonte-leitura);
+  font-style: italic;
+}
+
+/* linha de ajuda da pergunta: so aparece com a pill de pergunta
+   selecionada */
+
+.prosear__ajuda {
+  display: none;
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--sussurro);
+}
+
+.prosear:has(input[value=pergunta]:checked) .prosear__ajuda {
+  display: block;
+}
+
+/* prosear rosa quando ha texto; vazio, dorme em ghost de sussurro
+   (o hook desabilita o submit) */
+
+.prosear:has(.prosear__tipos) .botao {
+  background: var(--acento-2);
+}
+
+.prosear:has(.prosear__tipos) .botao:hover {
+  background: color-mix(in srgb, var(--acento-2) 92%, black);
+}
+
+.prosear:has(.prosear__tipos) .botao:disabled {
+  background: transparent;
+  border-color: var(--sussurro);
+  color: var(--meta);
+  opacity: 1;
 }
 
 /* rascunho oferecido de volta na mesma voz quieta do contador */
@@ -747,40 +879,62 @@
 
 @media (max-width: 47.99rem) {
 
+  /* pagina parada atras do sheet: rolar o fundo junto parece glitch.
+     so no mobile; no desktop o card expandido nao trava nada */
+
+  html.rolagem-travada {
+    overflow: hidden;
+  }
+
+  /* sheet mobile: tela cheia, conteudo no topo. sem ancora em bottom:
+     o teclado cobre a metade vazia de baixo e nunca briga com o
+     composer — e o padrao nativo de composicao do iOS (mail, notas) */
+
   .prosear--expandido,
   .prosear:focus-within {
     position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    inset: 0;
     z-index: 30;
     max-width: none;
     margin: 0;
     padding: var(--espaco-3);
+    padding-top: calc(var(--espaco-3) + env(safe-area-inset-top, 0px));
     padding-bottom: calc(var(--espaco-3) + env(safe-area-inset-bottom, 0px));
-    border-color: var(--borda-card);
-    border-radius: var(--raio-card) var(--raio-card) 0 0;
+    border: 0;
+    border-radius: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
     animation: folha-sobe 220ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
-  .prosear--expandido .prosear__fundo,
-  .prosear:focus-within .prosear__fundo {
-    display: block;
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    background: rgb(0 0 0 / 0.4);
+  .prosear--expandido .prosear__fechar,
+  .prosear:focus-within .prosear__fechar {
+    display: inline-flex;
   }
 
-  .prosear--expandido .prosear__alca,
-  .prosear:focus-within .prosear__alca {
-    display: block;
-    align-self: center;
-    width: 2.5rem;
-    height: 0.25rem;
-    margin-bottom: var(--espaco-1);
-    border-radius: var(--raio-pill);
-    background: var(--sussurro);
+  /* o campo toma a altura que sobra e rola por dentro: com a altura
+     ancorada no visualViewport (app.js), o rodape com o prosear fica
+     sempre acima do teclado, nao importa o tamanho do texto */
+
+  .prosear--expandido .campo,
+  .prosear:focus-within .campo {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .prosear--expandido .campo__area,
+  .prosear:focus-within .campo__area {
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  /* as pills de tipo nao passam por baixo do fechar */
+
+  .prosear--expandido .prosear__topo,
+  .prosear:focus-within .prosear__topo {
+    padding-right: 2.75rem;
   }
 
   .prosear__atalho {
@@ -791,6 +945,146 @@
 @keyframes folha-sobe {
   from {
     transform: translateY(100%);
+  }
+}
+
+/* ensaio: modo foco em tela cheia. coluna centrada de 680px, titulo
+   opcional em serifada grande, corpo sem borda, contador de palavras
+   em sussurro e o prosear sempre a vista. calmo, sem distracao */
+
+.ensaio {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  padding: var(--espaco-3) var(--espaco-4);
+  background: var(--fundo);
+}
+
+.ensaio[hidden] {
+  display: none;
+}
+
+/* pagina parada atras do modo foco, nos dois tamanhos de tela */
+
+html.ensaio-aberto {
+  overflow: hidden;
+}
+
+/* voltar e um x quieto no canto direito, alinhado com o titulo; a
+   classe icone-botao da o alvo de 44px */
+
+.ensaio__voltar {
+  position: absolute;
+  top: var(--espaco-4);
+  right: 0;
+  color: var(--sussurro);
+}
+
+.ensaio__voltar:hover {
+  color: var(--meta);
+}
+
+.ensaio__palavras {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--sussurro);
+}
+
+.ensaio__coluna {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  max-width: 680px;
+  width: 100%;
+  margin: 0 auto;
+  padding-block: var(--espaco-4);
+  min-height: 0;
+}
+
+.ensaio__titulo {
+  border: 0;
+  background: transparent;
+  padding: 0 2.75rem var(--espaco-3) 0;
+  font-family: var(--fonte-leitura);
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--tinta);
+}
+
+.ensaio__titulo::placeholder {
+  color: var(--sussurro);
+  font-style: italic;
+  font-weight: 400;
+}
+
+.ensaio__titulo:focus {
+  outline: none;
+}
+
+.ensaio__corpo {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font-family: var(--fonte-leitura);
+  font-size: 1.125rem;
+  line-height: 1.7;
+  color: var(--tinta);
+  caret-color: var(--tipo-ensaio);
+  resize: none;
+  overflow-y: auto;
+}
+
+.ensaio__corpo::placeholder {
+  color: var(--sussurro);
+  font-style: italic;
+}
+
+.ensaio__corpo:focus {
+  outline: none;
+}
+
+.ensaio__rodape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 680px;
+  width: 100%;
+  margin: 0 auto;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@media (max-width: 47.99rem) {
+  .ensaio {
+    padding: var(--espaco-2) var(--espaco-3);
+  }
+
+  .ensaio__titulo {
+    font-size: 1.5rem;
+  }
+
+  /* no mobile as pills de tipo rolam na horizontal em vez de quebrar,
+     e os alvos do rodape sobem pra 44px ao alcance do polegar */
+
+  .prosear__tipos {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .prosear__tipos::-webkit-scrollbar {
+    display: none;
+  }
+
+  .prosear__tipos label {
+    flex-shrink: 0;
+  }
+
+  .prosear .botao {
+    min-height: 2.75rem;
   }
 }
 
