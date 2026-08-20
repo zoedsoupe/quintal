@@ -1,6 +1,11 @@
 defmodule QuintalWeb.Router do
   use QuintalWeb, :router
 
+  # hosts atendidos por scope: produção usa os domínios do config.exs,
+  # dev e test sobrescrevem com hosts locais
+  @app_hosts Application.compile_env(:quintal, [__MODULE__, :app_hosts])
+  @docs_hosts Application.compile_env(:quintal, [__MODULE__, :docs_hosts])
+
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
@@ -23,7 +28,7 @@ defmodule QuintalWeb.Router do
     plug QuintalWeb.PortariaPlug
   end
 
-  scope "/", QuintalWeb do
+  scope "/", QuintalWeb, host: @app_hosts do
     pipe_through :browser
 
     live_session :default, on_mount: [QuintalWeb.SessaoHook] do
@@ -40,7 +45,7 @@ defmodule QuintalWeb.Router do
     post "/convite", ConviteController, :create
   end
 
-  scope "/", QuintalWeb do
+  scope "/", QuintalWeb, host: @app_hosts do
     pipe_through [:browser, :portaria]
 
     # conteúdo do quintal: portaria fechada, só com sessão (spec 6.1)
@@ -59,9 +64,18 @@ defmodule QuintalWeb.Router do
     get "/conta/exportar", ContaController, :exportar
   end
 
-  scope "/", QuintalWeb do
+  scope "/", QuintalWeb, host: @app_hosts do
     pipe_through :api
 
     get "/oauth/client-metadata.json", OAuthController, :client_metadata
+  end
+
+  # visão humana dos lexicons, no domínio público da documentação.
+  # os json crus saem pelo Plug.Static em /lexicons/:nsid.json
+  scope "/", QuintalWeb, host: @docs_hosts do
+    pipe_through :browser
+
+    get "/lexicons", LexiconsController, :index
+    get "/lexicons/:nsid", LexiconsController, :show
   end
 end

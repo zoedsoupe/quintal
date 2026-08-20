@@ -42,6 +42,12 @@ config :quintal, QuintalWeb.Endpoint,
   secret_key_base: "U8Jl/4Q7xjAy/DzE1Uj/K7RGrkfX7ZiICX/YpiYUxi+vDaW2dazDJ+J5MIsDVey1",
   server: false
 
+# Em test o app responde no host default do ConnTest além dos hosts de
+# produção, pra teste poder escolher o host explicitamente.
+config :quintal, QuintalWeb.Router,
+  app_hosts: ["quintal.blog.br", "www.example.com"],
+  docs_hosts: ["quintal.place"]
+
 # Swap the OAuth boundary for a mock
 config :quintal, :auth_impl, Quintal.Auth.Mock
 

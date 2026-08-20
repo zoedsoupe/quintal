@@ -47,6 +47,12 @@ config :quintal, QuintalWeb.Endpoint,
     esbuild: {Esbuild, :install_and_run, [:quintal, ~w(--sourcemap=inline --watch)]}
   ]
 
+# Em dev o app responde em localhost (os hosts de produção ficam no
+# config.exs). A documentação dos lexicons fica em /lexicons no mesmo host.
+config :quintal, QuintalWeb.Router,
+  app_hosts: ["localhost", "127.0.0.1"],
+  docs_hosts: ["localhost", "127.0.0.1"]
+
 # Dev-only key for encrypting sessions at rest. Prod reads
 # QUINTAL_SESSION_KEY (see runtime.exs).
 config :quintal, :session_key, Base.decode64!("0UfHQYaT13xaFUSbU9DrxGFwV8pNO62OHDqSNYapikw=")

@@ -44,6 +44,14 @@ config :quintal, QuintalWeb.Endpoint,
 
 # pt-br primeiro (spec 2): erros de changeset chegam em portugues
 config :quintal, QuintalWeb.Gettext, default_locale: "pt_BR"
+
+# Hosts que o router atende: o app mora em quintal.blog.br e a
+# documentação dos lexicons em quintal.place. Dev e test sobrescrevem
+# com hosts locais, senão nada casa fora de produção.
+config :quintal, QuintalWeb.Router,
+  app_hosts: ["quintal.blog.br"],
+  docs_hosts: ["quintal.place"]
+
 config :quintal, :env, config_env()
 
 # Quem funda o quintal entra sem convite: a portaria do alpha fecha para
