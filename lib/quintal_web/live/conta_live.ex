@@ -25,7 +25,7 @@ defmodule QuintalWeb.ContaLive do
        page_title: "conta",
        novidade: false,
        identidade: identidade,
-       versao: Application.spec(:quintal, :vsn) |> to_string(),
+       versao: :quintal |> Application.spec(:vsn) |> to_string(),
        fundadora?: Convites.fundadora?(did),
        convites: Convites.disponiveis(did),
        convites_restantes: Convites.restantes(did)

@@ -558,6 +558,16 @@ defmodule QuintalWeb.CantoLive do
                     <.botao variante={:sutil} phx-click="mais_recados">ver mais recados</.botao>
                   </p>
 
+                  <%!-- no mobile o recado é página (/recadar?para=);
+                       no desktop o form inline cresce no fluxo --%>
+                  <.link
+                    :if={@sessao && !@proprio?}
+                    navigate={~p"/recadar?para=#{@dono.handle}"}
+                    class="prosear-atalho recados__atalho"
+                  >
+                    <span class="prosear-atalho__placeholder">escreve aqui teu recado...</span>
+                  </.link>
+
                   <form
                     :if={@sessao && !@proprio?}
                     id="recado"
@@ -566,15 +576,6 @@ defmodule QuintalWeb.CantoLive do
                     class="prosear recados__form"
                     data-rascunho={"quintal:rascunho:recado:#{@dono.did}"}
                   >
-                    <button
-                      type="button"
-                      class="icone-botao prosear__fechar"
-                      data-fecha
-                      aria-label="fechar"
-                    >
-                      <Lucideicons.x aria-hidden="true" />
-                    </button>
-
                     <.campo
                       name="texto"
                       area
@@ -593,7 +594,7 @@ defmodule QuintalWeb.CantoLive do
                     </div>
                   </form>
                   <p :if={!@sessao} class="recados__convite">
-                    <.link navigate={~p"/"}>entra com atproto</.link> pra deixar um recado
+                    <.link href={~p"/"}>entra com atproto</.link> pra deixar um recado
                   </p>
                 </div>
               <% "quem-eu-leio" -> %>

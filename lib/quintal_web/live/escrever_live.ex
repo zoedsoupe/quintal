@@ -1,0 +1,191 @@
+defmodule QuintalWeb.EscreverLive do
+  @moduledoc """
+  A página de escrita: no mobile, qualquer entrada de texto é página,
+  nunca overlay. Um componente, três contextos:
+
+  - `/prosear` (`:prosear`): prosa nova, com chips de tipo. `?tipo=` abre
+    direto num tipo — o ensaio é o modo foco e sempre mora aqui, até no
+    desktop. `?reply=<uri>` vira resposta: a prosa-mãe aparece num card
+    quieto no topo, com o fio da thread.
+  - `/recadar` (`:recado`): recado no livro de visitas de um canto,
+    `?para=<handle>`. Texto puro, limite curto, sem chips nem régua.
+
+  Tudo em fluxo de documento: a barra com voltar e o pill de publicar
+  desce junto com a página, o teclado abre e o browser rola — sem hack
+  de viewport.
+  """
+
+  use QuintalWeb, :live_view
+
+  import Ecto.Query, only: [from: 2]
+  import QuintalWeb.Formatacao, only: [prosa_path: 2]
+  import QuintalWeb.ProsearForm, only: [com_titulo: 2, imagens_dos_anexos: 2]
+
+  alias Quintal.Identidade
+  alias Quintal.Prosa
+  alias Quintal.Prosas
+  alias Quintal.Recados
+  alias Quintal.Repo
+
+  @tipos ~w(nota pergunta cronica ensaio)
+
+  @impl true
+  def mount(params, _session, socket) do
+    socket =
+      allow_upload(socket, :imagens,
+        accept: ~w(image/jpeg image/png image/webp),
+        max_entries: 4,
+        max_file_size: 2_000_000
+      )
+
+    case socket.assigns.live_action do
+      :prosear -> monta_prosear(socket, params)
+      :recado -> monta_recado(socket, params)
+    end
+  end
+
+  defp monta_prosear(socket, params) do
+    tipo = if params["tipo"] in @tipos, do: params["tipo"], else: "nota"
+
+    case params["reply"] do
+      nil ->
+        {:ok,
+         assign(socket,
+           modo: :prosa,
+           tipo: tipo,
+           mae: nil,
+           canto: nil,
+           voltar: "/inicio",
+           placeholder: nil,
+           maxlength: 10_000,
+           rotulo: "prosear",
+           rascunho: "quintal:rascunho",
+           page_title: "prosear"
+         )}
+
+      uri ->
+        case Repo.get(Prosa, uri) do
+          %Prosa{} = mae ->
+            mae = Repo.preload(mae, :autor)
+
+            {:ok,
+             assign(socket,
+               modo: :resposta,
+               tipo: tipo,
+               mae: mae,
+               canto: nil,
+               voltar: prosa_path(mae.uri, mae.autor.handle),
+               placeholder: "responder com uma prosa...",
+               maxlength: 10_000,
+               rotulo: "responder",
+               rascunho: "quintal:rascunho:responder:#{mae.uri}",
+               page_title: "responder #{mae.autor.handle}"
+             )}
+
+          nil ->
+            # mãe fora do índice: resposta sem contexto não faz sentido,
+            # cai na prosa nova
+            {:ok, push_navigate(socket, to: "/prosear")}
+        end
+    end
+  end
+
+  defp monta_recado(socket, %{"para" => handle}) do
+    sessao = socket.assigns.sessao
+    identidade = Repo.one(from i in Identidade, where: i.handle == ^handle)
+
+    cond do
+      is_nil(identidade) ->
+        {:ok, push_navigate(socket, to: "/inicio")}
+
+      identidade.did == sessao.did ->
+        # recado é pros outros; no próprio canto nem o atalho aparece
+        {:ok, push_navigate(socket, to: "/canto/#{handle}")}
+
+      true ->
+        {:ok,
+         assign(socket,
+           modo: :recado,
+           tipo: "nota",
+           mae: nil,
+           canto: handle,
+           voltar: "/canto/#{handle}",
+           placeholder: "deixa um recado pra #{handle}",
+           maxlength: 500,
+           rotulo: "recadar",
+           rascunho: "quintal:rascunho:recado:#{identidade.did}",
+           page_title: "recado pra #{handle}"
+         )}
+    end
+  end
+
+  defp monta_recado(socket, _params), do: {:ok, push_navigate(socket, to: "/inicio")}
+
+  @impl true
+  def handle_event("validar", _params, socket) do
+    # o phx-change existe pras entradas de upload aparecerem; a validação
+    # de verdade (alt em toda imagem) acontece no escrever
+    {:noreply, socket}
+  end
+
+  def handle_event("remover-imagem", %{"ref" => ref}, socket) do
+    {:noreply, cancel_upload(socket, :imagens, ref)}
+  end
+
+  def handle_event("escrever", %{"texto" => texto} = params, socket) do
+    case publicar(socket.assigns.modo, socket, texto, params) do
+      {:ok, _registro} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, flash_sucesso(socket.assigns.modo))
+         |> push_event("composer-publicado", %{})
+         |> push_navigate(to: socket.assigns.voltar)}
+
+      {:error, :alt_faltando} ->
+        {:noreply, put_flash(socket, :error, "descreve cada imagem pra quem não vê, aí a gente prosa")}
+
+      {:error, _reason} ->
+        {:noreply, put_flash(socket, :error, "ih, algo deu errado. tenta de novo?")}
+    end
+  end
+
+  defp publicar(:prosa, socket, texto, params) do
+    texto = com_titulo(texto, params)
+
+    with {:ok, imagens} <- imagens_dos_anexos(socket, params) do
+      Prosas.prosear(socket.assigns.sessao, texto, Map.get(params, "tipo"), imagens)
+    end
+  end
+
+  defp publicar(:resposta, socket, texto, _params) do
+    Prosas.responder(socket.assigns.sessao, socket.assigns.mae, texto)
+  end
+
+  defp publicar(:recado, socket, texto, _params) do
+    Recados.deixar(socket.assigns.sessao, socket.assigns.canto, texto)
+  end
+
+  defp flash_sucesso(:recado), do: "pronto, seu recado tá no livro de visitas"
+  defp flash_sucesso(_modo), do: "pronto, sua prosa tá no quintal"
+
+  @impl true
+  def render(assigns) do
+    ~H"""
+    <Layouts.app flash={@flash} sessao={@sessao} moldura={false}>
+      <.composer
+        pagina
+        modo={@modo}
+        tipo={@tipo}
+        mae={@mae}
+        canto={@canto}
+        voltar={@voltar}
+        placeholder={@placeholder}
+        maxlength={@maxlength}
+        rotulo={@rotulo}
+        rascunho={@rascunho}
+        uploads={@uploads}
+      />
+    </Layouts.app>
+    """
+  end
+end

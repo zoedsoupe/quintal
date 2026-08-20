@@ -366,12 +366,9 @@
   text-align: center;
 }
 
-/* prosear: o composer mora na home (briefing 5.2), com cara de app
-   nativo em tres estados. colapsado e uma linha quieta com o
-   placeholder em sussurro, quase sem caixa e sem avatar; ao focar,
-   cresce para um card com borda lilas de foco, pills de tipo e o
-   rodape de ferramentas; no mobile vira bottom sheet subindo da base,
-   ao alcance do polegar */
+/* prosear: o composer mora na home no desktop (briefing 5.2), como
+   linha colapsada que expande pra card no fluxo do feed; no mobile a
+   home mostra so o atalho pra pagina de escrita */
 
 .prosear {
   position: relative;
@@ -428,16 +425,6 @@
   border-color: var(--sussurro);
   color: var(--meta);
   opacity: 1;
-}
-
-/* fechar: so aparece no composer em tela cheia do mobile; no desktop
-   o Esc e o clique fora bastam */
-
-.prosear__fechar {
-  display: none;
-  position: absolute;
-  top: var(--espaco-2);
-  right: var(--espaco-2);
 }
 
 /* anexos: thumb, campo de alt obrigatorio e o x para tirar */
@@ -655,15 +642,15 @@
   color: var(--acento);
 }
 
-.prosa-card__texto>*+*,
-.canto__bio>*+*,
-.canto-bio__texto>*+*,
-.recado>*+*,
-.depoimento>*+* {
+.prosa-card__texto > * + *,
+.canto__bio > * + *,
+.canto-bio__texto > * + *,
+.recado > * + *,
+.depoimento > * + * {
   margin-top: var(--espaco-2);
 }
 
-.prosa-pagina__texto>*+* {
+.prosa-pagina__texto > * + * {
   margin-top: var(--espaco-3);
 }
 
@@ -721,12 +708,12 @@
   transition: stroke-dashoffset var(--transicao);
 }
 
-.prosear:has(input[value=cronica]:checked) .prosear__progresso {
+.prosear:has(input[value="cronica"]:checked) .prosear__progresso {
   width: 1.5rem;
   height: 1.5rem;
 }
 
-.prosear:has(input[value=cronica]:checked) .prosear__progresso-trilha {
+.prosear:has(input[value="cronica"]:checked) .prosear__progresso-trilha {
   opacity: 0.7;
 }
 
@@ -779,22 +766,22 @@
   color: var(--fundo);
 }
 
-.prosear__tipos label:has(input[value=nota]:checked) {
+.prosear__tipos label:has(input[value="nota"]:checked) {
   background: var(--tipo-nota);
   border-color: var(--tipo-nota);
 }
 
-.prosear__tipos label:has(input[value=pergunta]:checked) {
+.prosear__tipos label:has(input[value="pergunta"]:checked) {
   background: var(--tipo-pergunta);
   border-color: var(--tipo-pergunta);
 }
 
-.prosear__tipos label:has(input[value=cronica]:checked) {
+.prosear__tipos label:has(input[value="cronica"]:checked) {
   background: var(--tipo-cronica);
   border-color: var(--tipo-cronica);
 }
 
-.prosear__tipos label:has(input[value=ensaio]:checked) {
+.prosear__tipos label:has(input[value="ensaio"]:checked) {
   background: var(--tipo-ensaio);
   border-color: var(--tipo-ensaio);
 }
@@ -808,28 +795,33 @@
    mesma cor. nota fica neutra. escopo :has(.prosear__tipos): responder
    e recado dividem a base .prosear e nao tem tipo */
 
-.prosear:has(input[value=pergunta]:checked) .campo__area {
+.prosear:has(input[value="pergunta"]:checked) .campo__area {
   caret-color: var(--tipo-pergunta);
 }
 
-.prosear:has(input[value=cronica]:checked) .campo__area {
+.prosear:has(input[value="cronica"]:checked) .campo__area {
   caret-color: var(--tipo-cronica);
 }
 
-.prosear:has(input[value=pergunta]:checked):focus-within,
-.prosear:has(input[value=pergunta]:checked).prosear--expandido {
+.prosear--pagina:has(input[value="ensaio"]:checked) .campo__area {
+  caret-color: var(--tipo-ensaio);
+}
+
+.prosear:has(input[value="pergunta"]:checked):focus-within,
+.prosear:has(input[value="pergunta"]:checked).prosear--expandido {
   border-color: color-mix(in srgb, var(--tipo-pergunta) 45%, transparent);
 }
 
-.prosear:has(input[value=cronica]:checked):focus-within,
-.prosear:has(input[value=cronica]:checked).prosear--expandido {
+.prosear:has(input[value="cronica"]:checked):focus-within,
+.prosear:has(input[value="cronica"]:checked).prosear--expandido {
   border-color: color-mix(in srgb, var(--tipo-cronica) 45%, transparent);
 }
 
 /* placeholder em serifada italica: a pergunta do composer e um
    convite, nao uma etiqueta de formulario */
 
-.prosear:has(.prosear__tipos) .campo__area::placeholder {
+.prosear:has(.prosear__tipos) .campo__area::placeholder,
+.prosear--pagina .campo__area::placeholder {
   font-family: var(--fonte-leitura);
   font-style: italic;
 }
@@ -844,7 +836,7 @@
   color: var(--sussurro);
 }
 
-.prosear:has(input[value=pergunta]:checked) .prosear__ajuda {
+.prosear:has(input[value="pergunta"]:checked) .prosear__ajuda {
   display: block;
 }
 
@@ -873,237 +865,369 @@
   color: var(--meta);
 }
 
-/* sheet mobile: expandido, o composer sobe da base da tela com alca de
-   arrastar, fundo escurecido atras e o prosear ao alcance do polegar.
-   o atalho de teclado some, teclado virtual nao tem ctrl */
+/* sheet mobile: nao existe mais. no mobile qualquer entrada de texto e
+   pagina (/prosear, /recadar), em fluxo de documento; os forms inline
+   (home, thread, canto) dormem e o atalho com cara de campo vira a
+   porta */
+
+.prosear-atalho {
+  display: none;
+}
 
 @media (max-width: 47.99rem) {
-
-  /* pagina parada atras do sheet: rolar o fundo junto parece glitch.
-     so no mobile; no desktop o card expandido nao trava nada */
-
-  html.rolagem-travada {
-    overflow: hidden;
+  .prosear-atalho {
+    display: block;
+    max-width: var(--medida-leitura);
+    margin-block: var(--espaco-4);
+    padding: var(--espaco-2) var(--espaco-3);
+    border-radius: var(--raio-card);
+    background: color-mix(in srgb, var(--fundo-card) 55%, transparent);
+    text-decoration: none;
+    touch-action: manipulation;
   }
 
-  /* sheet mobile: tela cheia, conteudo no topo. sem ancora em bottom:
-     o teclado cobre a metade vazia de baixo e nunca briga com o
-     composer — e o padrao nativo de composicao do iOS (mail, notas) */
-
-  .prosear--expandido,
-  .prosear:focus-within {
-    position: fixed;
-    inset: 0;
-    z-index: 30;
-    max-width: none;
-    margin: 0;
-    padding: var(--espaco-3);
-    padding-top: calc(var(--espaco-3) + env(safe-area-inset-top, 0px));
-    padding-bottom: calc(var(--espaco-3) + env(safe-area-inset-bottom, 0px));
-    border: 0;
-    border-radius: 0;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    animation: folha-sobe 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  .prosear-atalho__placeholder {
+    font-family: var(--fonte-leitura);
+    font-style: italic;
+    color: var(--meta);
   }
 
-  .prosear--expandido .prosear__fechar,
-  .prosear:focus-within .prosear__fechar {
-    display: inline-flex;
-  }
-
-  /* o campo toma a altura que sobra e rola por dentro: com a altura
-     ancorada no visualViewport (app.js), o rodape com o prosear fica
-     sempre acima do teclado, nao importa o tamanho do texto */
-
-  .prosear--expandido .campo,
-  .prosear:focus-within .campo {
-    flex: 1;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .prosear--expandido .campo__area,
-  .prosear:focus-within .campo__area {
-    flex: 1;
-    overflow-y: auto;
-  }
-
-  /* as pills de tipo nao passam por baixo do fechar */
-
-  .prosear--expandido .prosear__topo,
-  .prosear:focus-within .prosear__topo {
-    padding-right: 2.75rem;
-  }
-
-  .prosear__atalho {
+  .home > .prosear,
+  .thread .prosear,
+  .recados__form {
     display: none;
   }
 }
 
-@keyframes folha-sobe {
-  from {
-    transform: translateY(100%);
-  }
+/* página de escrita: a mesma anatomia nos tres contextos (prosa nova,
+   resposta, recado), tudo em fluxo. sem caixa de card, sem borda de
+   foco, sem nada fixo: o teclado abre e a pagina rola sozinha */
+
+.prosear--pagina,
+.prosear--pagina:focus-within,
+.prosear--pagina.prosear--expandido {
+  gap: var(--espaco-3);
+  max-width: 42.5rem;
+  margin-block: 0;
+  padding: 0 0 calc(var(--espaco-4) + env(safe-area-inset-bottom, 0px));
+  border: 0;
+  background: transparent;
 }
 
-/* ensaio: modo foco em tela cheia. coluna centrada de 680px, titulo
-   opcional em serifada grande, corpo sem borda, contador de palavras
-   em sussurro e o prosear sempre a vista. calmo, sem distracao */
+/* barra do topo em fluxo: voltar quieto a esquerda, contador e o pill
+   de publicar a direita */
 
-/* a transicao e de pagina abrindo, nao de popup: sobe devagar de
-   leve enquanto aparece, 280ms na mesma curva do composer. a classe
-   faz o trabalho porque display none nao transiciona; o hidden so
-   volta depois que a saida termina (app.js) */
-
-.ensaio {
-  position: fixed;
-  inset: 0;
-  z-index: 40;
+.prosear__barra {
   display: flex;
-  flex-direction: column;
-  padding: var(--espaco-3) var(--espaco-4);
-  background: var(--fundo);
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(1.25rem);
-  transition:
-    opacity 280ms cubic-bezier(0.22, 1, 0.36, 1),
-    transform 280ms cubic-bezier(0.22, 1, 0.36, 1),
-    visibility 0ms 280ms;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-3);
 }
 
-.ensaio--aberto {
-  opacity: 1;
-  visibility: visible;
-  transform: none;
-  transition-delay: 0ms;
-}
-
-.ensaio[hidden] {
-  display: none;
-}
-
-/* pagina parada atras do modo foco, nos dois tamanhos de tela */
-
-html.ensaio-aberto {
-  overflow: hidden;
-}
-
-/* voltar e um x quieto no canto direito, alinhado com o titulo; a
-   classe icone-botao da o alvo de 44px */
-
-.ensaio__voltar {
-  position: absolute;
-  top: var(--espaco-4);
-  right: 0;
-  color: var(--sussurro);
-}
-
-.ensaio__voltar:hover {
+.prosear__voltar {
+  font-size: 0.875rem;
   color: var(--meta);
+  text-decoration: none;
 }
 
-.ensaio__palavras {
+.prosear__voltar:hover {
+  color: var(--acento);
+}
+
+.prosear__barra-lado {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+}
+
+.prosear--pagina .prosear__contador {
   margin: 0;
   font-size: 0.75rem;
   color: var(--sussurro);
 }
 
-.ensaio__coluna {
-  position: relative;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  max-width: 680px;
-  width: 100%;
-  margin: 0 auto;
-  padding-block: var(--espaco-4);
-  min-height: 0;
+/* na cronica o contador acorda um tiquinho mais presente */
+
+.prosear--pagina:has(input[value="cronica"]:checked) .prosear__contador {
+  font-size: 0.875rem;
+  color: var(--meta);
 }
 
-.ensaio__titulo {
+/* pill de publicar em rosa suave nos tres contextos; vazio, dorme em
+   ghost de sussurro */
+
+.prosear--pagina .botao {
+  background: var(--acento-2);
+}
+
+.prosear--pagina .botao:hover {
+  background: color-mix(in srgb, var(--acento-2) 92%, black);
+}
+
+.prosear--pagina .botao:disabled {
+  background: transparent;
+  border-color: var(--sussurro);
+  color: var(--meta);
+  opacity: 1;
+}
+
+/* card da prosa-mae na resposta: handle em serifada, duas linhas do
+   texto em sussurro, e o fio fino que liga a mae ao composer */
+
+.prosear__mae {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+  padding-left: var(--espaco-3);
+}
+
+.prosear__mae::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.25rem;
+  bottom: calc(-1 * var(--espaco-3));
+  width: 2px;
+  border-radius: 1px;
+  background: var(--acento);
+  opacity: 0.45;
+}
+
+.prosear__mae-autor {
+  margin: 0;
+  font-family: var(--fonte-leitura);
+  font-weight: 600;
+}
+
+.prosear__mae-texto {
+  margin: 0;
+  color: var(--meta);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* card do canto no recado: o nome da casa em serifada grande e uma
+   linha quieta */
+
+.prosear__canto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+}
+
+.prosear__canto-nome {
+  margin: 0;
+  font-family: var(--fonte-leitura);
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.prosear__canto-linha {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--sussurro);
+}
+
+/* regua de formatacao na pagina: sempre visivel, uma linha so, o clipe
+   fecha a fileira. nunca quebra, nunca rola: os icones sao miudos de
+   proposito */
+
+.prosear__regua {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-1);
+}
+
+.prosear__regua .md-ferramentas {
+  flex: 1;
+  flex-wrap: nowrap;
+  margin-top: 0;
+  overflow-x: visible;
+}
+
+.prosear--pagina .md-ferramentas .icone-botao,
+.prosear--pagina .prosear__clipe {
+  min-width: 1.75rem;
+  min-height: 2.25rem;
+}
+
+.prosear--pagina .md-ferramentas .icone-botao svg,
+.prosear--pagina .prosear__clipe svg {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+/* o campo na pagina e uma folha, nao uma linha: serifada de leitura,
+   sem borda, altura que convida */
+
+.prosear--pagina .campo__area {
+  min-height: 10rem;
+  padding: 0;
+  font-family: var(--fonte-leitura);
+  font-size: 1.1875rem;
+  line-height: 1.7;
+}
+
+/* ensaio: o titulo opcional em serifada grande entra no fluxo (o CSS
+   mostra e esconde, o campo e um so), a coluna fica mais espaçosa */
+
+.prosear__titulo {
+  display: none;
+  width: 100%;
+  padding: 0;
   border: 0;
   background: transparent;
-  padding: 0 2.75rem var(--espaco-3) 0;
   font-family: var(--fonte-leitura);
-  font-size: 2rem;
+  font-size: 2.375rem;
   font-weight: 600;
   color: var(--tinta);
 }
 
-.ensaio__titulo::placeholder {
+.prosear--pagina:has(input[value="ensaio"]:checked) .prosear__titulo {
+  display: block;
+}
+
+.prosear__titulo::placeholder {
   color: var(--sussurro);
   font-style: italic;
   font-weight: 400;
 }
 
-.ensaio__titulo:focus {
+.prosear__titulo:focus {
   outline: none;
 }
 
-.ensaio__corpo {
-  flex: 1;
-  border: 0;
-  background: transparent;
-  padding: 0;
-  font-family: var(--fonte-leitura);
-  font-size: 1.125rem;
-  line-height: 1.7;
-  color: var(--tinta);
-  caret-color: var(--tipo-ensaio);
-  resize: none;
-  overflow-y: auto;
-}
-
-.ensaio__corpo::placeholder {
-  color: var(--sussurro);
-  font-style: italic;
-}
-
-.ensaio__corpo:focus {
-  outline: none;
-}
-
-.ensaio__rodape {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.prosear--pagina:has(input[value="ensaio"]:checked) {
+  gap: var(--espaco-4);
   max-width: 680px;
-  width: 100%;
-  margin: 0 auto;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-top: var(--espaco-4);
+}
+
+/* as pills de tipo quebram linha em qualquer tela, nunca rolam */
+
+.prosear__tipos {
+  flex-wrap: wrap;
+}
+
+/* o link-pill do ensaio no card inline se veste de pill como as
+   irmãs radio */
+
+.prosear__tipo-link {
+  padding: var(--espaco-1) var(--espaco-3);
+  border: 1px solid var(--sussurro);
+  border-radius: var(--raio-pill);
+  font-size: 0.875rem;
+  color: var(--meta);
+  text-decoration: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    background var(--transicao),
+    color var(--transicao),
+    border-color var(--transicao);
+}
+
+.prosear__tipo-link:hover {
+  color: var(--tipo-ensaio);
+  border-color: var(--tipo-ensaio);
 }
 
 @media (max-width: 47.99rem) {
-  .ensaio {
-    padding: var(--espaco-2) var(--espaco-3);
-  }
+  /* o atalho de teclado some: teclado virtual nao tem ctrl */
 
-  .ensaio__titulo {
-    font-size: 1.5rem;
-  }
-
-  /* no mobile as pills de tipo rolam na horizontal em vez de quebrar,
-     e os alvos do rodape sobem pra 44px ao alcance do polegar */
-
-  .prosear__tipos {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-
-  .prosear__tipos::-webkit-scrollbar {
+  .prosear__atalho {
     display: none;
-  }
-
-  .prosear__tipos label {
-    flex-shrink: 0;
   }
 
   .prosear .botao {
     min-height: 2.75rem;
+  }
+
+  /* pagina de escrita no mobile: densa de proposito, nao uma versao
+     encolhida do desktop. barra de 48px, pill de 36px, chips de 32px
+     numa linha so, regua de 40px sem quebra */
+
+  .prosear--pagina {
+    gap: 0.75rem;
+    /* espaco pro pill flutuante nao cobrir o fim do texto */
+    padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* sem barra no topo: voltar no canto inferior esquerdo, contador e
+     pill no inferior direito, tudo fixo e fora do fluxo */
+
+  .prosear__barra {
+    min-height: 0;
+  }
+
+  .prosear--pagina .prosear__barra-lado {
+    position: fixed;
+    right: var(--espaco-3);
+    bottom: calc(var(--espaco-3) + env(safe-area-inset-bottom, 0px));
+    z-index: 10;
+    gap: var(--espaco-2);
+  }
+
+  .prosear--pagina .botao {
+    min-height: 2.25rem;
+  }
+
+  .prosear--pagina .prosear__voltar {
+    position: fixed;
+    left: var(--espaco-3);
+    bottom: calc(var(--espaco-3) + env(safe-area-inset-bottom, 0px));
+    z-index: 10;
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.25rem;
+  }
+
+  .prosear--pagina .prosear__tipos {
+    flex-wrap: nowrap;
+    gap: var(--espaco-2);
+  }
+
+  .prosear--pagina .prosear__tipos label {
+    padding: 0.375rem 0.875rem;
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+  }
+
+  .prosear__regua {
+    min-height: 2.5rem;
+  }
+
+  .prosear--pagina .md-ferramentas {
+    gap: var(--espaco-2);
+  }
+
+  .prosear--pagina .md-ferramentas .icone-botao,
+  .prosear--pagina .prosear__clipe {
+    min-width: 1.25rem;
+    min-height: 2.5rem;
+  }
+
+  .prosear--pagina .md-ferramentas .icone-botao svg,
+  .prosear--pagina .prosear__clipe svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  .prosear--pagina .campo {
+    margin-top: var(--espaco-1);
+  }
+
+  .prosear--pagina .campo__area {
+    font-size: 1.0625rem;
+    line-height: 1.6;
+  }
+
+  .prosear--pagina .prosear__titulo {
+    font-size: 1.625rem;
   }
 }
 
@@ -1377,7 +1501,7 @@ html.rolagem-descendo .nav-movel {
    remendos em lugar (prosa nova no feed) nao disparam a animacao. */
 
 @media (prefers-reduced-motion: no-preference) {
-  .conteudo>* {
+  .conteudo > * {
     animation: tela-entra 280ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 }

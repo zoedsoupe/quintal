@@ -9,6 +9,7 @@ defmodule QuintalWeb.Components do
   """
 
   use Phoenix.Component
+  use QuintalWeb, :verified_routes
 
   alias Phoenix.HTML.FormField
   alias QuintalWeb.Markdown
@@ -62,6 +63,226 @@ defmodule QuintalWeb.Components do
     </div>
     """
   end
+
+  @doc """
+  O gesto de escrita do quintal, em duas superfícies (regra: no mobile,
+  entrada de texto é página, nunca overlay).
+
+  `pagina: false` é o card inline da home no desktop: linha colapsada
+  que expande no foco, com chips de nota, pergunta e crônica. O ensaio
+  não é radio aqui: é um link com cara de pill pra `/prosear?tipo=ensaio`,
+  o modo foco.
+
+  `pagina: true` é a página cheia (`EscreverLive`), parametrizada por
+  `modo`: `:prosa` (4 chips, toolbar com clipe, título de ensaio que
+  aparece via CSS), `:resposta` (card da prosa-mãe com fio, sem chips)
+  e `:recado` (card do canto, texto puro com limite curto). Tudo em
+  fluxo de documento: top bar com voltar, contador e o pill de publicar.
+  """
+  attr :pagina, :boolean, default: false
+  attr :modo, :atom, default: :prosa, values: [:prosa, :resposta, :recado]
+  attr :tipo, :string, default: "nota"
+  attr :mae, :any, default: nil
+  attr :canto, :any, default: nil
+  attr :voltar, :string, default: "/"
+  attr :placeholder, :string, default: nil
+  attr :maxlength, :integer, default: 10_000
+  attr :rotulo, :string, default: "prosear"
+  attr :rascunho, :string, default: "quintal:rascunho"
+  attr :uploads, :any, required: true
+
+  def composer(assigns) do
+    # placeholder vem de fora (resposta, recado) ou do tipo da prosa
+    placeholder =
+      assigns.placeholder ||
+        case Enum.find(tipos(), fn {valor, _rotulo, _ph} -> valor == assigns.tipo end) do
+          {_valor, _rotulo, placeholder} -> placeholder
+          nil -> "como foi seu dia?"
+        end
+
+    assigns = assign(assigns, :placeholder, placeholder)
+
+    ~H"""
+    <form
+      :if={!@pagina}
+      id="prosear"
+      phx-submit="prosear"
+      phx-change="validar"
+      phx-hook="Composer"
+      class="prosear"
+      data-rascunho="quintal:rascunho"
+    >
+      <div class="prosear__topo">
+        <div class="prosear__tipos" role="radiogroup" aria-label="tipo da prosa">
+          <label :for={{valor, rotulo, placeholder} <- tipos_inline()}>
+            <input
+              type="radio"
+              name="tipo"
+              value={valor}
+              checked={valor == "nota"}
+              data-placeholder={placeholder}
+            />
+            {rotulo}
+          </label>
+          <%!-- ensaio é modo foco, não tipo do card: um link com cara de
+               pill leva pra página de escrita --%>
+          <.link navigate={~p"/prosear?tipo=ensaio"} class="prosear__tipo-link">ensaio</.link>
+        </div>
+      </div>
+
+      <.campo
+        name="texto"
+        area
+        aria-label="nova prosa"
+        placeholder="como foi seu dia?"
+        rows="1"
+        maxlength="10000"
+        required
+      />
+      <p class="prosear__rascunho" hidden>deixou uma prosa pela metade aqui</p>
+      <p class="prosear__ajuda">perguntas aparecem em destaque na vizinhança</p>
+      <.md_ferramentas />
+
+      <div :if={@uploads.imagens.entries != []} class="prosear__anexos">
+        <.anexos uploads={@uploads} />
+      </div>
+
+      <div class="prosear__rodape">
+        <div class="prosear__ferramentas">
+          <label class="icone-botao prosear__clipe" aria-label="anexar imagem">
+            <Lucideicons.paperclip aria-hidden="true" />
+            <.live_file_input upload={@uploads.imagens} class="sr-only" />
+          </label>
+          <p class="prosear__contador" hidden></p>
+          <span class="prosear__atalho" aria-hidden="true">ctrl+enter pra prosear</span>
+          <svg class="prosear__progresso" viewBox="0 0 24 24" aria-hidden="true">
+            <circle class="prosear__progresso-trilha" cx="12" cy="12" r="9" />
+            <circle class="prosear__progresso-arco" cx="12" cy="12" r="9" />
+          </svg>
+          <.botao type="submit">prosear</.botao>
+        </div>
+      </div>
+    </form>
+
+    <form
+      :if={@pagina}
+      id="escrever"
+      phx-submit="escrever"
+      phx-change="validar"
+      phx-hook="Composer"
+      class="prosear prosear--pagina"
+      data-rascunho={@rascunho}
+    >
+      <div class="prosear__barra">
+        <.link navigate={@voltar} class="prosear__voltar">voltar</.link>
+        <div class="prosear__barra-lado">
+          <p class="prosear__contador" hidden></p>
+          <.botao type="submit">{@rotulo}</.botao>
+        </div>
+      </div>
+
+      <div :if={@mae} class="prosear__mae">
+        <p class="prosear__mae-autor">{@mae.autor.handle}</p>
+        <p class="prosear__mae-texto">{@mae.texto}</p>
+      </div>
+
+      <div :if={@canto} class="prosear__canto">
+        <p class="prosear__canto-nome">{@canto}</p>
+        <p class="prosear__canto-linha">livro de visitas aberto</p>
+      </div>
+
+      <div :if={@modo == :prosa} class="prosear__tipos" role="radiogroup" aria-label="tipo da prosa">
+        <label :for={{valor, rotulo, placeholder} <- tipos()}>
+          <input
+            type="radio"
+            name="tipo"
+            value={valor}
+            checked={valor == @tipo}
+            data-placeholder={placeholder}
+          />
+          {rotulo}
+        </label>
+      </div>
+
+      <input
+        :if={@modo == :prosa}
+        type="text"
+        id="titulo"
+        name="titulo"
+        class="prosear__titulo"
+        placeholder="título, se quiser"
+        maxlength="120"
+        aria-label="título do ensaio"
+      />
+
+      <div :if={@modo != :recado} class="prosear__regua">
+        <.md_ferramentas />
+        <label :if={@modo == :prosa} class="icone-botao prosear__clipe" aria-label="anexar imagem">
+          <Lucideicons.paperclip aria-hidden="true" />
+          <.live_file_input upload={@uploads.imagens} class="sr-only" />
+        </label>
+      </div>
+
+      <.campo
+        name="texto"
+        area
+        aria-label={@rotulo}
+        placeholder={@placeholder}
+        rows="1"
+        maxlength={@maxlength}
+        required
+      />
+      <p class="prosear__rascunho" hidden>deixou uma prosa pela metade aqui</p>
+      <p :if={@modo == :prosa} class="prosear__ajuda">
+        perguntas aparecem em destaque na vizinhança
+      </p>
+
+      <div :if={@modo == :prosa && @uploads.imagens.entries != []} class="prosear__anexos">
+        <.anexos uploads={@uploads} />
+      </div>
+    </form>
+    """
+  end
+
+  # os anexos com alt obrigatório, divididos entre o card e a página
+  attr :uploads, :any, required: true
+
+  defp anexos(assigns) do
+    ~H"""
+    <div :for={entry <- @uploads.imagens.entries} class="prosear__anexo">
+      <.live_img_preview entry={entry} class="prosear__thumb" />
+      <.campo
+        name={"alt-#{entry.ref}"}
+        aria-label="descrição da imagem"
+        placeholder="descreve essa imagem pra quem não vê"
+        required
+      />
+      <button
+        type="button"
+        class="icone-botao"
+        phx-click="remover-imagem"
+        phx-value-ref={entry.ref}
+        aria-label="tirar imagem"
+      >
+        <Lucideicons.x aria-hidden="true" />
+      </button>
+    </div>
+    """
+  end
+
+  # tipo é metadado interno, nunca rótulo (spec 10.1): no composer vira
+  # pill quieta com placeholder próprio, no card não aparece.
+  defp tipos do
+    [
+      {"nota", "nota", "como foi seu dia?"},
+      {"pergunta", "pergunta", "o que tá te intrigando?"},
+      {"cronica", "crônica", "conta o que você viu hoje"},
+      {"ensaio", "ensaio", "escreve sem pressa"}
+    ]
+  end
+
+  # no card inline da home o ensaio não é radio: é porta pro modo foco
+  defp tipos_inline, do: Enum.take(tipos(), 3)
 
   @doc """
   Uma prosa no feed, no canto ou na thread: o card de leitura.

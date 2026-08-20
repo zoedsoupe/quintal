@@ -26,6 +26,7 @@ referências de clima: bear blog (simplicidade), blogosfera brasileira de 2005 (
 10. **loading com cara.** axô nadando só na primeira pintura de uma tela; depois, skeletons suaves.
 11. **medida de leitura de 65 a 75 caracteres** em qualquer texto longo, em qualquer tela.
 12. **um acento por tela.** em cada momento, uma só cor de acento comanda a atenção.
+13. **no mobile, entrada de texto é página, nunca overlay.** prosa, resposta, recado, depoimento: qualquer escrita acontece numa página em fluxo de documento, sem bottom sheet, sem modal, sem nada fixo. o teclado abre e o browser rola a página sozinho; nenhum controle fica embaixo do teclado. no desktop, onde não há teclado virtual, os mesmos gestos acontecem inline.
 
 ## 3. navegação
 
@@ -58,12 +59,15 @@ quatro destinos e só: **início, passear, visitas, canto**.
 
 ### 4.3 composer (prosear)
 
-detalhado na tela 5.2, porque ele mora na home.
+duas superfícies só, um componente:
+
+- **card inline (desktop)**: a linha colapsada da home que expande no foco, com chips de nota, pergunta e crônica. o ensaio não é chip aqui: é um link-pill que abre a página de escrita no modo foco (`/prosear?tipo=ensaio`).
+- **página de escrita (mobile, e ensaio em qualquer tela)**: `/prosear`, detalhada em 5.8. parametrizada por contexto: prosa nova, resposta (`?reply=`, com o card da prosa-mãe e o fio no topo) e recado (`/recadar?para=`, com o card do canto). depoimento, quando vier, é a mesma página com outro placeholder.
 
 ### 4.4 bloco de recados (livro de visitas)
 
 - no canto: lista de recados com nome de quem deixou e tempo relativo. sem paginação agressiva: "ver mais recados" no fim.
-- campo de entrada sempre visível no fim da lista: "deixar um recado", com limite quieto de 500 grafemes.
+- entrada: no desktop, campo sempre visível no fim da lista ("escreve aqui teu recado..."), com limite quieto de 500 grafemes. no mobile, o campo é um atalho com a mesma cara que abre `/recadar?para=` (regra 2.13).
 - para o dono do canto, cada recado tem um olho discreto para ocultar, visível só para ele.
 
 ### 4.5 bloco cumadis que recomendo (cumadis + depoimentos)
@@ -115,18 +119,19 @@ sections
 
 ### 5.2 home logada: feed + prosear
 
-**sim, o prosear mora na home.** escrever é a ação central do produto, e esconder o composer atrás de um botão ou de uma rota é atrito contra a própria razão de existir do quintal. a home logada é: composer no topo, feed cronológico embaixo. a mesma rota da tela 5.1, dois estados.
+**o prosear continua na home, mas a escrita mora na página.** a home logada é: a porta de escrita no topo, feed cronológico embaixo. no desktop a porta é o composer inline; no mobile é um atalho com cara de campo que abre `/prosear` (regra 2.13: no mobile, entrada de texto é página, nunca overlay).
 
-**o composer em detalhe** (com cara de app nativo, três estados):
+**o composer inline (desktop) em detalhe**:
 
-- **colapsado**: uma linha quieta no topo do feed: o avatar miúdo da pessoa e o placeholder "o que tá passando no seu quintal?" em sussurro. quase sem caixa: uma superfície de quase-nada, sem borda.
-- **ao focar**: expande suavemente para um card de superfície com raio generoso e borda lilás de foco. textarea com auto-grow, tipografia de leitura (escrever e ler têm a mesma cara).
-- **mobile**: o estado expandido é uma bottom sheet que sobe da base com alça de arrastar, fundo escurecido atrás e o prosear ao alcance do polegar. tocar no fundo ou esc fecha.
-- **tipos**: pills quietas abaixo do campo: nota (default, selecionada e cheia de lilás), pergunta, crônica, ensaio. são metadado, não cerimônia: trocar o tipo não muda nada além da pill.
+- **colapsado**: uma linha quieta no topo do feed com o placeholder "como foi seu dia?" em serifada itálica de sussurro. quase sem caixa: uma superfície de quase-nada, sem borda, sem avatar.
+- **ao focar**: expande suavemente para um card de superfície com raio generoso e borda lilás de foco, no fluxo do feed. textarea com auto-grow, tipografia de leitura (escrever e ler têm a mesma cara).
+- **tipos**: pills quietas que quebram linha se preciso: nota (default, neutra), pergunta (lilás), crônica (rosé). são metadado, não cerimônia. o ensaio não é pill: é um link-pill que abre a página de escrita no modo foco.
 - **imagens**: um ícone de clipe adiciona até 4 imagens; cada imagem anexada abre um campo de alt obrigatório inline ("descreve essa imagem pra quem não vê"). sem alt, não publica.
-- **contador**: invisível até faltar pouco. aparece só nos últimos 500 grafemes, em sussurro ("tá chegando no limite, faltam 320"). nunca um número permanente.
+- **contador**: quieto, em palavras ("42 palavras"), mais presente na crônica; perto do limite vira "tá chegando no limite, faltam 320". nunca um número ansioso.
 - **publicar**: botão primário "prosear" com um anel de progresso miúdo ao lado enquanto o pds confirma, e o atalho "ctrl+enter pra prosear" sussurrado no canto do rodapé (só desktop). otimista: a prosa entra no feed na hora. erro vira mensagem amiga com botão de tentar de novo, sem modal.
 - **rascunho**: se a pessoa sair com texto no composer, guarda local e oferece de volta na próxima visita ("deixou uma prosa pela metade aqui").
+
+**a porta mobile**: uma linha com a mesma cara do campo colapsado ("como foi seu dia?" em serifada itálica) que navega pra `/prosear`. a página cobre os quatro tipos, inclusive o ensaio.
 
 **o feed em detalhe**:
 
@@ -183,7 +188,7 @@ flat clean design, desktop web layout
 
 **objetivo**: a página mais importante do produto. aqui se lê.
 
-**composição**: a prosa em medida de 65 a 75 caracteres, fraunces, line-height generoso. meta quieto no topo: nome do canto, data, tipo. imagens inline se houver. sem barra lateral, sem relacionados, sem "leia também". abaixo da prosa, uma hairline e a thread de respostas em ordem cronológica, cada uma com o mesmo formato de card, e no fim um composer de resposta com placeholder "responder com uma prosa". link quieto para o canto do autor no cabeçalho.
+**composição**: a prosa em medida de 65 a 75 caracteres, fraunces, line-height generoso. meta quieto no topo: nome do canto, data, tipo. imagens inline se houver. sem barra lateral, sem relacionados, sem "leia também". abaixo da prosa, uma hairline e a thread de respostas em ordem cronológica, cada uma com o mesmo formato de card, e no fim a entrada de resposta com placeholder "responder com uma prosa": form inline no desktop, atalho pra `/prosear?reply=` no mobile (regra 2.13). link quieto para o canto do autor no cabeçalho.
 
 **decisões de ux**: a navegação inferior esconde ao rolar. zero elementos competindo com o texto. respostas não são comentários: clicar numa resposta abre a página dela, porque ela também é uma prosa.
 
@@ -251,13 +256,33 @@ for an invite code, one primary button, huge negative space, flat
 clean vector style, desktop web layout
 ```
 
-### 5.8 modo foco (aposentado)
+### 5.8 página de escrita (/prosear, /recadar)
 
-o modo foco virou o composer app-native da home (5.2): a folha em
-branco para texto longo é o composer expandido, que no mobile já sobe
-como bottom sheet de tela quase inteira. uma tela separada de escrita
-se mostrou redundante: o rascunho local, o contador que só aparece
-perto do limite e a ausência de toolbar vivem no próprio composer.
+**objetivo**: no mobile, qualquer entrada de texto é página, nunca overlay (regra 2.13). no desktop, a página é o modo foco do ensaio. uma página só, parametrizada por contexto, tudo em fluxo de documento: nada fixed, nada floating, nenhum hack de viewport. o teclado abre e o browser rola a página sozinho.
+
+**anatomia** (a mesma nos três contextos):
+
+- **barra do topo em fluxo**: "voltar" em sussurro à esquerda (volta pra home, pra thread ou pro canto, conforme o contexto); à direita o contador de palavras quieto e o pill de publicar em rosa suave (cheio com texto, ghost de sussurro vazio). a barra desce junto com a página: nunca fica presa, nunca briga com o teclado.
+- **card de contexto**, quando há: na resposta, a prosa-mãe compacta (handle em serifada, duas linhas do texto em sussurro) com um fio lilás fino à esquerda ligando ao composer — a pessoa responde vendo o que está respondendo. no recado, o card quieto do canto (nome em serifada grande, "livro de visitas aberto" em sussurro).
+- **chips de tipo** (só na prosa nova): nota, pergunta, crônica, ensaio, quebrando linha se preciso, nunca scroll horizontal. cada tipo com seu acento: pergunta ganha barra lilás de 3px na borda esquerda da coluna, caret lilás e a linha de ajuda "perguntas aparecem em destaque na vizinhança"; crônica espelha em rosé com o contador um tiquinho mais presente; nota é neutra.
+- **régua de formatação** sempre visível acima do campo (prosa e resposta; recado é texto puro, sem régua), alvos de 44px, clipe de imagem no fim da fileira na prosa nova.
+- **o campo é uma folha**: auto-grow, sem borda, serifada de leitura, placeholder em itálico serifado que muda com o tipo ("como foi seu dia?", "o que tá te intrigando?", "conta o que você viu hoje", "escreve sem pressa") e com o contexto ("responder com uma prosa...", "deixa um recado pra maria").
+- **ensaio é o modo foco**: título opcional em serifada grande entra no fluxo quando o chip ensaio está marcado, a coluna fica centrada e mais espaçosa. `?tipo=ensaio` abre direto aqui — é pra onde o link-pill do card inline aponta, em qualquer tamanho de tela.
+- **recado é curto**: limite de 500 grafemes com o contador "N/500" à vista o tempo todo.
+- fim da página com safe-area: nada encosta no indicador de home, nenhum botão flutuante.
+
+**decisões de ux**: a página substitui a bottom sheet e o overlay de modo foco, que morreram. um componente, três contextos, uma superfície de teste. rascunho local por contexto, oferecido de volta. publicar volta pra origem com o flash quieto de confirmação.
+
+```
+mobile writing page for a cozy brazilian social web app, warm cream
+paper background (#faf6f1), document flow layout: quiet "voltar" text
+top-left, soft pink publish pill top-right, four small type chips
+wrapping below, a static row of whisper-gray formatting icons, a
+borderless auto-growing serif textarea with an italic serif
+placeholder, soft lilac accent bar on the left edge, flat clean
+design, literary intimate mood, generous safe-area padding at the
+bottom, nothing fixed or floating
+```
 
 ## 6. axô, o mascote
 
@@ -362,11 +387,13 @@ style, no text, no letters
 ## 8. entregáveis
 
 **brand**
+
 - character sheet do axô (uma folha, 5 poses)
 - axô avulso com lupa (versão do botão passear)
 - logo: cena completa 512x512, ícone pwa maskable 512x512, favicon 32x32 e 16x16, monocromática em svg, variantes papel, lamparina e transparente, social card 1200x630 com axô no laguinho
 
 **telas** (desktop e mobile de cada, no preset papel; variantes madrugada e gloss pelo menos do canto)
+
 - home deslogada (login + convite)
 - home logada (composer + feed)
 - canto (visitação) e canto em modo arrumar
@@ -374,7 +401,7 @@ style, no text, no letters
 - visitas
 - passear
 - convite e onboarding (3 passos)
-- composer app-native (colapsado, expandido, sheet mobile)
+- composer (card inline do desktop) e página de escrita nos três contextos (prosa, resposta com card-mãe, recado)
 
 ## 9. faça e não faça
 

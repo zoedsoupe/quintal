@@ -147,6 +147,16 @@ defmodule QuintalWeb.ProsaLive do
           </:acoes>
         </.prosa>
 
+        <%!-- no mobile a resposta é página (/prosear?reply=), com a
+             mãe à vista; no desktop o form inline cresce no fluxo --%>
+        <.link
+          :if={@sessao}
+          navigate={"/prosear?reply=#{URI.encode_www_form(@prosa.uri)}"}
+          class="prosear-atalho thread__responder"
+        >
+          <span class="prosear-atalho__placeholder">responder com uma prosa...</span>
+        </.link>
+
         <form
           :if={@sessao}
           id="responder"
@@ -155,10 +165,6 @@ defmodule QuintalWeb.ProsaLive do
           class="prosear thread__responder"
           data-rascunho={"quintal:rascunho:responder:#{@prosa.uri}"}
         >
-          <button type="button" class="icone-botao prosear__fechar" data-fecha aria-label="fechar">
-            <Lucideicons.x aria-hidden="true" />
-          </button>
-
           <.campo
             name="texto"
             area

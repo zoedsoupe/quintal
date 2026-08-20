@@ -14,7 +14,10 @@
             "type": "array",
             "items": {
               "type": "union",
-              "refs": ["app.bsky.richtext.facet", "place.quintal.richtext.facet"]
+              "refs": [
+                "app.bsky.richtext.facet",
+                "place.quintal.richtext.facet"
+              ]
             }
           },
           "tipo": {

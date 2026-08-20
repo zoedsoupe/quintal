@@ -44,22 +44,24 @@ function mdInsere(campo, snippet, cursorDentro) {
 
 function ligaMd(el, campo) {
   if (!campo) return;
-  el.querySelectorAll("[data-md-wrap],[data-md-prefix],[data-md-link]").forEach((botao) => {
-    botao.addEventListener("click", (e) => {
-      e.preventDefault();
-      if (botao.dataset.mdWrap !== undefined) {
-        const m = botao.dataset.mdWrap;
-        mdInsere(campo, m + m, m.length);
-      } else if (botao.dataset.mdPrefix !== undefined) {
-        // prefixo de bloco só faz sentido no começo de linha
-        const antes = campo.value.slice(0, campo.selectionStart);
-        const quebra = antes === "" || antes.endsWith("\n") ? "" : "\n";
-        mdInsere(campo, quebra + botao.dataset.mdPrefix);
-      } else {
-        mdInsere(campo, "[]()", 1);
-      }
-    });
-  });
+  el.querySelectorAll("[data-md-wrap],[data-md-prefix],[data-md-link]").forEach(
+    (botao) => {
+      botao.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (botao.dataset.mdWrap !== undefined) {
+          const m = botao.dataset.mdWrap;
+          mdInsere(campo, m + m, m.length);
+        } else if (botao.dataset.mdPrefix !== undefined) {
+          // prefixo de bloco só faz sentido no começo de linha
+          const antes = campo.value.slice(0, campo.selectionStart);
+          const quebra = antes === "" || antes.endsWith("\n") ? "" : "\n";
+          mdInsere(campo, quebra + botao.dataset.mdPrefix);
+        } else {
+          mdInsere(campo, "[]()", 1);
+        }
+      });
+    },
+  );
 }
 
 // MdToolbar: a régua nos forms soltos (bio do onboarding, depoimento),
@@ -70,12 +72,15 @@ const MdToolbar = {
   },
 };
 
-// Composer: o gesto de escrita do quintal (prosear na home, responder
-// na thread, recado no canto). auto-grow, contador opcional que só
-// aparece nos últimos 500 grafemes, rascunho local opcional oferecido
-// de volta, ctrl/cmd+enter publica e, no mobile, o fundo escurecido e
-// o Esc fecham o sheet. `data-rascunho` liga o rascunho local com a
-// chave dada; sem o atributo, nada fica guardado.
+// Composer: o gesto de escrita do quintal, em duas superfícies — o
+// card inline do desktop (home, thread, canto) e a página de escrita
+// (/prosear, /recadar). auto-grow, contador de palavras quieto que
+// acorda com texto (limite à vista em campo curto), rascunho local
+// opcional oferecido de volta e ctrl/cmd+enter publica. Nada de sheet
+// nem overlay: no mobile a escrita é sempre a página, em fluxo de
+// documento, e o teclado rola a página sozinho.
+// `data-rascunho` liga o rascunho local com a chave dada; sem o
+// atributo, nada fica guardado.
 // rascunho local: em alguns contextos de PWA o localStorage lanca
 // SecurityError; sem o rascunho o composer ainda precisa abrir
 const rascunhoStore = {
@@ -110,76 +115,34 @@ const Composer = {
     this.contador = this.el.querySelector(".prosear__contador");
     this.progresso = this.el.querySelector(".prosear__progresso-arco");
     this.aviso = this.el.querySelector(".prosear__rascunho");
+    this.titulo = this.el.querySelector("input[name=titulo]");
     this.chave = this.el.dataset.rascunho;
     this.limite = Number(this.campo.getAttribute("maxlength")) || 10000;
 
     ligaMd(this.el, this.campo);
 
-    // ensaio: modo foco em tela cheia. so o composer da home tem o
-    // overlay e as pills de tipo; responder e recado passam reto
-    this.ensaio = this.el.querySelector(".ensaio");
+    // trocar de tipo troca o placeholder junto; o inicial vem do radio
+    // marcado (a pagina pode abrir direto num tipo, ex. ?tipo=ensaio)
+    const marcado = this.el.querySelector("input[name=tipo]:checked");
+    if (marcado) this.campo.placeholder = marcado.dataset.placeholder;
 
-    if (this.ensaio) {
-      this.ensaioTitulo = this.ensaio.querySelector(".ensaio__titulo");
-      this.ensaioCorpo = this.ensaio.querySelector(".ensaio__corpo");
-      this.ensaioPalavras = this.ensaio.querySelector(".ensaio__palavras");
-      this.ensaioBotao = this.ensaio.querySelector("button[type=submit]");
-      this.tipoAnterior = "nota";
-
-      // trocar de tipo troca o placeholder junto; ensaio abre o overlay
-      this.el.querySelectorAll("input[name=tipo]").forEach((radio) => {
-        radio.addEventListener("change", () => {
-          if (radio.value === "ensaio") {
-            this.abreEnsaio();
-          } else {
-            this.tipoAnterior = radio.value;
-            this.campo.placeholder = radio.dataset.placeholder;
-            this.fechaEnsaio();
-          }
-          this.conta();
-        });
+    this.el.querySelectorAll("input[name=tipo]").forEach((radio) => {
+      radio.addEventListener("change", () => {
+        this.campo.placeholder = radio.dataset.placeholder;
+        this.conta();
       });
-
-      this.ensaio
-        .querySelector("[data-voltar]")
-        .addEventListener("click", () => this.voltaDoEnsaio());
-
-      this.ensaioCorpo.addEventListener("input", () => {
-        this.contaPalavras();
-        this.ensaioBotao.disabled = this.ensaioCorpo.value.trim().length === 0;
-        if (!this.chave) return;
-        if (this.ensaioCorpo.value) {
-          rascunhoStore.set(this.chave + ":ensaio", this.ensaioCorpo.value);
-        } else {
-          rascunhoStore.remove(this.chave + ":ensaio");
-        }
-      });
-
-      this.ensaioTitulo.addEventListener("input", () => {
-        if (!this.chave) return;
-        if (this.ensaioTitulo.value) {
-          rascunhoStore.set(this.chave + ":ensaio:titulo", this.ensaioTitulo.value);
-        } else {
-          rascunhoStore.remove(this.chave + ":ensaio:titulo");
-        }
-      });
-
-      this.ensaio.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
-          e.preventDefault();
-          this.el.requestSubmit();
-        }
-        if (e.key === "Escape") this.voltaDoEnsaio();
-      });
-
-      this.ensaioBotao.disabled = true;
-    }
+    });
 
     if (this.chave) {
       const rascunho = rascunhoStore.get(this.chave);
       if (rascunho && !this.campo.value) {
         this.campo.value = rascunho;
         if (this.aviso) this.aviso.hidden = false;
+      }
+
+      if (this.titulo) {
+        const titulo = rascunhoStore.get(this.chave + ":titulo");
+        if (titulo && !this.titulo.value) this.titulo.value = titulo;
       }
     }
 
@@ -195,7 +158,18 @@ const Composer = {
       }
     });
 
-    // clicar fora recolhe o composer so quando o campo ta vazio;
+    if (this.titulo) {
+      this.titulo.addEventListener("input", () => {
+        if (!this.chave) return;
+        if (this.titulo.value) {
+          rascunhoStore.set(this.chave + ":titulo", this.titulo.value);
+        } else {
+          rascunhoStore.remove(this.chave + ":titulo");
+        }
+      });
+    }
+
+    // clicar fora recolhe o card inline so quando o campo ta vazio;
     // com texto ele fica aberto pra nao perder o fio da prosa.
     // pointerdown, nao click: no PWA standalone do iOS o foco rola a
     // pagina e o click sintetizado cai retargetado num elemento fora do
@@ -221,56 +195,14 @@ const Composer = {
       if (e.key === "Escape") this.fecha();
     });
 
-    // qualquer [data-fecha] fecha: o botao x do composer em tela
-    // cheia (mobile) e o fundo escurecido, onde ele existir
-    this.el.querySelectorAll("[data-fecha]").forEach((alvo) => {
-      alvo.addEventListener("click", () => this.fecha());
-    });
-
-    // teclado virtual: o composer em tela cheia e o ensaio tomam a
-    // altura visivel, nao a da janela — o teclado encolhe o
-    // visualViewport nos dois modos (safari e pwa) e o rodape com o
-    // prosear fica sempre acima dele. o textarea cresce com flex e
-    // rola por dentro (o cresce() sai de cena nesse modo)
-    this.movel = window.matchMedia("(max-width: 47.99rem)");
-    this.ancoraTeclado = () => {
-      const vv = window.visualViewport;
-      if (!vv) return;
-      if (this.movel.matches && this.el.classList.contains("prosear--expandido")) {
-        this.el.style.height = `${vv.height}px`;
-        this.el.style.top = `${vv.offsetTop}px`;
-      }
-      if (this.ensaio && !this.ensaio.hidden) {
-        this.ensaio.style.height = `${vv.height}px`;
-        this.ensaio.style.top = `${vv.offsetTop}px`;
-      }
-    };
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener("resize", this.ancoraTeclado);
-      window.visualViewport.addEventListener("scroll", this.ancoraTeclado);
-    }
-
     this.handleEvent("composer-publicado", () => {
       this.campo.value = "";
-      if (this.chave) rascunhoStore.remove(this.chave);
-      if (this.aviso) this.aviso.hidden = true;
-
-      if (this.ensaio && !this.ensaio.hidden) {
-        this.ensaioCorpo.value = "";
-        this.ensaioTitulo.value = "";
-        if (this.chave) {
-          rascunhoStore.remove(this.chave + ":ensaio");
-          rascunhoStore.remove(this.chave + ":ensaio:titulo");
-        }
-        this.contaPalavras();
-        this.fechaEnsaio();
-        // depois de prosear um ensaio o composer volta pra nota
-        const nota = this.el.querySelector("input[name=tipo][value=nota]");
-        if (nota) {
-          nota.checked = true;
-          this.campo.placeholder = nota.dataset.placeholder;
-        }
+      if (this.titulo) this.titulo.value = "";
+      if (this.chave) {
+        rascunhoStore.remove(this.chave);
+        rascunhoStore.remove(this.chave + ":titulo");
       }
+      if (this.aviso) this.aviso.hidden = true;
 
       this.cresce();
       this.conta();
@@ -284,119 +216,41 @@ const Composer = {
 
   destroyed() {
     document.removeEventListener("pointerdown", this.cliqueFora);
-    document.documentElement.classList.remove("ensaio-aberto");
-    if (window.visualViewport) {
-      window.visualViewport.removeEventListener("resize", this.ancoraTeclado);
-      window.visualViewport.removeEventListener("scroll", this.ancoraTeclado);
-    }
   },
 
   updated() {
     this.cresce();
     this.conta();
-    // patch do liveview no meio de um gesto nao pode deixar restos
-    if (!this.el.classList.contains("prosear--expandido")) {
-      this.el.style.transform = "";
-    }
-  },
-
-  // ensaio aberto: o name="texto" viaja no corpo do overlay, entao o
-  // campo principal sai do form (disabled nao submete). o rascunho do
-  // ensaio tem chave propria, nao mistura com a nota rapida
-  abreEnsaio() {
-    clearTimeout(this.ensaioSaida);
-    this.ensaio.hidden = false;
-    // display none -> flex nao transiciona: a classe entra no frame
-    // seguinte pra animacao de pagina abrindo acontecer
-    requestAnimationFrame(() => this.ensaio.classList.add("ensaio--aberto"));
-    this.campo.disabled = true;
-    this.ensaioTitulo.disabled = false;
-    this.ensaioCorpo.disabled = false;
-    document.documentElement.classList.add("ensaio-aberto");
-
-    if (this.chave) {
-      const corpo = rascunhoStore.get(this.chave + ":ensaio");
-      const titulo = rascunhoStore.get(this.chave + ":ensaio:titulo");
-      if (corpo && !this.ensaioCorpo.value) this.ensaioCorpo.value = corpo;
-      if (titulo && !this.ensaioTitulo.value) this.ensaioTitulo.value = titulo;
-    }
-
-    this.contaPalavras();
-    this.ensaioBotao.disabled = this.ensaioCorpo.value.trim().length === 0;
-    this.ensaioCorpo.focus();
-  },
-
-  fechaEnsaio() {
-    if (!this.ensaio || this.ensaio.hidden) return;
-    this.ensaio.classList.remove("ensaio--aberto");
-    // o hidden so volta quando a saida termina; 300ms cobre os 280ms
-    // da transicao com folga
-    this.ensaioSaida = setTimeout(() => {
-      this.ensaio.hidden = true;
-      this.ensaio.style.height = "";
-      this.ensaio.style.top = "";
-    }, 300);
-    this.campo.disabled = false;
-    this.ensaioTitulo.disabled = true;
-    this.ensaioCorpo.disabled = true;
-    document.documentElement.classList.remove("ensaio-aberto");
-  },
-
-  // voltar devolve a pill anterior: ensaio aberto por engano nao
-  // sequestra o tipo da prosa
-  voltaDoEnsaio() {
-    this.fechaEnsaio();
-    const anterior = this.el.querySelector(
-      `input[name=tipo][value=${this.tipoAnterior}]`,
-    );
-    if (anterior) {
-      anterior.checked = true;
-      this.campo.placeholder = anterior.dataset.placeholder;
-    }
-    this.campo.focus();
-  },
-
-  contaPalavras() {
-    const n = this.ensaioCorpo.value.trim().split(/\s+/).filter(Boolean).length;
-    this.ensaioPalavras.textContent = n > 0 ? `${n} palavras` : "";
   },
 
   // com texto no campo o rodape fica aberto mesmo sem foco: trocar o
-  // tipo no mobile nao pode esconder o botao de prosear. vazio, o botao
+  // tipo no desktop nao pode esconder o botao de prosear. vazio, o botao
   // dorme em ghost ate a primeira letra
   expande() {
     const expandido = this.aberto || this.campo.value.trim().length > 0;
     this.el.classList.toggle("prosear--expandido", expandido);
-    // trava a rolagem da pagina atras do sheet (o CSS so aplica no
-    // mobile; no desktop o card expandido nao mexe no fundo)
-    document.documentElement.classList.toggle("rolagem-travada", expandido);
     this.botao.disabled = this.campo.value.trim().length === 0;
   },
 
-  // fechar o composer em tela cheia: tira a expansao e o foco junto,
-  // senao o :focus-within reabre na hora. limpa a ancora do teclado
+  // recolher o card inline: tira a expansao e o foco junto, senao o
+  // :focus-within reabre na hora
   fecha() {
     this.aberto = false;
     this.campo.blur();
-    this.el.style.height = "";
-    this.el.style.top = "";
-    this.el.style.transform = "";
     this.expande();
   },
 
   cresce() {
-    // mobile expandido: o campo e flex e rola por dentro; altura
-    // inline aqui quebraria o encolhimento com o teclado aberto
-    if (this.movel?.matches && this.el.classList.contains("prosear--expandido")) {
-      this.campo.style.height = "";
-      return;
-    }
     this.campo.style.height = "auto";
     this.campo.style.height = `${this.campo.scrollHeight}px`;
   },
 
   conta() {
     const len = [...this.campo.value].length;
+    const palavras = this.campo.value
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean).length;
     const tipo = this.el.querySelector("input[name=tipo]:checked")?.value;
     const ref = REF_TIPO[tipo] || REF_TIPO.nota;
 
@@ -410,9 +264,19 @@ const Composer = {
       let faltam = null;
       if (faltamRef >= 0 && faltamRef <= ref * 0.2) faltam = faltamRef;
       if (faltamReal <= margemReal) faltam = faltamReal;
-      this.contador.hidden = faltam == null;
+
       if (faltam != null) {
+        this.contador.hidden = false;
         this.contador.textContent = `tá chegando no limite, faltam ${faltam}`;
+      } else if (this.limite <= 500) {
+        // campo curto (recado): o limite fica a vista o tempo todo
+        this.contador.hidden = false;
+        this.contador.textContent = `${len}/${this.limite}`;
+      } else if (palavras > 0) {
+        this.contador.hidden = false;
+        this.contador.textContent = `${palavras} ${palavras === 1 ? "palavra" : "palavras"}`;
+      } else {
+        this.contador.hidden = true;
       }
     }
 
@@ -544,7 +408,10 @@ const liveSocket = new LiveSocket("/live", Socket, {
 });
 
 // Show progress bar on live navigation and form submits
-topbar.config({ barColors: { 0: "#8b7bb8" }, shadowColor: "rgba(0, 0, 0, .15)" });
+topbar.config({
+  barColors: { 0: "#8b7bb8" },
+  shadowColor: "rgba(0, 0, 0, .15)",
+});
 window.addEventListener("phx:page-loading-start", (_info) => topbar.show(300));
 window.addEventListener("phx:page-loading-stop", (_info) => topbar.hide());
 
