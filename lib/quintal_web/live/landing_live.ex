@@ -24,34 +24,32 @@ defmodule QuintalWeb.LandingLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} sessao={@sessao} novidade={@novidade}>
-      <div class="boas-vindas">
-        <img class="boas-vindas__axo" src="/images/axo-front-gretting.png" alt="" aria-hidden="true" />
-        <h1 class="boas-vindas__marca">quintal</h1>
-        <p class="boas-vindas__linha">seu canto na vizinhança</p>
+    <div class="boas-vindas">
+      <img class="boas-vindas__axo" src="/images/axo-front-gretting.png" alt="" aria-hidden="true" />
+      <h1 class="boas-vindas__marca">quintal</h1>
+      <p class="boas-vindas__linha">seu canto na vizinhança</p>
 
-        <%!-- alpha fechado (spec 6): o convite é a porta principal,
+      <%!-- alpha fechado (spec 6): o convite é a porta principal,
              o login é caminho quieto pra quem já mora aqui --%>
-        <.link navigate={~p"/convite"} class="botao botao--primario">tenho um convite</.link>
+      <.link navigate={~p"/convite"} class="botao botao--primario">tenho um convite</.link>
 
-        <form action="/oauth/login" method="get" class="entrar">
-          <.campo
-            name="handle"
-            label="já mora aqui? entra com teu handle"
-            placeholder="alice.bsky.social"
-            required
-          />
-          <.botao variante={:fantasma} type="submit">entrar com atproto</.botao>
-          <.link navigate={~p"/cadastro"} class="cadastro__link">não tenho conta ainda</.link>
-        </form>
+      <form action="/oauth/login" method="get" class="entrar">
+        <.campo
+          name="handle"
+          label="já mora aqui? entra com teu handle"
+          placeholder="alice.bsky.social"
+          required
+        />
+        <.botao variante={:fantasma} type="submit">entrar com atproto</.botao>
+        <.link navigate={~p"/cadastro"} class="cadastro__link">não tenho conta ainda</.link>
+      </form>
 
-        <nav class="rodape">
-          <.link navigate={~p"/faq"}>que lugar é esse?</.link>
-          <.link navigate={~p"/conduta"}>regrinhas de convivência</.link>
-          <a href="https://github.com/zoedsoupe/quintal" target="_blank" rel="noopener">código aberto</a>
-        </nav>
-      </div>
-    </Layouts.app>
+      <nav class="rodape">
+        <.link navigate={~p"/faq"}>que lugar é esse?</.link>
+        <.link navigate={~p"/conduta"}>regrinhas de convivência</.link>
+        <a href="https://github.com/zoedsoupe/quintal" target="_blank" rel="noopener">código aberto</a>
+      </nav>
+    </div>
     """
   end
 end

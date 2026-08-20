@@ -19,7 +19,7 @@ defmodule QuintalWeb.ConviteLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} sessao={@sessao} novidade={false}>
+    <Layouts.app flash={@flash} sessao={@sessao} novidade={false} moldura={false}>
       <div class="convite">
         <img class="convite__axo" src="/images/axo-front-gretting.png" alt="" aria-hidden="true" />
         <h1>o quintal é pequeno de propósito. você foi convidade.</h1>

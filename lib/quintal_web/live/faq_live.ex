@@ -4,9 +4,9 @@ defmodule QuintalWeb.FaqLive do
   compromisso de escrita humana e os dois vocabulários, o da vizinhança
   e o técnico.
 
-  As palavras técnicas do atproto vêm explicadas com uma analogia
-  simples por termo, sem abuso: o resto é link para a documentação do
-  protocolo, para quem quiser descer mais um andar.
+  As palavras técnicas do atproto vêm explicadas em cadeia, do
+  protocolo ao detalhe, cada termo encaixando no anterior. O resto é
+  link para a documentação, para quem quiser descer mais um andar.
   """
 
   use QuintalWeb, :live_view
@@ -22,7 +22,7 @@ defmodule QuintalWeb.FaqLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} sessao={@sessao} novidade={@novidade}>
+    <Layouts.app flash={@flash} sessao={@sessao} novidade={@novidade} moldura={false}>
       <div class="cadastro">
         <h1>que lugar é esse?</h1>
 
@@ -43,7 +43,7 @@ defmodule QuintalWeb.FaqLive do
         </p>
 
         <p>
-          é um projeto comunitário e de código aberto, mantido por pessoas,
+          é um projeto comunitário e de código aberto, mantido por <strong>mim</strong>,
           sem empresa por trás: quem mora aqui também ajuda a cuidar.
         </p>
 
@@ -53,7 +53,7 @@ defmodule QuintalWeb.FaqLive do
           o axô é um axolote, o mascote do quintal. axolotes regeneram partes
           do corpo, e por aqui seus dados também: você pode levar tudo e
           replantar em qualquer lugar. o nome é trocadilho com "achou",
-          porque é o axô quem descobre cantos novos pra você no passear.
+          porque é o axô quem descobre cantos novos pra você passear.
         </p>
 
         <h2>o compromisso de escrita humana</h2>
@@ -61,8 +61,7 @@ defmodule QuintalWeb.FaqLive do
         <p>
           quem entra no quintal assina um compromisso: aqui se escreve com as
           próprias palavras, sem despejar texto gerado por máquina como se
-          fosse seu. quem assina leva um selo quieto no canto. funciona na
-          confiança: eu acredito em você, e você honra o combinado.
+          fosse seu. funciona na confiança: eu acredito em você, e você honra o combinado.
         </p>
 
         <h2>as palavras da vizinhança</h2>
@@ -103,17 +102,27 @@ defmodule QuintalWeb.FaqLive do
 
         <p>
           o quintal roda em cima de um protocolo aberto chamado atproto, o mesmo
-          do bluesky. ele vem com algumas palavras estranhas. aqui vão elas, em
-          linguagem de vizinhança.
+          do bluesky. ele vem com algumas palavras estranhas. aqui vão elas, da
+          mais larga pra mais miúda, cada uma encaixando na anterior.
+        </p>
+
+        <h3>o que é atproto?</h3>
+
+        <p>
+          um protocolo: um conjunto público de regras que diz como identidades,
+          dados e aplicativos conversam entre si. qualquer um pode ler as
+          regras e construir em cima, sem pedir permissão. bluesky e quintal
+          são lugares diferentes sobre as mesmas regras, então seus dados
+          falam a mesma língua nos dois.
         </p>
 
         <h3>o que é um pds?</h3>
 
         <p>
-          pds é o servidor onde ficam seus dados. pensa num apê alugado: suas
-          coisas moram lá, a chave é sua, e se você não gostar de quem cuida
-          do prédio, leva tudo pra outro local sem perder nada. o bluesky te empresta uma
-          casinha de graça; mas você também pode montar o seu!
+          personal data server: o servidor onde sua conta e seus dados moram.
+          toda conta atproto fica num pds, e o dono dos dados é você, não o
+          servidor. o bluesky hospeda um de graça pra você, mas dá pra trocar
+          de pds, ou hospedar o seu, sem perder conta, nome nem conteúdo:
           <a href="https://atproto.com/guides/self-hosting" target="_blank" rel="noopener">
             guia de auto-hospedagem
           </a>
@@ -122,45 +131,59 @@ defmodule QuintalWeb.FaqLive do
         <h3>o que é um record?</h3>
 
         <p>
-          cada prosa, recado ou configuração do seu canto é uma ficha guardada no
-          seu armário. quem escreve guarda: seu recado no mural de outra pessoa
-          continua sendo uma ficha sua, no seu armário.
+          a unidade de dado. cada prosa, recado ou configuração do seu canto é
+          um record: um documento com tipo, dono e assinatura, guardado no seu
+          pds. quem escreve é dono: seu recado no livro de visitas de outra
+          pessoa continua sendo um record seu, no seu pds. o conjunto dos seus
+          records é o seu repositório, o "repo".
+        </p>
+
+        <h3>o que é um lexicon?</h3>
+
+        <p>
+          o contrato de formato de um tipo de record. diz quais campos uma
+          prosa ou um recado tem, e o que cada campo vale, pra qualquer
+          aplicativo conseguir ler e validar sem adivinhar nada. os lexicons
+          do quintal são públicos (as coleções <code>place.quintal.*</code>),
+          então qualquer um pode construir outro lugar que lê e escreve
+          prosas, não só eu.
         </p>
 
         <h3>o que são handle e did?</h3>
 
         <p>
-          handle é o nome na porta (<code>voce.bsky.social</code>), fácil de ler e
-          possível de trocar. did é o número de identidade por baixo dele, que
-          nunca muda. é ele que garante que você continua sendo você quando muda
-          de nome ou de armário.
+          handle é o nome legível da conta (<code>voce.bsky.social</code>),
+          fácil de ler e possível de trocar. did é o identificador permanente
+          por baixo dele, que nunca muda. é o did que garante que você
+          continua sendo você quando muda de nome ou de pds.
         </p>
 
         <h3>o que é o quintal, tecnicamente?</h3>
 
         <p>
-          um appview: uma vitrine. o quintal lê as fichas que estão nos armários
-          das pessoas e arruma elas bonitinhas em cantos, feeds e livros de
-          visitas. ele não guarda suas prosas, guarda um índice pra encontrar
-          elas rápido. apaga o quintal, suas prosas continuam no seu armário.
+          um appview: um aplicativo que lê os records dos pds das pessoas e
+          monta uma visão em cima: cantos, feeds e livros de visitas. ele não
+          guarda suas prosas, guarda um índice pra encontrar elas rápido. se o
+          quintal sumir, seus records continuam no seu pds, prontos pra outro
+          appview ler.
         </p>
 
-        <h3>por que o quintal não pede senha?</h3>
+        <h3>o que é oauth, e por que o quintal não pede senha?</h3>
 
         <p>
-          a entrada é pela portaria do seu pds, via oauth. você autoriza lá, e o
-          quintal recebe uma chave temporária que só abre as gavetas do quintal
-          (as coleções <code>place.quintal.*</code>). a chave do resto do armário,
-          seu bluesky, por exemplo, a gente nunca pede.
+          oauth é o jeito de autorizar um aplicativo sem entregar sua senha.
+          a entrada acontece na página do seu pds: você autoriza lá, e o
+          quintal recebe uma credencial temporária de escopo limitado, que só
+          vale pras coleções <code>place.quintal.*</code>. dos seus outros
+          records, como os do bluesky, a gente nunca recebe acesso.
         </p>
 
         <h3>posso ir embora?</h3>
 
         <p>
           a hora que quiser, e nada fica refém. seus dados já são seus por
-          arquitetura: é só apontar outro appview pro mesmo armário. o
-          protocolo garante a saída livre por desenho, sem depender de
-          promessa minha.
+          arquitetura: é só apontar outro appview pro mesmo pds. a saída
+          livre vem do protocolo, não de promessa minha.
         </p>
 
         <h3>quero o detalhe técnico</h3>

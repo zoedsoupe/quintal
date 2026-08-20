@@ -22,7 +22,7 @@ defmodule QuintalWeb.CadastroLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} sessao={@sessao} novidade={@novidade}>
+    <Layouts.app flash={@flash} sessao={@sessao} novidade={@novidade} moldura={false}>
       <div class="cadastro">
         <h1>criar conta</h1>
 
