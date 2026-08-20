@@ -825,18 +825,13 @@
   font-style: italic;
 }
 
-/* linha de ajuda da pergunta: so aparece com a pill de pergunta
-   selecionada */
+/* linha de ajuda sob o campo: destino do texto, dito antes de escrever
+   (recado aparece na hora, depoimento espera aceite) */
 
 .prosear__ajuda {
-  display: none;
   margin: 0;
   font-size: 0.75rem;
   color: var(--meta);
-}
-
-.prosear:has(input[value="pergunta"]:checked) .prosear__ajuda {
-  display: block;
 }
 
 /* prosear rosa quando ha texto; vazio, dorme em ghost de sussurro

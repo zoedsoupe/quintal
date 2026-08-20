@@ -632,7 +632,9 @@ defmodule QuintalWeb.CantoLive do
                       maxlength="500"
                       required
                     />
-                    <p class="prosear__ajuda">aparece na hora. o dono do canto pode ocultar depois.</p>
+                    <p class="prosear__ajuda">
+                      aparece na hora. o dono do canto pode ocultar depois.
+                    </p>
                     <.md_ferramentas />
                     <div class="prosear__rodape">
                       <div class="prosear__ferramentas">
@@ -717,9 +719,10 @@ defmodule QuintalWeb.CantoLive do
                   rows="3"
                   maxlength="1000"
                   required
-                  placeholder="o dono do canto aceita antes de pendurar na parede"
+                  placeholder="escreve aqui teu depoimento..."
                 ></textarea>
               </div>
+              <p class="prosear__ajuda">só aparece se o dono do canto aceitar.</p>
               <.md_ferramentas />
               <.botao variante={:fantasma} type="submit">enviar depoimento</.botao>
             </form>

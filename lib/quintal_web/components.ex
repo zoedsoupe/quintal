@@ -186,7 +186,9 @@ defmodule QuintalWeb.Components do
 
       <div :if={@canto} class="prosear__canto">
         <p class="prosear__canto-nome">{@canto}</p>
-        <p class="prosear__canto-linha">livro de visitas aberto</p>
+        <p class="prosear__canto-linha">
+          livro de visitas aberto: aparece na hora, o dono pode ocultar depois
+        </p>
       </div>
 
       <div :if={@modo == :prosa} class="prosear__tipos" role="radiogroup" aria-label="tipo da prosa">
