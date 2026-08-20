@@ -941,14 +941,25 @@ html.rolagem-descendo .nav-movel {
   border-radius: var(--raio);
   border: 1px solid var(--acento);
   color: var(--tinta);
-  /* some sozinho depois de 4s: aviso não é decoração permanente */
+  overflow: hidden;
+  /* some sozinho depois de 4s: aviso não é decoração permanente.
+     o colapso no fim tira o elemento do fluxo, senao a caixa vazia
+     segura o espaco e quebra o layout */
   animation: flash-sair 0.4s ease 4s forwards;
 }
 
 @keyframes flash-sair {
-  to {
+  60% {
+    opacity: 0;
+  }
+
+  100% {
     opacity: 0;
     visibility: hidden;
+    padding-block: 0;
+    margin-block: 0;
+    border-width: 0;
+    height: 0;
   }
 }
 

@@ -238,20 +238,8 @@ document.addEventListener("click", (e) => {
   });
 });
 
-// data-confirm: confirmação em linguagem humana antes de ações
-// destrutivas (apagar prosa). capture + stopImmediatePropagation
-// seguram o phx-click quando a pessoa desiste.
-document.addEventListener(
-  "click",
-  (e) => {
-    const alvo = e.target.closest("[data-confirm]");
-    if (alvo && !window.confirm(alvo.dataset.confirm)) {
-      e.preventDefault();
-      e.stopImmediatePropagation();
-    }
-  },
-  true,
-);
+// data-confirm: phoenix_html ja cobre (confirma e cancela o phx-click
+// no cancel). um listener proprio aqui mostrava o dialogo duas vezes.
 
 // aplicar-tema: o canto guardou tema/cor novos; espelha no <html> para o
 // site inteiro sem esperar o próximo carregamento (o TemaPlug estampa no
