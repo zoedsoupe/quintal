@@ -107,48 +107,46 @@ defmodule Quintal.Ingestao do
   @impl true
   def terminate(_reason, state), do: persist_cursor(state.last_cursor)
 
+  defp process(%Event{type: :commit, operation: :delete} = event) do
+    uri = "at://#{event.did}/#{event.collection}/#{event.rkey}"
+
+    case event.collection do
+      @prosa -> Prosas.desindexar(uri)
+      @follow -> Follows.desindexar(uri)
+      @recado -> Recados.desindexar(uri)
+      @depoimento -> Depoimentos.desindexar(uri)
+      @blogroll -> Repo.delete_all(from b in Blogroll, where: b.dono_did == ^event.did)
+      # delete de canto.config: sem config o canto fica no padrão, nada a fazer
+      @canto_config -> :ok
+      _outra_colecao -> :ok
+    end
+
+    :ok
+  end
+
   defp process(%Event{type: :commit} = event) do
     uri = "at://#{event.did}/#{event.collection}/#{event.rkey}"
 
-    case {event.collection, event.operation} do
-      {@prosa, :delete} ->
-        Prosas.desindexar(uri)
-
-      {@follow, :delete} ->
-        Follows.desindexar(uri)
-
-      {@recado, :delete} ->
-        Recados.desindexar(uri)
-
-      {@depoimento, :delete} ->
-        Depoimentos.desindexar(uri)
-
-      {@blogroll, :delete} ->
-        Repo.delete_all(from b in Blogroll, where: b.dono_did == ^event.did)
-
-      # delete de canto.config: sem config o canto fica no padrão, nada a fazer
-      {@canto_config, :delete} ->
-        :ok
-
-      {@prosa, _escrita} ->
+    case event.collection do
+      @prosa ->
         with %{} = record <- record(event), do: Prosas.indexar(event.did, %{uri: uri, cid: event.cid, value: record})
 
-      {@follow, _escrita} ->
+      @follow ->
         with %{} = record <- record(event), do: Follows.indexar(event.did, %{uri: uri, value: record})
 
-      {@recado, _escrita} ->
+      @recado ->
         with %{} = record <- record(event), do: Recados.indexar(event.did, %{uri: uri, value: record})
 
-      {@depoimento, _escrita} ->
+      @depoimento ->
         with %{} = record <- record(event), do: Depoimentos.indexar(event.did, %{uri: uri, value: record})
 
-      {@blogroll, _escrita} ->
+      @blogroll ->
         with %{} = record <- record(event), do: Blogrolls.indexar(event.did, %{value: record})
 
-      {@canto_config, _escrita} ->
+      @canto_config ->
         with %{} = record <- record(event), do: Cantos.indexar(event.did, %{value: record})
 
-      {_outra_colecao, _qualquer} ->
+      _outra_colecao ->
         :ok
     end
 

@@ -27,7 +27,7 @@ defmodule QuintalWeb.FormatacaoTest do
     end
 
     test "frase longa demais corta no espaço com reticências" do
-      frase = String.duplicate("palavra ", 30) |> String.trim()
+      frase = "palavra " |> String.duplicate(30) |> String.trim()
       assert cortada = Formatacao.primeira_frase(frase)
       assert String.ends_with?(cortada, "…")
       assert String.length(cortada) <= 91
