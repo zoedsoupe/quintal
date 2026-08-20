@@ -34,6 +34,7 @@ import topbar from "../vendor/topbar";
 const Prosear = {
   mounted() {
     this.campo = this.el.querySelector("textarea");
+    this.botao = this.el.querySelector("button[type=submit]");
     this.contador = this.el.querySelector(".prosear__contador");
     this.aviso = this.el.querySelector(".prosear__rascunho");
     this.chave = "quintal:rascunho";
@@ -54,6 +55,13 @@ const Prosear = {
       } else {
         localStorage.removeItem(this.chave);
       }
+    });
+
+    // uma vez aberto, fica aberto: clicar fora nao desmonta o composer
+    // no meio da prosa. so o Esc, o fundo do sheet ou publicar fecham
+    this.el.addEventListener("focusin", () => {
+      this.aberto = true;
+      this.expande();
     });
 
     this.campo.addEventListener("keydown", (e) => {
@@ -88,19 +96,24 @@ const Prosear = {
   },
 
   // com texto no campo o rodape fica aberto mesmo sem foco: trocar o
-  // tipo no mobile nao pode esconder o botao de prosear
+  // tipo no mobile nao pode esconder o botao de prosear. vazio, o botao
+  // dorme em ghost ate a primeira letra
   expande() {
     this.el.classList.toggle(
       "prosear--expandido",
-      this.campo.value.trim().length > 0,
+      this.aberto || this.campo.value.trim().length > 0,
     );
+    this.botao.disabled = this.campo.value.trim().length === 0;
   },
 
   // fechar o sheet: tira a expansao e o foco junto, senao o
   // :focus-within reabre na hora
   fecha() {
+    this.aberto = false;
     this.campo.blur();
-    this.el.classList.remove("prosear--expandido");
+    if (!this.campo.value.trim()) {
+      this.el.classList.remove("prosear--expandido");
+    }
   },
 
   cresce() {
