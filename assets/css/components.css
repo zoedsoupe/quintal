@@ -536,6 +536,23 @@ html.rolagem-descendo .nav-movel {
   padding-block: var(--espaco-4);
 }
 
+/* entrada de tela com cara de app nativo: a raiz de cada pagina sobe
+   um tiquinho e aparece. o liveview so insere a raiz na navegacao, os
+   remendos em lugar (prosa nova no feed) nao disparam a animacao. */
+
+@media (prefers-reduced-motion: no-preference) {
+  .conteudo > * {
+    animation: tela-entra 280ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
+
+@keyframes tela-entra {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+}
+
 /* a barra inferior nao cobre o fim do conteudo no mobile */
 
 @media (max-width: 47.99rem) {
