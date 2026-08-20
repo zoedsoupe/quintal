@@ -77,13 +77,7 @@ defmodule QuintalWeb.CantoLive do
             Cantos.get(dono.did) || %Canto{dono_did: dono.did, tema: "papel", blocos: @blocos_default, links: []}
           )
 
-        seguindo =
-          if sessao && !proprio? do
-            Repo.one(
-              from f in Quintal.Follow,
-                where: f.seguidor_did == ^sessao.did and f.seguido_did == ^dono.did
-            )
-          end
+        seguindo = seguindo(sessao, proprio?, dono.did)
 
         prosas = Prosas.list_por_autor(dono.did, limit: 20)
 
@@ -333,6 +327,18 @@ defmodule QuintalWeb.CantoLive do
   # com o acento que o valor do lexicon não tem
   defp rotulo_tipo("cronica"), do: "crônica"
   defp rotulo_tipo(tipo), do: tipo
+
+  # o follow da pessoa logada nesse canto, se existe: uma query, sem
+  # carregar a vizinhança inteira pra testar uma ponta
+  defp seguindo(nil, _proprio?, _dono_did), do: nil
+  defp seguindo(_sessao, true, _dono_did), do: nil
+
+  defp seguindo(sessao, false, dono_did) do
+    Repo.one(
+      from f in Quintal.Follow,
+        where: f.seguidor_did == ^sessao.did and f.seguido_did == ^dono_did
+    )
+  end
 
   # blogroll com os dids resolvidos para handle via índice de identidades
   defp blogroll_items(dono_did) do

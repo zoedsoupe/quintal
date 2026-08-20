@@ -29,7 +29,7 @@ defmodule QuintalWeb.ConviteLive do
           <.campo
             name="codigo"
             label="seu código de convite"
-            placeholder="axo-0000"
+            placeholder="axo-00000000"
             required
             autofocus
             autocomplete="off"

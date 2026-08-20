@@ -173,7 +173,7 @@ defmodule QuintalWeb.OAuthLoginTest do
     conn =
       conn
       |> init_test_session(%{quintal_did: "did:plc:alice"})
-      |> get("/oauth/logout")
+      |> post("/oauth/logout")
 
     assert redirected_to(conn) == "/"
     refute get_session(conn, :quintal_did)

@@ -15,9 +15,9 @@ defmodule Quintal.ConvitesTest do
   end
 
   describe "gerar/1" do
-    test "gera código no formato axo-xxxx" do
+    test "gera código no formato axo-xxxxxxxx" do
       assert {:ok, convite} = Convites.gerar("did:plc:alice")
-      assert convite.codigo =~ ~r/^axo-[a-z2-9]{4}$/
+      assert convite.codigo =~ ~r/^axo-[a-z2-9]{8}$/
       assert convite.criado_por == "did:plc:alice"
       assert is_nil(convite.usado_por)
     end
@@ -28,23 +28,32 @@ defmodule Quintal.ConvitesTest do
       end
     end
 
-    test "cota esgota depois de 5 códigos usados" do
+    test "cota esgota depois de 5 códigos criados, usados ou não" do
       did = "did:plc:alice"
 
-      for i <- 1..5 do
-        {:ok, convite} = Convites.gerar(did)
-        :ok = Convites.usar(convite.codigo, "did:plc:convidada#{i}")
+      for _ <- 1..5 do
+        assert {:ok, _} = Convites.gerar(did)
       end
 
       assert {:error, :cota_esgotada} = Convites.gerar(did)
     end
 
-    test "códigos gerados e não usados não descontam da cota" do
+    test "revogar libera a vaga na cota" do
       did = "did:plc:alice"
 
-      for _ <- 1..8 do
+      for _ <- 1..5 do
         assert {:ok, _} = Convites.gerar(did)
       end
+
+      {:ok, convite} = Convites.gerar("admin")
+      :ok = Convites.revogar(convite.codigo)
+
+      assert {:error, :cota_esgotada} = Convites.gerar(did)
+
+      [codigo | _] = did |> Convites.disponiveis() |> Enum.map(& &1.codigo)
+      :ok = Convites.revogar(codigo)
+
+      assert {:ok, _} = Convites.gerar(did)
     end
 
     test "fundadora gera sem cota" do
@@ -64,12 +73,12 @@ defmodule Quintal.ConvitesTest do
       assert Convites.restantes("did:plc:alice") == 5
     end
 
-    test "desconta só os usados" do
+    test "desconta os criados, usados ou não" do
       {:ok, _} = Convites.gerar("did:plc:alice")
       {:ok, usado} = Convites.gerar("did:plc:alice")
       :ok = Convites.usar(usado.codigo, "did:plc:beto")
 
-      assert Convites.restantes("did:plc:alice") == 4
+      assert Convites.restantes("did:plc:alice") == 3
     end
   end
 

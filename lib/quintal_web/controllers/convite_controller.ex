@@ -28,12 +28,12 @@ defmodule QuintalWeb.ConviteController do
 
   # O código se escreve à mão e se cola de mensageiro: aceita case,
   # espaços, hífens "espertos" (U+2011, em-dash) e invisíveis de colagem
-  # (zero-width space), reduzindo tudo à forma canônica "axo-xxxx".
+  # (zero-width space), reduzindo tudo à forma canônica "axo-xxxxxxxx".
   defp canonizar(codigo) do
     limpo = codigo |> String.downcase() |> String.replace(~r/[^a-z0-9]/u, "")
 
     case limpo do
-      "axo" <> sufixo when byte_size(sufixo) == 4 -> "axo-" <> sufixo
+      "axo" <> sufixo when sufixo != "" -> "axo-" <> sufixo
       _ -> limpo
     end
   end
