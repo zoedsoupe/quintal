@@ -145,8 +145,8 @@
   background: var(--fundo-card);
 }
 
-/* cabecalho: avatar miudo blobby, nome do canto em peso 600, tempo em
-   sussurro, acoes miudas a direita */
+/* cabecalho: casinha miuda em squircle, nome do canto em peso 600,
+   tempo em sussurro, acoes miudas a direita */
 
 .prosa-card__cabeca {
   display: flex;
@@ -155,19 +155,24 @@
   margin-bottom: var(--espaco-3);
 }
 
-/* o avatar nasce do handle: --matiz vem inline, o gradiente blobby e
-   da casa. nao guardamos avatar, guardamos cor */
+/* a casinha e a identidade da casa: squircle de 26px com gradiente
+   lilas-rosa da paleta. nao guardamos avatar, guardamos uma casa */
 
 .prosa-card__avatar {
   flex: none;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 42% 58% 61% 39% / 45% 43% 57% 55%;
-  background: linear-gradient(
-    135deg,
-    hsl(var(--matiz, 270) 55% 74%),
-    hsl(calc(var(--matiz, 270) + 40) 60% 64%)
-  );
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.625rem;
+  height: 1.625rem;
+  border-radius: 35%;
+  background: linear-gradient(135deg, var(--acento), var(--acento-2));
+  color: var(--fundo);
+}
+
+.prosa-card__avatar svg {
+  width: 0.875rem;
+  height: 0.875rem;
 }
 
 .prosa-card__identidade {
@@ -201,20 +206,16 @@
   white-space: pre-wrap;
 }
 
-/* prosa longa abre em pagina propria: pill fantasma colada no texto */
+/* prosa longa abre em pagina propria: link textual quieto, sem pill */
 
 .prosa-card__continua {
-  display: inline-block;
-  margin-top: var(--espaco-2);
-  padding: 0.125rem var(--espaco-3);
-  border: 1px solid var(--sussurro);
-  border-radius: var(--raio-pill);
   font-size: 0.875rem;
+  color: var(--meta);
   text-decoration: none;
 }
 
 .prosa-card__continua:hover {
-  border-color: var(--acento);
+  color: var(--acento);
 }
 
 /* imagens: grid quieto de ate 4, cantos arredondados */
@@ -237,8 +238,8 @@
   grid-template-columns: 1fr;
 }
 
-/* rodape: uma acao quieta, responder, e a contagem sussurrada de
-   respostas. sem curtir, sem repost, sem contadores (briefing 4.2) */
+/* rodape: uma linha so, o continuar lendo textual e o responder em
+   pill fantasma. sem curtir, sem repost, sem contadores (briefing 4.2) */
 
 .prosa-card__rodape {
   display: flex;
@@ -257,16 +258,6 @@
 
 .prosa-card__responder:hover {
   border-color: var(--acento);
-}
-
-.prosa-card__respostas {
-  font-size: 0.875rem;
-  color: var(--meta);
-  text-decoration: none;
-}
-
-.prosa-card__respostas:hover {
-  color: var(--acento);
 }
 
 /* resposta no feed: o fio lilas curva do card de cima ate este, e a
@@ -397,10 +388,11 @@
 }
 
 /* prosear: o composer mora na home (briefing 5.2), com cara de app
-   nativo em tres estados. colapsado e uma linha quieta com o avatar e
-   o placeholder em sussurro, quase sem caixa; ao focar, cresce para um
-   card com borda lilas de foco, pills de tipo e o rodape de ferramentas;
-   no mobile vira bottom sheet subindo da base, ao alcance do polegar */
+   nativo em tres estados. colapsado e uma linha quieta com o
+   placeholder em sussurro, quase sem caixa e sem avatar; ao focar,
+   cresce para um card com borda lilas de foco, pills de tipo e o
+   rodape de ferramentas; no mobile vira bottom sheet subindo da base,
+   ao alcance do polegar */
 
 .prosear {
   position: relative;
@@ -424,20 +416,6 @@
   border-color: color-mix(in srgb, var(--acento) 45%, transparent);
 }
 
-.prosear__linha {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--espaco-2);
-}
-
-.prosear__avatar {
-  margin-top: var(--espaco-2);
-}
-
-.prosear .campo {
-  flex: 1;
-}
-
 /* o campo em si nao tem caixa: a caixa e o card inteiro */
 
 .prosear .campo__area {
@@ -449,8 +427,28 @@
   overflow: hidden;
 }
 
+.prosear .campo__area::placeholder {
+  color: var(--meta);
+}
+
 .prosear .campo__area:focus {
   outline: none;
+}
+
+/* prosear miudo e calmo; vazio, dorme em ghost de lavanda ate a
+   primeira letra (o hook desabilita o submit) */
+
+.prosear .botao {
+  min-height: 2.25rem;
+  padding: var(--espaco-1) var(--espaco-3);
+  font-size: 0.875rem;
+}
+
+.prosear .botao:disabled {
+  background: transparent;
+  border-color: var(--sussurro);
+  color: var(--meta);
+  opacity: 1;
 }
 
 /* o fundo escurecido do sheet mobile; no desktop nunca aparece */

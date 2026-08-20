@@ -138,23 +138,6 @@ defmodule Quintal.Prosas do
   end
 
   @doc """
-  Contagem de respostas diretas por prosa, em lote: `%{uri => n}`.
-  O feed e o canto sussurram "3 respostas" sem N+1.
-  """
-  @spec contar_respostas(uris :: [String.t()]) :: %{String.t() => non_neg_integer()}
-  def contar_respostas([]), do: %{}
-
-  def contar_respostas(uris) do
-    from(p in Prosa,
-      where: p.reply_parent in ^uris,
-      group_by: p.reply_parent,
-      select: {p.reply_parent, count()}
-    )
-    |> Repo.all()
-    |> Map.new()
-  end
-
-  @doc """
   Os handles das prosas mãe de uma lista de uris, em lote:
   `%{uri => handle}`. É o "em resposta a fulana" dos cards de resposta
   no feed. Mãe fora do índice simplesmente não aparece no mapa.

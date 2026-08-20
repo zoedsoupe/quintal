@@ -65,21 +65,20 @@ defmodule QuintalWeb.Components do
   @doc """
   Uma prosa no feed, no canto ou na thread: o card de leitura.
 
-  Avatar miúdo de 32px com gradiente blobby semeado pelo handle (não
-  guardamos avatar, a cor nasce do nome), nome do canto em peso 600 e
-  tempo em sussurro. O tipo da prosa é metadado interno e nunca vira
-  rótulo no card (spec 10.1).
+  Ícone miúdo de 26px: uma casinha em squircle com gradiente lilás-rosa
+  (não guardamos avatar, a casinha é a identidade da casa), nome do
+  canto em peso 600 e tempo em sussurro. O tipo da prosa é metadado
+  interno e nunca vira rótulo no card (spec 10.1).
 
   `em_resposta` traz o handle da prosa mãe e acende o fio lilás que
-  conecta o card para cima. `respostas` é a contagem sussurrada de
-  respostas diretas. `path` é a página de leitura: o "continuar lendo",
-  o "responder" e a contagem apontam todos para lá.
+  conecta o card para cima. `path` é a página de leitura: o "continuar
+  lendo" e o "responder" apontam para lá. Sem métricas em lugar nenhum:
+  o rodapé é uma linha só com essas duas ações quietas.
   """
   attr :autor, :string, required: true
   attr :data, :string, required: true
   attr :path, :string, default: nil
   attr :cortou, :boolean, default: false
-  attr :respostas, :integer, default: 0
   attr :em_resposta, :string, default: nil
   attr :responder, :boolean, default: true
   attr :class, :string, default: nil
@@ -96,11 +95,9 @@ defmodule QuintalWeb.Components do
 
       <div class="prosa-card__corpo">
         <header class="prosa-card__cabeca">
-          <span
-            class="prosa-card__avatar"
-            style={"--matiz: #{:erlang.phash2(@autor, 360)}"}
-            aria-hidden="true"
-          ></span>
+          <span class="prosa-card__avatar" aria-hidden="true">
+            <Lucideicons.house />
+          </span>
           <div class="prosa-card__identidade">
             <span class="prosa-card__autor">{@autor}</span>
             <time class="prosa-card__tempo">{@data}</time>
@@ -110,27 +107,20 @@ defmodule QuintalWeb.Components do
 
         <div class="prosa-card__texto">{render_slot(@inner_block)}</div>
 
-        <.link :if={@cortou && @path} navigate={@path} class="prosa-card__continua">
-          continuar lendo
-        </.link>
-
         <div :if={@imagens != []} class="prosa-card__imagens">
           <img :for={img <- @imagens} src={img.src} alt={img.alt} loading="lazy" />
         </div>
 
         <footer :if={@path} class="prosa-card__rodape">
-          <.link :if={@responder} navigate={@path} class="prosa-card__responder">responder</.link>
-          <.link :if={@respostas > 0} navigate={@path} class="prosa-card__respostas">
-            {contagem_respostas(@respostas)}
+          <.link :if={@cortou} navigate={@path} class="prosa-card__continua">
+            continuar lendo
           </.link>
+          <.link :if={@responder} navigate={@path} class="prosa-card__responder">responder</.link>
         </footer>
       </div>
     </article>
     """
   end
-
-  defp contagem_respostas(1), do: "1 resposta"
-  defp contagem_respostas(n), do: "#{n} respostas"
 
   @doc "Um recado no livro de visitas de um canto."
   attr :autor, :string, required: true

@@ -50,7 +50,6 @@ defmodule QuintalWeb.ProsaLive do
        handle: handle,
        prosa: prosa,
        thread: thread,
-       contagens: Prosas.contar_respostas(Enum.map(thread, & &1.uri)),
        visita_deixada: visita_deixada?(prosa, sessao),
        page_title: if(prosa, do: "prosa de #{handle}", else: "prosa não encontrada")
      )}
@@ -140,7 +139,6 @@ defmodule QuintalWeb.ProsaLive do
           autor={resposta.autor.handle}
           data={tempo_relativo(resposta.created_at)}
           path={prosa_path(resposta.uri, resposta.autor.handle)}
-          respostas={Map.get(@contagens, resposta.uri, 0)}
           imagens={imagens_card(resposta)}
         >
           <:acoes :if={@sessao && resposta.autor_did == @sessao.did}>

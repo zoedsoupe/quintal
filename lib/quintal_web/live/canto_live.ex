@@ -86,7 +86,6 @@ defmodule QuintalWeb.CantoLive do
            guardado_seq: 0,
            seguindo: seguindo,
            prosas: prosas,
-           contagens: Prosas.contar_respostas(Enum.map(prosas, & &1.uri)),
            pais:
              prosas
              |> Enum.map(& &1.reply_parent)
@@ -494,7 +493,6 @@ defmodule QuintalWeb.CantoLive do
                       data={tempo_relativo(prosa.created_at)}
                       path={prosa_path(prosa.uri, @dono.handle)}
                       cortou={cortou?}
-                      respostas={Map.get(@contagens, prosa.uri, 0)}
                       em_resposta={prosa.reply_parent && Map.get(@pais, prosa.reply_parent)}
                       imagens={imagens_card(prosa)}
                     >

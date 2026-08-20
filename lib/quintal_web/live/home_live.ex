@@ -40,7 +40,6 @@ defmodule QuintalWeb.HomeLive do
        novidade: novidade,
        feed: feed,
        feed_cursor: proxima_pagina(feed),
-       contagens: %{},
        pais: %{}
      )
      |> enriquecer(feed)}
@@ -102,17 +101,13 @@ defmodule QuintalWeb.HomeLive do
     end
   end
 
-  # contagens de respostas e handles das mães, em lote e sem N+1: o
-  # card sussurra "3 respostas" e amarra o "em resposta a" das respostas
+  # handles das mães, em lote e sem N+1: o card amarra o "em resposta
+  # a" das respostas
   defp enriquecer(socket, feed) do
-    uris = Enum.map(feed, & &1.uri)
-
     pais_uris =
       feed |> Enum.map(& &1.reply_parent) |> Enum.reject(&is_nil/1) |> Enum.uniq()
 
-    socket
-    |> update(:contagens, &Map.merge(&1, Prosas.contar_respostas(uris)))
-    |> update(:pais, &Map.merge(&1, Prosas.pais(pais_uris)))
+    update(socket, :pais, &Map.merge(&1, Prosas.pais(pais_uris)))
   end
 
   # cada anexo sobe como blob pro pds da pessoa e vira um item `images`
@@ -175,22 +170,15 @@ defmodule QuintalWeb.HomeLive do
           <span class="prosear__alca" aria-hidden="true"></span>
           <div class="prosear__fundo" data-fecha aria-hidden="true"></div>
 
-          <div class="prosear__linha">
-            <span
-              class="prosa-card__avatar prosear__avatar"
-              style={"--matiz: #{:erlang.phash2(@handle || "eu", 360)}"}
-              aria-hidden="true"
-            ></span>
-            <.campo
-              name="texto"
-              area
-              aria-label="nova prosa"
-              placeholder="o que tá passando no seu quintal?"
-              rows="1"
-              maxlength="10000"
-              required
-            />
-          </div>
+          <.campo
+            name="texto"
+            area
+            aria-label="nova prosa"
+            placeholder="o que tá passando no seu quintal?"
+            rows="1"
+            maxlength="10000"
+            required
+          />
           <p class="prosear__rascunho" hidden>deixou uma prosa pela metade aqui</p>
 
           <div :if={@uploads.imagens.entries != []} class="prosear__anexos">
@@ -250,7 +238,6 @@ defmodule QuintalWeb.HomeLive do
               data={tempo_relativo(prosa.created_at)}
               path={prosa_path(prosa.uri, autor)}
               cortou={cortou?}
-              respostas={Map.get(@contagens, prosa.uri, 0)}
               em_resposta={prosa.reply_parent && Map.get(@pais, prosa.reply_parent)}
               imagens={imagens_card(prosa)}
             >
