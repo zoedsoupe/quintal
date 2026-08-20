@@ -15,16 +15,24 @@ defmodule Quintal.Passear do
   alias Quintal.Repo
 
   @doc """
-  Uma prosa aleatória do índice, excluindo as da própria pessoa.
+  Uma prosa aleatória do índice, excluindo as da própria pessoa, as
+  respostas (uma resposta fora de contexto é uma carta ruim) e as uris
+  já `vistas` nesta sessão de passeio, para o "de novo" não repetir
+  carta.
 
-  `nil` quando o quintal ainda está vazio demais para passear.
+  `nil` quando o quintal ainda está vazio demais para passear ou quando
+  todas as prosas elegíveis já apareceram: cabe a quem chama zerar as
+  `vistas` e recomeçar o ritual.
   `ORDER BY RANDOM()` basta no alpha: o índice é pequeno e o passeio é
   ritual de uma carta por vez, não listagem.
   """
-  @spec prosa_aleatoria(viewer_did :: String.t() | nil) :: Prosa.t() | nil
-  def prosa_aleatoria(viewer_did) do
+  @spec prosa_aleatoria(viewer_did :: String.t() | nil, vistas :: [String.t()]) ::
+          Prosa.t() | nil
+  def prosa_aleatoria(viewer_did, vistas \\ []) do
     Prosa
+    |> where([p], is_nil(p.reply_root))
     |> fora_do_proprio_canto(viewer_did)
+    |> fora_das_vistas(vistas)
     |> order_by(fragment("RANDOM()"))
     |> limit(1)
     |> preload([:autor])
@@ -33,4 +41,7 @@ defmodule Quintal.Passear do
 
   defp fora_do_proprio_canto(query, nil), do: query
   defp fora_do_proprio_canto(query, did), do: where(query, [p], p.autor_did != ^did)
+
+  defp fora_das_vistas(query, []), do: query
+  defp fora_das_vistas(query, vistas), do: where(query, [p], p.uri not in ^vistas)
 end

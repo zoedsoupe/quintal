@@ -21,6 +21,22 @@
   color: var(--meta);
 }
 
+/* atalho quieto pra quem já conhece o handle: não compete com o
+   botão passear (uma ação principal por tela, briefing 2.1) */
+.passear__direto {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--espaco-2);
+  width: 100%;
+  max-width: 22rem;
+  margin-block-start: var(--espaco-4);
+  text-align: left;
+}
+
+.passear__direto .campo {
+  flex: 1;
+}
+
 .passeio__trecho {
   margin: 0;
   padding: 0;

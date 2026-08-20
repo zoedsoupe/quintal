@@ -21,20 +21,46 @@ defmodule QuintalWeb.PassearLive do
     sessao = socket.assigns.sessao
     novidade = if sessao, do: Visitas.novidade?(sessao.did), else: false
 
-    {:ok, assign(socket, novidade: novidade, page_title: "passear", carta: nil, nome: nil)}
+    {:ok,
+     assign(socket,
+       novidade: novidade,
+       page_title: "passear",
+       carta: nil,
+       nome: nil,
+       vistas: [],
+       esgotado: false
+     )}
   end
 
   @impl true
   def handle_event("passear", _params, socket) do
     viewer_did = socket.assigns.sessao && socket.assigns.sessao.did
+    {carta, vistas} = sortear(viewer_did, socket.assigns.vistas)
+    nome = carta && ([carta.autor_did] |> Cantos.nomes() |> Map.get(carta.autor_did))
 
-    case Passear.prosa_aleatoria(viewer_did) do
-      nil ->
-        {:noreply, socket |> assign(carta: nil) |> put_flash(:error, "ih, algo deu errado. tenta de novo?")}
+    {:noreply,
+     assign(socket, carta: carta, nome: nome, vistas: vistas, esgotado: is_nil(carta))}
+  end
 
-      carta ->
-        nome = [carta.autor_did] |> Cantos.nomes() |> Map.get(carta.autor_did)
-        {:noreply, assign(socket, carta: carta, nome: nome)}
+  def handle_event("ir_direto", %{"handle" => handle}, socket) do
+    handle = handle |> String.trim() |> String.trim_leading("@") |> String.downcase()
+
+    if handle == "" do
+      {:noreply, socket}
+    else
+      # sem resolver aqui: se o handle não existir, o CantoLive já
+      # responde com o axô de lupa
+      {:noreply, push_navigate(socket, to: ~p"/canto/#{handle}")}
+    end
+  end
+
+  # o "de novo" nunca repete carta; quando todas as prosas elegíveis já
+  # apareceram nesta sessão, zera as vistas e o ritual recomeça
+  defp sortear(viewer_did, vistas) do
+    case Passear.prosa_aleatoria(viewer_did, vistas) do
+      nil when vistas != [] -> sortear(viewer_did, [])
+      nil -> {nil, vistas}
+      carta -> {carta, [carta.uri | vistas]}
     end
   end
 
@@ -42,11 +68,29 @@ defmodule QuintalWeb.PassearLive do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} sessao={@sessao} novidade={@novidade}>
-      <div :if={!@carta} class="passear">
+      <div :if={!@carta && !@esgotado} class="passear">
         <img class="passear__axo" src="/images/axo-with-glass.png" alt="" aria-hidden="true" />
         <p class="passear__linha">o axô acha um canto pra você conhecer</p>
         <.botao phx-click="passear">passear</.botao>
+
+        <form phx-submit="ir_direto" class="passear__direto">
+          <.campo
+            name="handle"
+            label="já sabe o caminho? vai direto pro canto"
+            placeholder="fulano.bsky.social"
+            autocomplete="off"
+          />
+          <.botao variante={:fantasma} type="submit">visitar</.botao>
+        </form>
       </div>
+
+      <.vazio
+        :if={@esgotado}
+        pose={:lupa}
+        titulo="o axô nadou o quintal inteiro e não achou ninguém por aqui ainda"
+      >
+        <.link navigate={~p"/prosear"} class="botao botao--primario">escrever uma prosa</.link>
+      </.vazio>
 
       <div :if={@carta} class="passear passeio">
         <blockquote class="passeio__trecho">
