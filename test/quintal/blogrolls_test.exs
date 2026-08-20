@@ -126,5 +126,12 @@ defmodule Quintal.BlogrollsTest do
       assert item.did == "did:plc:carol"
       assert Repo.aggregate(Blogroll, :count) == 1
     end
+
+    test "lista vazia indexa sem violar o NOT NULL de items" do
+      value = %{"items" => [], "updatedAt" => "2026-08-01T10:00:00Z"}
+
+      assert {:ok, blogroll} = Blogrolls.indexar("did:plc:alice", %{value: value})
+      assert blogroll.items == []
+    end
   end
 end
