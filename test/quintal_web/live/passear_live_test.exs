@@ -35,7 +35,9 @@ defmodule QuintalWeb.PassearLiveTest do
   end
 
   test "portaria fecha o passear para quem não entrou" do
-    assert {:error, {:redirect, %{to: "/"}}} = live(build_conn(), "/passear")
+    conn = get(build_conn(), "/passear")
+
+    assert html_response(conn, 401) =~ "opa, pode entrar não"
   end
 
   test "abre quase vazia, com o axô de lupa e o botão passear", %{conn: conn} do

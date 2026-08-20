@@ -7,8 +7,9 @@ defmodule QuintalWeb.SessaoHook do
   `Quintal.Auth.impl().current_session/1`, com refresh proativo por
   trás (spec 8.2): a interface nunca pensa em token.
 
-  A variante `:privado` fecha a portaria do alpha nas rotas de conteúdo:
-  sem sessão, a pessoa volta para a home em vez de passear pelo quintal.
+  A variante `:privado` cobre o caso da sessão expirar no meio da
+  navegação (a pipeline `:portaria` já responde 401 em toda requisição
+  http sem sessão): manda a pessoa de volta para a home.
   """
 
   import Phoenix.Component, only: [assign: 3]

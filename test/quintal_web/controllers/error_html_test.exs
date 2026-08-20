@@ -11,7 +11,7 @@ defmodule QuintalWeb.ErrorHTMLTest do
 
   test "renders 401.html" do
     html = render_to_string(QuintalWeb.ErrorHTML, "401", "html", [])
-    assert html =~ "ih, algo deu errado. tenta de novo?"
+    assert html =~ "opa, pode entrar não"
   end
 
   test "renders 500.html" do

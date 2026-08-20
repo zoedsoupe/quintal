@@ -15,6 +15,10 @@ defmodule QuintalWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :portaria do
+    plug QuintalWeb.PortariaPlug
+  end
+
   scope "/", QuintalWeb do
     pipe_through :browser
 
@@ -26,6 +30,15 @@ defmodule QuintalWeb.Router do
       live "/conduta", CondutaLive
     end
 
+    get "/oauth/login", OAuthController, :login
+    get "/oauth/logout", OAuthController, :logout
+    get "/oauth/callback", OAuthController, :callback
+    post "/convite", ConviteController, :create
+  end
+
+  scope "/", QuintalWeb do
+    pipe_through [:browser, :portaria]
+
     # conteúdo do quintal: portaria fechada, só com sessão (spec 6.1)
     live_session :privado, on_mount: [{QuintalWeb.SessaoHook, :privado}] do
       live "/boas-vindas", BoasVindasLive
@@ -36,11 +49,7 @@ defmodule QuintalWeb.Router do
       live "/conta", ContaLive
     end
 
-    get "/oauth/login", OAuthController, :login
-    get "/oauth/logout", OAuthController, :logout
-    get "/oauth/callback", OAuthController, :callback
     get "/conta/exportar", ContaController, :exportar
-    post "/convite", ConviteController, :create
   end
 
   scope "/", QuintalWeb do

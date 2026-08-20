@@ -78,7 +78,9 @@ defmodule QuintalWeb.ContaLiveTest do
     assert html =~ "/oauth/logout"
   end
 
-  test "sem sessão, a portaria manda para a home" do
-    assert {:error, {:redirect, %{to: "/"}}} = live(build_conn(), "/conta")
+  test "sem sessão, a portaria responde 401" do
+    conn = get(build_conn(), "/conta")
+
+    assert html_response(conn, 401) =~ "opa, pode entrar não"
   end
 end
