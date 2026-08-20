@@ -114,20 +114,18 @@ defmodule QuintalWeb.LexiconsHTML do
   defp subcampos(%{"properties" => props}) when map_size(props) > 0, do: Enum.sort(props)
   defp subcampos(_prop), do: nil
 
-  defp resumo(%{"type" => type} = prop) do
-    base =
-      case type do
-        "string" -> "texto"
-        "integer" -> "inteiro"
-        "boolean" -> "booleano"
-        "blob" -> "arquivo"
-        "object" -> "objeto"
-        "array" -> "lista de #{resumo_itens(prop["items"] || %{})}"
-        "ref" -> "referência a #{prop["ref"]}"
-        "union" -> "um de: #{Enum.join(prop["refs"] || [], ", ")}"
-        outro -> outro
-      end
+  defp match_type("string", _prop), do: "texto"
+  defp match_type("integer", _prop), do: "inteiro"
+  defp match_type("boolean", _prop), do: "boolean"
+  defp match_type("blob", _prop), do: "arquivo"
+  defp match_type("object", _prop), do: "objeto"
+  defp match_type("array", prop), do: "lista de #{resumo_itens(prop["items"] || %{})}"
+  defp match_type("ref", prop), do: "referência a #{prop["ref"]}"
+  defp match_type("union", prop), do: "um de: #{Enum.join(prop["refs"] || [], ", ")}"
+  defp match_type(outro, _), do: outro
 
+  defp resumo(%{"type" => type} = prop) do
+    base = match_type(type, prop)
     Enum.join([base | restricoes(prop)], ", ")
   end
 

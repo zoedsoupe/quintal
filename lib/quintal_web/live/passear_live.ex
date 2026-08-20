@@ -36,10 +36,9 @@ defmodule QuintalWeb.PassearLive do
   def handle_event("passear", _params, socket) do
     viewer_did = socket.assigns.sessao && socket.assigns.sessao.did
     {carta, vistas} = sortear(viewer_did, socket.assigns.vistas)
-    nome = carta && ([carta.autor_did] |> Cantos.nomes() |> Map.get(carta.autor_did))
+    nome = carta && [carta.autor_did] |> Cantos.nomes() |> Map.get(carta.autor_did)
 
-    {:noreply,
-     assign(socket, carta: carta, nome: nome, vistas: vistas, esgotado: is_nil(carta))}
+    {:noreply, assign(socket, carta: carta, nome: nome, vistas: vistas, esgotado: is_nil(carta))}
   end
 
   def handle_event("ir_direto", %{"handle" => handle}, socket) do
