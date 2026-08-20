@@ -85,6 +85,15 @@ input,
 textarea,
 select {
   font: inherit;
+}
+
+/* o chrome é minúsculo (spec 7.1); campo de texto fica de fora porque
+   o que a pessoa escreve é dela, caixa alta inclusa (spec 7.1.2) */
+h1,
+h2,
+h3,
+button,
+select {
   text-transform: lowercase;
 }
 
