@@ -129,78 +129,206 @@
   color: var(--erro);
 }
 
-/* prosa: a unidade de escrita. area de leitura calma, medida generosa */
+/* prosa-card: a unidade de escrita no feed, no canto e na thread.
+   superficie erguida, raio generoso, borda de um fio; a area de
+   leitura fica calma e a saturacao mora nos detalhes (spec 7.2). */
 
-.prosa {
+.prosa-card {
+  position: relative;
   max-width: var(--medida-leitura);
-  padding: var(--espaco-4);
-  border-radius: var(--raio);
-  background: var(--fundo-leitura);
-  font-family: var(--fonte-leitura);
-  line-height: 1.7;
 }
 
-.prosa--pergunta {
-  border-left: 3px solid var(--acento-2);
+.prosa-card__corpo {
+  padding: var(--espaco-3) var(--espaco-4);
+  border: 1px solid var(--borda-card);
+  border-radius: var(--raio-card);
+  background: var(--fundo-card);
 }
 
-.prosa__meta {
+/* cabecalho: avatar miudo blobby, nome do canto em peso 600, tempo em
+   sussurro, chip de tipo miudo a direita */
+
+.prosa-card__cabeca {
   display: flex;
+  align-items: center;
   gap: var(--espaco-2);
   margin-bottom: var(--espaco-3);
-  font-family: var(--fonte-chrome);
-  font-size: 0.875rem;
+}
+
+/* o avatar nasce do handle: --matiz vem inline, o gradiente blobby e
+   da casa. nao guardamos avatar, guardamos cor */
+
+.prosa-card__avatar {
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 42% 58% 61% 39% / 45% 43% 57% 55%;
+  background: linear-gradient(
+    135deg,
+    hsl(var(--matiz, 270) 55% 74%),
+    hsl(calc(var(--matiz, 270) + 40) 60% 64%)
+  );
+}
+
+.prosa-card__identidade {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.prosa-card__autor {
+  font-family: var(--fonte-leitura);
+  font-weight: 600;
+  color: var(--tinta);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prosa-card__tempo {
+  font-size: 0.8125rem;
   color: var(--meta);
 }
 
-/* nome do canto em peso 600; handle e tempo ficam em sussurro (4.2) */
+/* chip de tipo: metadado quieto, rosa lavado. nota nao marca nada */
 
-.prosa__autor {
-  font-weight: 600;
-  color: var(--tinta);
+.prosa-card__chip {
+  margin-left: auto;
+  padding: 0.125rem 0.625rem;
+  border: 1px solid color-mix(in srgb, var(--acento-2) 45%, transparent);
+  border-radius: var(--raio-pill);
+  font-size: 0.75rem;
+  color: var(--acento-2);
+  background: color-mix(in srgb, var(--acento-2) 12%, transparent);
 }
 
-.prosa__texto {
-  white-space: pre-wrap;
-}
-
-.prosa__acoes {
+.prosa-card__acoes {
   margin-left: auto;
 }
 
-/* feed: uma folha, nao uma grade de cartoes. separacao por espaco em
-   branco e hairline de sussurro (briefing 4.2). respiro enxuto: a lista
-   le como jornal, nao como pilha de cartoes */
+.prosa-card__chip + .prosa-card__acoes {
+  margin-left: 0;
+}
+
+.prosa-card__texto {
+  font-family: var(--fonte-leitura);
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+
+/* prosa longa abre em pagina propria: pill fantasma colada no texto */
+
+.prosa-card__continua {
+  display: inline-block;
+  margin-top: var(--espaco-2);
+  padding: 0.125rem var(--espaco-3);
+  border: 1px solid var(--sussurro);
+  border-radius: var(--raio-pill);
+  font-size: 0.875rem;
+  text-decoration: none;
+}
+
+.prosa-card__continua:hover {
+  border-color: var(--acento);
+}
+
+/* imagens: grid quieto de ate 4, cantos arredondados */
+
+.prosa-card__imagens {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--espaco-2);
+  margin-top: var(--espaco-3);
+}
+
+.prosa-card__imagens img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--raio);
+}
+
+.prosa-card__imagens:has(img:only-child) {
+  grid-template-columns: 1fr;
+}
+
+/* rodape: uma acao quieta, responder, e a contagem sussurrada de
+   respostas. sem curtir, sem repost, sem contadores (briefing 4.2) */
+
+.prosa-card__rodape {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+  margin-top: var(--espaco-3);
+}
+
+.prosa-card__responder {
+  padding: 0.125rem var(--espaco-3);
+  border: 1px solid var(--sussurro);
+  border-radius: var(--raio-pill);
+  font-size: 0.875rem;
+  text-decoration: none;
+}
+
+.prosa-card__responder:hover {
+  border-color: var(--acento);
+}
+
+.prosa-card__respostas {
+  font-size: 0.875rem;
+  color: var(--meta);
+  text-decoration: none;
+}
+
+.prosa-card__respostas:hover {
+  color: var(--acento);
+}
+
+/* resposta no feed: o fio lilas curva do card de cima ate este, e a
+   etiqueta "em resposta a" explica a ligacao */
+
+.prosa-card--resposta {
+  margin-left: var(--espaco-4);
+}
+
+.prosa-card--resposta::before {
+  content: "";
+  position: absolute;
+  left: calc(-1 * var(--espaco-4) + 0.75rem);
+  top: calc(-1 * var(--espaco-4));
+  width: 1rem;
+  height: calc(var(--espaco-4) + 1.5rem);
+  border-left: 2px solid var(--acento);
+  border-bottom: 2px solid var(--acento);
+  border-bottom-left-radius: 1rem;
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.prosa-card__fio {
+  margin: 0 0 var(--espaco-1) var(--espaco-4);
+  font-size: 0.8125rem;
+  color: var(--meta);
+}
+
+.prosa-card__fio-autor {
+  color: var(--acento);
+}
+
+/* feed: uma estante de cartoes separados por espaco em branco */
 
 .feed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
   max-width: var(--medida-leitura);
   margin-block: var(--espaco-4);
 }
 
-.feed .prosa {
-  padding: var(--espaco-3) 0;
-  border-radius: 0;
-  background: transparent;
-}
-
-.feed .prosa__meta {
-  margin-bottom: var(--espaco-2);
-}
-
-.feed .prosa__texto {
-  line-height: 1.6;
-}
-
-.feed__item + .feed__item {
-  border-top: 1px solid var(--sussurro);
-}
-
-/* prosa longa abre em pagina propria: o trecho termina com convite, em
-   sussurro, colado no texto */
-
-.prosa__continua {
-  margin: calc(-1 * var(--espaco-2)) 0 var(--espaco-3);
-  font-size: 0.875rem;
+.feed__mais {
+  margin-top: var(--espaco-3);
+  text-align: center;
 }
 
 /* prosa-pagina: a leitura e o produto (spec 7.3). medida de 68ch,
@@ -210,6 +338,13 @@
   max-width: var(--medida-leitura);
   margin: var(--espaco-4) auto;
   font-family: var(--fonte-leitura);
+}
+
+/* pergunta e o unico tipo com enfase visual (spec 10.1) */
+
+.prosa--pergunta {
+  border-left: 3px solid var(--acento-2);
+  padding-left: var(--espaco-3);
 }
 
 .prosa-pagina__meta {
@@ -234,9 +369,43 @@
   white-space: pre-wrap;
 }
 
-.feed__mais {
+.prosa-pagina__imagens {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--espaco-2);
   margin-top: var(--espaco-3);
-  text-align: center;
+}
+
+.prosa-pagina__imagens img {
+  width: 100%;
+  border-radius: var(--raio);
+}
+
+.prosa-pagina__imagens:has(img:only-child) {
+  grid-template-columns: 1fr;
+}
+
+/* thread (briefing 5.4): hairline, respostas em ordem cronologica no
+   mesmo formato de card, e no fim o composer de resposta */
+
+.thread {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+  max-width: var(--medida-leitura);
+  margin: var(--espaco-4) auto 0;
+  padding-top: var(--espaco-4);
+  border-top: 1px solid var(--sussurro);
+}
+
+.thread__responder {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+.thread__responder .botao {
+  align-self: flex-start;
 }
 
 /* fim de feed declarado: quando acaba, acaba, com despedida amiga */
@@ -250,28 +419,101 @@
   text-align: center;
 }
 
-/* prosear: o composer mora na home (briefing 5.2). colapsado e uma
-   caixa quieta; ao focar, expande suave e mostra tipos e publicar */
+/* prosear: o composer mora na home (briefing 5.2), com cara de app
+   nativo em tres estados. colapsado e uma linha quieta com o avatar e
+   o placeholder em sussurro, quase sem caixa; ao focar, cresce para um
+   card com borda lilas de foco, pills de tipo e o rodape de ferramentas;
+   no mobile vira bottom sheet subindo da base, ao alcance do polegar */
 
 .prosear {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: var(--espaco-3);
+  gap: var(--espaco-2);
   max-width: var(--medida-leitura);
   margin-block: var(--espaco-4);
+  padding: var(--espaco-2) var(--espaco-3);
+  border: 1px solid transparent;
+  border-radius: var(--raio-card);
+  background: color-mix(in srgb, var(--fundo-card) 55%, transparent);
+  transition:
+    background var(--transicao),
+    border-color var(--transicao);
 }
+
+.prosear:focus-within,
+.prosear--expandido {
+  background: var(--fundo-card);
+  border-color: color-mix(in srgb, var(--acento) 45%, transparent);
+}
+
+.prosear__linha {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espaco-2);
+}
+
+.prosear__avatar {
+  margin-top: var(--espaco-2);
+}
+
+.prosear .campo {
+  flex: 1;
+}
+
+/* o campo em si nao tem caixa: a caixa e o card inteiro */
 
 .prosear .campo__area {
   min-height: 2.75rem;
+  padding: var(--espaco-2) 0;
+  border: 0;
+  background: transparent;
   resize: none;
   overflow: hidden;
 }
 
+.prosear .campo__area:focus {
+  outline: none;
+}
+
+/* o fundo escurecido do sheet mobile; no desktop nunca aparece */
+
+.prosear__fundo {
+  display: none;
+}
+
+.prosear__alca {
+  display: none;
+}
+
+/* anexos: thumb, campo de alt obrigatorio e o x para tirar */
+
+.prosear__anexos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+.prosear__anexo {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+}
+
+.prosear__anexo .campo {
+  flex: 1;
+}
+
+.prosear__thumb {
+  width: 3rem;
+  height: 3rem;
+  object-fit: cover;
+  border-radius: var(--raio);
+}
+
 .prosear__rodape {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
   gap: var(--espaco-3);
   max-height: 0;
   overflow: hidden;
@@ -290,15 +532,56 @@
   visibility: visible;
 }
 
-@media (min-width: 48rem) {
-  .prosear:focus-within .prosear__rodape,
-  .prosear--expandido .prosear__rodape {
-    max-height: 6rem;
+/* ferramentas: clipe a esquerda, atalho sussurrado, anel de progresso
+   miudo e o prosear a direita */
+
+.prosear__ferramentas {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+}
+
+.prosear__clipe {
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+}
+
+.prosear__atalho {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: var(--sussurro);
+}
+
+.prosear__contador {
+  font-size: 0.875rem;
+  color: var(--meta);
+}
+
+/* anel de progresso miudo: gira enquanto o form esta no ar
+   (a escrita otimista some com ele quando o pds confirma) */
+
+.prosear__anel {
+  display: none;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid var(--sussurro);
+  border-top-color: var(--acento);
+  border-radius: 50%;
+  animation: anel-gira 0.7s linear infinite;
+}
+
+.prosear.phx-submit-loading .prosear__anel {
+  display: inline-block;
+}
+
+@keyframes anel-gira {
+  to {
+    transform: rotate(1turn);
   }
 }
 
-/* tipos sao metadado, nao cerimonia (spec 10.1): pills quietas, trocar
-   o tipo nao muda nada alem da pill */
+/* tipos sao metadado, nao cerimonia (spec 10.1): pills quietas, a
+   selecionada cheia de lilas, as demais ghost de sussurro */
 
 .prosear__tipos {
   display: flex;
@@ -337,13 +620,63 @@
   outline-offset: 2px;
 }
 
-/* contador invisivel ate faltar pouco (ultimos 500 grafemes, em
-   sussurro); rascunho oferecido de volta na mesma voz */
+/* rascunho oferecido de volta na mesma voz quieta do contador */
 
-.prosear__contador,
 .prosear__rascunho {
   font-size: 0.875rem;
   color: var(--meta);
+}
+
+/* sheet mobile: expandido, o composer sobe da base da tela com alca de
+   arrastar, fundo escurecido atras e o prosear ao alcance do polegar.
+   o atalho de teclado some, teclado virtual nao tem ctrl */
+
+@media (max-width: 47.99rem) {
+  .prosear--expandido,
+  .prosear:focus-within {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 30;
+    max-width: none;
+    margin: 0;
+    padding: var(--espaco-3);
+    padding-bottom: calc(var(--espaco-3) + env(safe-area-inset-bottom, 0px));
+    border-color: var(--borda-card);
+    border-radius: var(--raio-card) var(--raio-card) 0 0;
+    animation: folha-sobe 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .prosear--expandido .prosear__fundo,
+  .prosear:focus-within .prosear__fundo {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: rgb(0 0 0 / 0.4);
+  }
+
+  .prosear--expandido .prosear__alca,
+  .prosear:focus-within .prosear__alca {
+    display: block;
+    align-self: center;
+    width: 2.5rem;
+    height: 0.25rem;
+    margin-bottom: var(--espaco-1);
+    border-radius: var(--raio-pill);
+    background: var(--sussurro);
+  }
+
+  .prosear__atalho {
+    display: none;
+  }
+}
+
+@keyframes folha-sobe {
+  from {
+    transform: translateY(100%);
+  }
 }
 
 /* recado: entrada do livro de visitas */
@@ -672,4 +1005,94 @@ html.rolagem-descendo .nav-movel {
 
 .rodape a {
   color: var(--meta);
+}
+
+/* boas vindas (briefing 5.7, passos 2 e 3): uma coluna centrada, uma
+   acao por tela. os swatches de tema sao miniaturas do preset: fundo,
+   duas linhas de texto e uma pill no acento */
+
+.boas-vindas-onboarding {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espaco-3);
+  max-width: var(--medida-leitura);
+  margin-inline: auto;
+  padding-block: var(--espaco-5);
+  text-align: center;
+}
+
+.boas-vindas-onboarding__linha {
+  color: var(--meta);
+}
+
+.boas-vindas-onboarding__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  width: 100%;
+  max-width: 26rem;
+  text-align: left;
+}
+
+.boas-vindas-onboarding__acoes {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+}
+
+.tema-opcoes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--espaco-3);
+  width: 100%;
+  max-width: 30rem;
+  margin-block: var(--espaco-2) var(--espaco-3);
+}
+
+@media (max-width: 47.99rem) {
+  .tema-opcoes {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tema-opcao {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--espaco-2);
+  padding: var(--espaco-3);
+  border: 1px solid var(--sussurro);
+  border-radius: var(--raio-card);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.tema-opcao--selecionado {
+  outline: 2px solid var(--acento);
+  outline-offset: 2px;
+}
+
+.tema-opcao__linha {
+  width: 70%;
+  height: 0.375rem;
+  border-radius: var(--raio-pill);
+  opacity: 0.85;
+}
+
+.tema-opcao__linha--curta {
+  width: 45%;
+  opacity: 0.55;
+}
+
+.tema-opcao__pill {
+  width: 2.5rem;
+  height: 0.875rem;
+  margin-top: var(--espaco-1);
+  border-radius: var(--raio-pill);
+}
+
+.tema-opcao__nome {
+  margin-top: var(--espaco-1);
+  font-size: 0.875rem;
 }

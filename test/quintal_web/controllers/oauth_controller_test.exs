@@ -66,7 +66,7 @@ defmodule QuintalWeb.OAuthControllerTest do
         |> init_test_session(%{oauth_pending: %{state: "abc"}, convite: convite.codigo})
         |> get("/oauth/callback", %{"code" => "123", "state" => "abc"})
 
-      assert redirected_to(conn) == "/"
+      assert redirected_to(conn) == "/boas-vindas"
       assert get_session(conn, :quintal_did) == "did:plc:nova"
       refute get_session(conn, :convite)
       assert Repo.get(Quintal.Convite, convite.codigo).usado_por == "did:plc:nova"

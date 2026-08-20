@@ -8,8 +8,8 @@ defmodule QuintalWeb.PortariaPlug do
 
   @behaviour Plug
 
-  import Plug.Conn
   import Phoenix.Controller
+  import Plug.Conn
 
   @impl true
   def init(opts), do: opts

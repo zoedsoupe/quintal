@@ -52,10 +52,10 @@ defmodule Quintal.Prosas do
   """
   @spec responder(Quintal.PDS.session(), parent :: Prosa.t(), texto :: String.t()) ::
           {:ok, Prosa.t()} | {:error, :texto_vazio | :mae_fora_do_indice | term()}
-  def responder(session, %Prosa{} = parent, texto) do
-    root_uri = parent.reply_root || parent.uri
-
-    with %Prosa{} = root <- root_uri == parent.uri && parent || Repo.get(Prosa, root_uri) do
+  def responder(session, %Prosa{uri: parent_uri}, texto) do
+    with %Prosa{} = parent <- Repo.get(Prosa, parent_uri),
+         root_uri = parent.reply_root || parent.uri,
+         %Prosa{} = root <- if(root_uri == parent.uri, do: parent, else: Repo.get(Prosa, root_uri)) do
       reply = %{
         "root" => %{"uri" => root.uri, "cid" => root.cid},
         "parent" => %{"uri" => parent.uri, "cid" => parent.cid}
@@ -63,7 +63,7 @@ defmodule Quintal.Prosas do
 
       criar(session, texto, nil, reply, [])
     else
-      _sem_raiz -> {:error, :mae_fora_do_indice}
+      _sem_mae_ou_raiz -> {:error, :mae_fora_do_indice}
     end
   end
 
@@ -145,12 +145,12 @@ defmodule Quintal.Prosas do
   def contar_respostas([]), do: %{}
 
   def contar_respostas(uris) do
-    Repo.all(
-      from p in Prosa,
-        where: p.reply_parent in ^uris,
-        group_by: p.reply_parent,
-        select: {p.reply_parent, count()}
+    from(p in Prosa,
+      where: p.reply_parent in ^uris,
+      group_by: p.reply_parent,
+      select: {p.reply_parent, count()}
     )
+    |> Repo.all()
     |> Map.new()
   end
 
@@ -163,12 +163,12 @@ defmodule Quintal.Prosas do
   def pais([]), do: %{}
 
   def pais(uris) do
-    Repo.all(
-      from p in Prosa,
-        join: a in assoc(p, :autor),
-        where: p.uri in ^uris,
-        select: {p.uri, a.handle}
+    from(p in Prosa,
+      join: a in assoc(p, :autor),
+      where: p.uri in ^uris,
+      select: {p.uri, a.handle}
     )
+    |> Repo.all()
     |> Map.new()
   end
 
@@ -206,8 +206,7 @@ defmodule Quintal.Prosas do
 
     Ecto.Multi.new()
     |> Ecto.Multi.insert(:prosa, Prosa.changeset(%Prosa{}, attrs),
-      on_conflict:
-        {:replace, [:cid, :texto, :tipo, :reply_root, :reply_parent, :langs, :created_at, :indexed_at]},
+      on_conflict: {:replace, [:cid, :texto, :tipo, :reply_root, :reply_parent, :langs, :created_at, :indexed_at]},
       conflict_target: :uri
     )
     |> Ecto.Multi.delete_all(:limpa_imagens, from(i in Quintal.ProsaImagem, where: i.prosa_uri == ^uri))

@@ -67,6 +67,7 @@ defmodule Quintal.VisitasTest do
 
       assert Visitas.novidade?("did:plc:alice") == true
       assert :ok = Visitas.marcar_lido("did:plc:alice")
+
       assert Visitas.resumo("did:plc:alice") == %{
                recado: 0,
                resposta: 0,
@@ -74,6 +75,7 @@ defmodule Quintal.VisitasTest do
                depoimento: 0,
                leitura: 0
              }
+
       assert Visitas.novidade?("did:plc:alice") == false
 
       Visitas.registrar("did:plc:alice", "depoimento", "at://x/2", "did:plc:carol")

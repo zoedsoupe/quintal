@@ -47,12 +47,14 @@ quatro destinos e só: **início, passear, visitas, canto**.
 
 ### 4.2 card de prosa (no feed)
 
-- cabeçalho: nome do canto em peso 600, handle e tempo relativo em sussurro ("há 2h"). sem avatar grande: avatar miúdo de 32px ou nenhum.
-- corpo: texto na tipografia de leitura, cortado em torno de 400 grafemes com "ler no canto" se passar disso.
+- cabeçalho: avatar miúdo de 32px com gradiente blobby semeado pelo handle, nome do canto em peso 600 na serifada, tempo relativo em sussurro ("há 2h").
+- chip miúdo de tipo em rosa lavado quando a prosa não é nota (pergunta, crônica, ensaio). nota é o estado default e não marca nada: o tipo é metadado, não cerimônia.
+- corpo: texto na tipografia de leitura, cortado em torno de 600 grafemes com uma pill ghost "continuar lendo" se passar disso.
 - imagens: grid quieto de até 4, cantos arredondados.
-- ações: uma só, **responder**. sem curtir, sem repost, sem contadores. respostas existentes aparecem como "3 respostas" em sussurro, clicável para a thread.
+- ações: uma só, **responder**, em pill quieta. sem curtir, sem repost, sem contadores. respostas existentes aparecem como "3 respostas" em sussurro, clicável para a thread.
+- resposta no feed: etiqueta "em resposta a fulana" acima do card e um fio lilás fino que curva do card de cima até ela.
 - badge "fora do quintal" quando for mirror de site externo (v1.5), com ícone de casinha com seta.
-- separação entre cards: espaço em branco e uma hairline de sussurro, sem caixas pesadas. o feed é uma folha, não uma grade de cartões.
+- separação entre cards: cards de superfície com borda de um fio e raio generoso, separados por espaço em branco. o feed é uma estante de cartões, não uma grade.
 
 ### 4.3 composer (prosear)
 
@@ -115,15 +117,15 @@ sections
 
 **sim, o prosear mora na home.** escrever é a ação central do produto, e esconder o composer atrás de um botão ou de uma rota é atrito contra a própria razão de existir do quintal. a home logada é: composer no topo, feed cronológico embaixo. a mesma rota da tela 5.1, dois estados.
 
-**o composer em detalhe**:
+**o composer em detalhe** (com cara de app nativo, três estados):
 
-- **colapsado**: uma caixa quieta com o placeholder "o que tá passando no seu quintal?". parece um campo de texto comum, sem avatar obrigatório, sem opções visíveis.
-- **ao focar**: expande suavemente. textarea com auto-grow, tipografia de leitura (escrever e ler têm a mesma cara).
-- **tipos**: pills quietas abaixo do campo: nota (default, selecionada), pergunta, crônica, ensaio. são metadado, não cerimônia: trocar o tipo não muda nada além da pill.
+- **colapsado**: uma linha quieta no topo do feed: o avatar miúdo da pessoa e o placeholder "o que tá passando no seu quintal?" em sussurro. quase sem caixa: uma superfície de quase-nada, sem borda.
+- **ao focar**: expande suavemente para um card de superfície com raio generoso e borda lilás de foco. textarea com auto-grow, tipografia de leitura (escrever e ler têm a mesma cara).
+- **mobile**: o estado expandido é uma bottom sheet que sobe da base com alça de arrastar, fundo escurecido atrás e o prosear ao alcance do polegar. tocar no fundo ou esc fecha.
+- **tipos**: pills quietas abaixo do campo: nota (default, selecionada e cheia de lilás), pergunta, crônica, ensaio. são metadado, não cerimônia: trocar o tipo não muda nada além da pill.
 - **imagens**: um ícone de clipe adiciona até 4 imagens; cada imagem anexada abre um campo de alt obrigatório inline ("descreve essa imagem pra quem não vê"). sem alt, não publica.
 - **contador**: invisível até faltar pouco. aparece só nos últimos 500 grafemes, em sussurro ("tá chegando no limite, faltam 320"). nunca um número permanente.
-- **ensaio**: ao escolher o tipo ensaio, surge um link "abrir no modo foco", que leva para a tela 5.8.
-- **publicar**: botão primário "prosear". otimista: a prosa entra no feed na hora com um estado quieto de "mandando pro seu cantinho..." que some sozinho. erro vira mensagem amiga com botão de tentar de novo, sem modal.
+- **publicar**: botão primário "prosear" com um anel de progresso miúdo ao lado enquanto o pds confirma, e o atalho "ctrl+enter pra prosear" sussurrado no canto do rodapé (só desktop). otimista: a prosa entra no feed na hora. erro vira mensagem amiga com botão de tentar de novo, sem modal.
 - **rascunho**: se a pessoa sair com texto no composer, guarda local e oferece de volta na próxima visita ("deixou uma prosa pela metade aqui").
 
 **o feed em detalhe**:
@@ -249,21 +251,13 @@ for an invite code, one primary button, huge negative space, flat
 clean vector style, desktop web layout
 ```
 
-### 5.8 modo foco (escrever ensaio)
+### 5.8 modo foco (aposentado)
 
-**objetivo**: uma folha em branco para texto longo, sem o quintal em volta.
-
-**composição**: coluna única de texto em fraunces, medida confortável, sem cabeçalho de navegação. sem campo de título: a prosa é o texto. rodapé fino e quieto com o estado de salvamento ("rascunho guardado há 12s"), o contador que só aparece perto do limite, e o botão "prosear". esc sai para a home com o rascunho salvo.
-
-**decisões de ux**: autosave local a cada pausa de digitação. nada de toolbar de formatação: facets de link e menção nascem da escrita natural (colar url vira link, @ vira menção).
-
-```
-minimal distraction-free long-form writing screen, warm cream paper
-background (#faf6f1), a single centered column of literary serif
-text, no toolbar, no navigation, a thin quiet footer with a whispered
-autosave status and one rounded publish button, generous negative
-space, calm typewriter mood, flat clean design, desktop web layout
-```
+o modo foco virou o composer app-native da home (5.2): a folha em
+branco para texto longo é o composer expandido, que no mobile já sobe
+como bottom sheet de tela quase inteira. uma tela separada de escrita
+se mostrou redundante: o rascunho local, o contador que só aparece
+perto do limite e a ausência de toolbar vivem no próprio composer.
 
 ## 6. axô, o mascote
 
@@ -380,7 +374,7 @@ style, no text, no letters
 - visitas
 - passear
 - convite e onboarding (3 passos)
-- modo foco
+- composer app-native (colapsado, expandido, sheet mobile)
 
 ## 9. faça e não faça
 

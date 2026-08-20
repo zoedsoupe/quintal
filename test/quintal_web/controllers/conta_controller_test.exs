@@ -21,7 +21,7 @@ defmodule QuintalWeb.ContaControllerTest do
       |> get("/conta/exportar")
 
     assert response(conn, 200)
-    assert get_resp_header(conn, "content-disposition") |> hd() =~ ~r/quintal-\d{8}\.zip/
+    assert conn |> get_resp_header("content-disposition") |> hd() =~ ~r/quintal-\d{8}\.zip/
   end
 
   test "sem sessão, a portaria responde 401" do

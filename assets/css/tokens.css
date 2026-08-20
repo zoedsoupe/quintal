@@ -17,6 +17,11 @@
   --meta: #6f6280;
   --erro: #b04a72;
 
+  /* card de prosa no feed: superficie levemente erguida do fundo,
+     borda de um fio. o feed e uma estante de cartoes, nao uma grade */
+  --fundo-card: #ffffff;
+  --borda-card: #ede4da;
+
   --fonte-leitura: "fraunces", georgia, serif;
   --fonte-chrome: "atkinson hyperlegible", system-ui, sans-serif;
 
@@ -27,6 +32,7 @@
   --espaco-5: 2.5rem;
 
   --raio: 0.5rem;
+  --raio-card: 1rem;
   --raio-pill: 999px;
   --medida-leitura: 68ch;
 
@@ -44,6 +50,8 @@
     --sussurro: #4a4156;
     --meta: #9d91b2;
     --erro: #e2a3bf;
+    --fundo-card: #262031;
+    --borda-card: #3a3345;
   }
 }
 
@@ -55,6 +63,8 @@
   --sussurro: #5a4f6b;
   --meta: #a89cc4;
   --erro: #f0a8cc;
+  --fundo-card: #1d1828;
+  --borda-card: #332b45;
 }
 
 [data-theme="gloss"] {
@@ -66,6 +76,8 @@
   --sussurro: #e5c4d8;
   --meta: #8f5c7d;
   --erro: #c73a76;
+  --fundo-card: #fffafd;
+  --borda-card: #f0d8e6;
 }
 
 @font-face {

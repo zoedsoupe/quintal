@@ -63,8 +63,7 @@ defmodule Quintal.Exportar do
       "replyParent" => prosa.reply_parent,
       "langs" => prosa.langs,
       "createdAt" => iso(prosa.created_at),
-      "images" =>
-        Enum.map(prosa.imagens, fn img -> %{"image" => img.blob, "alt" => img.alt} end)
+      "images" => Enum.map(prosa.imagens, fn img -> %{"image" => img.blob, "alt" => img.alt} end)
     }
   end
 

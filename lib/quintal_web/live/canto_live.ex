@@ -17,6 +17,7 @@ defmodule QuintalWeb.CantoLive do
   use QuintalWeb, :live_view
 
   import Ecto.Query, only: [from: 2]
+
   import QuintalWeb.Formatacao,
     only: [tempo_relativo: 1, tipo: 1, trecho: 1, prosa_path: 2, imagens_card: 1]
 

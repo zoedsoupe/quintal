@@ -11,7 +11,8 @@ defmodule QuintalWeb.HomeLive do
 
   use QuintalWeb, :live_view
 
-  import QuintalWeb.Formatacao, only: [tempo_relativo: 1, tipo: 1, trecho: 1, prosa_path: 2]
+  import QuintalWeb.Formatacao,
+    only: [tempo_relativo: 1, tipo: 1, trecho: 1, prosa_path: 2, imagens_card: 1]
 
   alias Quintal.Feed
   alias Quintal.Prosas
@@ -28,23 +29,46 @@ defmodule QuintalWeb.HomeLive do
     novidade = if sessao, do: Visitas.novidade?(sessao.did), else: false
 
     {:ok,
-     assign(socket,
+     socket
+     |> allow_upload(:imagens,
+       accept: ~w(image/jpeg image/png image/webp),
+       max_entries: 4,
+       max_file_size: 2_000_000
+     )
+     |> assign(
        handle: handle,
        novidade: novidade,
        feed: feed,
-       feed_cursor: proxima_pagina(feed)
-     )}
+       feed_cursor: proxima_pagina(feed),
+       contagens: %{},
+       pais: %{}
+     )
+     |> enriquecer(feed)}
   end
 
   @impl true
+  def handle_event("validar", _params, socket) do
+    # o form precisa de um phx-change para as entradas de upload
+    # aparecerem; a validação de verdade (alt em toda imagem) acontece
+    # no prosear, antes de qualquer byte sair de casa
+    {:noreply, socket}
+  end
+
+  def handle_event("remover-imagem", %{"ref" => ref}, socket) do
+    {:noreply, cancel_upload(socket, :imagens, ref)}
+  end
+
   def handle_event("prosear", %{"texto" => texto} = params, socket) do
-    case Prosas.prosear(socket.assigns.sessao, texto, Map.get(params, "tipo")) do
-      {:ok, prosa} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "pronto, sua prosa tá no quintal")
-         |> update(:feed, &[prosa | &1])
-         |> push_event("prosear-publicado", %{})}
+    with {:ok, imagens} <- imagens_dos_anexos(socket, params),
+         {:ok, prosa} <- Prosas.prosear(socket.assigns.sessao, texto, Map.get(params, "tipo"), imagens) do
+      {:noreply,
+       socket
+       |> put_flash(:info, "pronto, sua prosa tá no quintal")
+       |> update(:feed, &[prosa | &1])
+       |> push_event("prosear-publicado", %{})}
+    else
+      {:error, :alt_faltando} ->
+        {:noreply, put_flash(socket, :error, "descreve cada imagem pra quem não vê, aí a gente prosa")}
 
       {:error, _reason} ->
         {:noreply, put_flash(socket, :error, "ih, algo deu errado. tenta de novo?")}
@@ -57,7 +81,8 @@ defmodule QuintalWeb.HomeLive do
     {:noreply,
      socket
      |> update(:feed, &(&1 ++ pagina))
-     |> assign(feed_cursor: proxima_pagina(pagina))}
+     |> assign(feed_cursor: proxima_pagina(pagina))
+     |> enriquecer(pagina)}
   end
 
   # Só há próxima página se a atual veio cheia.
@@ -67,22 +92,118 @@ defmodule QuintalWeb.HomeLive do
     end
   end
 
+  # contagens de respostas e handles das mães, em lote e sem N+1: o
+  # card sussurra "3 respostas" e amarra o "em resposta a" das respostas
+  defp enriquecer(socket, feed) do
+    uris = Enum.map(feed, & &1.uri)
+
+    pais_uris =
+      feed |> Enum.map(& &1.reply_parent) |> Enum.reject(&is_nil/1) |> Enum.uniq()
+
+    socket
+    |> update(:contagens, &Map.merge(&1, Prosas.contar_respostas(uris)))
+    |> update(:pais, &Map.merge(&1, Prosas.pais(pais_uris)))
+  end
+
+  # cada anexo sobe como blob pro pds da pessoa e vira um item `images`
+  # do record (spec 10.1); sem alt em alguma, nada sai de casa
+  defp imagens_dos_anexos(socket, params) do
+    case uploaded_entries(socket, :imagens) do
+      {[], []} ->
+        {:ok, []}
+
+      {entradas, _em_progresso} ->
+        alts = Map.new(entradas, &{&1.ref, String.trim(params["alt-#{&1.ref}"] || "")})
+
+        if Enum.any?(entradas, &(alts[&1.ref] == "")) do
+          {:error, :alt_faltando}
+        else
+          arquivos =
+            consume_uploaded_entries(socket, :imagens, fn %{path: path}, entry ->
+              {:ok, %{bin: File.read!(path), tipo: entry.client_type, alt: alts[entry.ref]}}
+            end)
+
+          subir_imagens(socket.assigns.sessao, arquivos)
+        end
+    end
+  end
+
+  defp subir_imagens(sessao, arquivos) do
+    Enum.reduce_while(arquivos, {:ok, []}, fn %{bin: bin, tipo: tipo, alt: alt}, {:ok, acc} ->
+      case Quintal.PDS.impl().upload_blob(sessao, bin, tipo) do
+        {:ok, resposta} -> {:cont, {:ok, acc ++ [%{"image" => blob_lexicon(resposta), "alt" => alt}]}}
+        {:error, _reason} = erro -> {:halt, erro}
+      end
+    end)
+  end
+
+  # a resposta do uploadBlob chega decodificada pelo proto_rune; o record
+  # precisa do blob no formato do lexicon, com chaves string
+  defp blob_lexicon(resposta) do
+    blob = resposta[:blob] || resposta["blob"] || resposta
+
+    %{
+      "$type" => "blob",
+      "ref" => %{"$link" => get_in(blob, [:ref, :"$link"]) || get_in(blob, ["ref", "$link"])},
+      "mimeType" => blob[:mime_type] || blob["mimeType"],
+      "size" => blob[:size] || blob["size"]
+    }
+  end
+
   @impl true
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} sessao={@sessao} novidade={@novidade}>
       <div :if={@sessao}>
-        <form id="prosear" phx-submit="prosear" phx-hook="Prosear" class="prosear">
-          <.campo
-            name="texto"
-            area
-            aria-label="nova prosa"
-            placeholder="o que tá passando no seu quintal?"
-            rows="1"
-            maxlength="10000"
-            required
-          />
+        <form
+          id="prosear"
+          phx-submit="prosear"
+          phx-change="validar"
+          phx-hook="Prosear"
+          class="prosear"
+        >
+          <span class="prosear__alca" aria-hidden="true"></span>
+          <div class="prosear__fundo" data-fecha aria-hidden="true"></div>
+
+          <div class="prosear__linha">
+            <span
+              class="prosa-card__avatar prosear__avatar"
+              style={"--matiz: #{:erlang.phash2(@handle || "eu", 360)}"}
+              aria-hidden="true"
+            ></span>
+            <.campo
+              name="texto"
+              area
+              aria-label="nova prosa"
+              placeholder="o que tá passando no seu quintal?"
+              rows="1"
+              maxlength="10000"
+              required
+            />
+          </div>
           <p class="prosear__rascunho" hidden>deixou uma prosa pela metade aqui</p>
+
+          <div :if={@uploads.imagens.entries != []} class="prosear__anexos">
+            <div :for={entry <- @uploads.imagens.entries} class="prosear__anexo">
+              <.live_img_preview entry={entry} class="prosear__thumb" />
+              <.campo
+                name={"alt-#{entry.ref}"}
+                aria-label="descrição da imagem"
+                placeholder="descreve essa imagem pra quem não vê"
+                required
+              />
+              <button
+                type="button"
+                class="icone-botao"
+                phx-click="remover-imagem"
+                phx-value-ref={entry.ref}
+                aria-label="tirar imagem"
+              >
+                <Lucideicons.x aria-hidden="true" />
+              </button>
+            </div>
+          </div>
+
           <div class="prosear__rodape">
             <div class="prosear__tipos" role="radiogroup" aria-label="tipo da prosa">
               <label :for={{valor, rotulo} <- tipos()}>
@@ -90,8 +211,17 @@ defmodule QuintalWeb.HomeLive do
                 {rotulo}
               </label>
             </div>
-            <p class="prosear__contador" hidden></p>
-            <.botao type="submit">prosear</.botao>
+
+            <div class="prosear__ferramentas">
+              <label class="icone-botao prosear__clipe" aria-label="anexar imagem">
+                <Lucideicons.paperclip aria-hidden="true" />
+                <.live_file_input upload={@uploads.imagens} class="sr-only" />
+              </label>
+              <p class="prosear__contador" hidden></p>
+              <span class="prosear__atalho" aria-hidden="true">ctrl+enter pra prosear</span>
+              <span class="prosear__anel" aria-hidden="true"></span>
+              <.botao type="submit">prosear</.botao>
+            </div>
           </div>
         </form>
 
@@ -104,18 +234,19 @@ defmodule QuintalWeb.HomeLive do
 
           <div :for={prosa <- @feed} class="feed__item">
             <% {texto, cortou?} = trecho(prosa.texto) %>
+            <% autor = autor_de(prosa, @handle) %>
             <.prosa
-              autor={autor_de(prosa, @handle)}
+              autor={autor}
               data={tempo_relativo(prosa.created_at)}
               tipo={tipo(prosa.tipo)}
+              path={prosa_path(prosa.uri, autor)}
+              cortou={cortou?}
+              respostas={Map.get(@contagens, prosa.uri, 0)}
+              em_resposta={prosa.reply_parent && Map.get(@pais, prosa.reply_parent)}
+              imagens={imagens_card(prosa)}
             >
               {texto}
             </.prosa>
-            <p :if={cortou?} class="prosa__continua">
-              <.link navigate={prosa_path(prosa.uri, autor_de(prosa, @handle))}>
-                continua lendo aqui
-              </.link>
-            </p>
           </div>
 
           <p :if={@feed_cursor} class="feed__mais">

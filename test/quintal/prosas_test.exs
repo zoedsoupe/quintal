@@ -220,5 +220,138 @@ defmodule Quintal.ProsasTest do
       assert prosa.reply_root == "at://did:plc:alice/place.quintal.feed.prosa/raiz"
       assert prosa.reply_parent == "at://did:plc:alice/place.quintal.feed.prosa/mae"
     end
+
+    test "imagens viram linhas ordenadas, com alt, e o reindex troca o conjunto" do
+      indexa_identidade()
+      uri = "at://did:plc:alice/place.quintal.feed.prosa/fotos"
+      blob = %{"$type" => "blob", "ref" => %{"$link" => "bafkblob"}, "mimeType" => "image/png", "size" => 42}
+
+      value = %{
+        "text" => "olha o quintal",
+        "createdAt" => "2026-08-01T10:00:00Z",
+        "images" => [%{"image" => blob, "alt" => "um quintal de manhã"}]
+      }
+
+      assert {:ok, prosa} = Prosas.indexar("did:plc:alice", %{uri: uri, cid: "bafy", value: value})
+
+      assert [%{alt: "um quintal de manhã", posicao: 0, blob: %{"ref" => %{"$link" => "bafkblob"}}}] =
+               prosa.imagens
+
+      assert {:ok, prosa} =
+               Prosas.indexar("did:plc:alice", %{
+                 uri: uri,
+                 cid: "bafy2",
+                 value: Map.delete(value, "images")
+               })
+
+      assert prosa.imagens == []
+      assert Repo.aggregate(Quintal.ProsaImagem, :count) == 0
+    end
+  end
+
+  describe "responder/3" do
+    test "escreve o record com reply apontando pra raiz e pra mãe", %{session: session} do
+      indexa_identidade()
+      mae_uri = "at://did:plc:alice/place.quintal.feed.prosa/mae"
+
+      {:ok, mae} =
+        Prosas.indexar(session.did, %{
+          uri: mae_uri,
+          cid: "bafy-mae",
+          value: %{text: "prosa mãe", created_at: "2026-08-01T10:00:00Z"}
+        })
+
+      expect(PDSMock, :create_record, fn _session, "place.quintal.feed.prosa", record ->
+        assert record["reply"] == %{
+                 "root" => %{"uri" => mae_uri, "cid" => "bafy-mae"},
+                 "parent" => %{"uri" => mae_uri, "cid" => "bafy-mae"}
+               }
+
+        {:ok, %{uri: "at://did:plc:alice/place.quintal.feed.prosa/resp", cid: "bafy-resp"}}
+      end)
+
+      assert {:ok, resposta} = Prosas.responder(session, mae, "concordo demais")
+      assert resposta.reply_root == mae_uri
+      assert resposta.reply_parent == mae_uri
+    end
+
+    test "resposta a resposta ancora na raiz da thread", %{session: session} do
+      indexa_identidade()
+
+      {:ok, raiz} =
+        Prosas.indexar(session.did, %{
+          uri: "at://did:plc:alice/place.quintal.feed.prosa/raiz",
+          cid: "bafy-raiz",
+          value: %{text: "raiz", created_at: "2026-08-01T10:00:00Z"}
+        })
+
+      {:ok, mae} =
+        Prosas.indexar(session.did, %{
+          uri: "at://did:plc:alice/place.quintal.feed.prosa/mae",
+          cid: "bafy-mae",
+          value: %{
+            text: "meio",
+            created_at: "2026-08-01T11:00:00Z",
+            reply: %{
+              root: %{uri: raiz.uri, cid: raiz.cid},
+              parent: %{uri: raiz.uri, cid: raiz.cid}
+            }
+          }
+        })
+
+      expect(PDSMock, :create_record, fn _session, _collection, record ->
+        assert record["reply"]["root"]["uri"] == raiz.uri
+        assert record["reply"]["parent"]["uri"] == mae.uri
+        {:ok, %{uri: "at://did:plc:alice/place.quintal.feed.prosa/neta", cid: "bafy-neta"}}
+      end)
+
+      assert {:ok, neta} = Prosas.responder(session, mae, "fundindo a thread")
+      assert neta.reply_root == raiz.uri
+    end
+
+    test "mãe fora do índice falha em casa", %{session: session} do
+      mae = %Prosa{uri: "at://did:plc:sumiu/place.quintal.feed.prosa/x", cid: "c"}
+
+      assert {:error, :mae_fora_do_indice} = Prosas.responder(session, mae, "alô?")
+    end
+  end
+
+  describe "respostas/2, contar_respostas/1 e pais/1" do
+    test "thread cronológica, contagem em lote e handle da mãe", %{session: session} do
+      indexa_identidade()
+      indexa_identidade("did:plc:beto")
+      mae_uri = "at://did:plc:alice/place.quintal.feed.prosa/mae"
+
+      {:ok, _} =
+        Prosas.indexar(session.did, %{
+          uri: mae_uri,
+          cid: "bafy",
+          value: %{text: "mãe", created_at: "2026-08-01T10:00:00Z"}
+        })
+
+      for {texto, hora} <- [{"segunda", "12"}, {"primeira", "11"}] do
+        {:ok, _} =
+          Prosas.indexar("did:plc:beto", %{
+            uri: "at://did:plc:beto/place.quintal.feed.prosa/#{texto}",
+            cid: "bafy",
+            value: %{
+              text: texto,
+              created_at: "2026-08-01T#{hora}:00:00Z",
+              reply: %{
+                root: %{uri: mae_uri, cid: "bafy"},
+                parent: %{uri: mae_uri, cid: "bafy"}
+              }
+            }
+          })
+      end
+
+      assert ["primeira", "segunda"] == mae_uri |> Prosas.respostas() |> Enum.map(& &1.texto)
+      assert Prosas.contar_respostas([mae_uri, "at://sem/respostas"]) == %{mae_uri => 2}
+
+      resp_uri = "at://did:plc:beto/place.quintal.feed.prosa/primeira"
+      assert Prosas.pais([mae_uri]) == %{mae_uri => "did:plc:alice"}
+      assert Prosas.pais([resp_uri]) == %{resp_uri => "did:plc:beto"}
+      assert Prosas.pais(["at://did:plc:ninguem/place.quintal.feed.prosa/x"]) == %{}
+    end
   end
 end

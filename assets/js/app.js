@@ -28,7 +28,9 @@ import { hooks as colocatedHooks } from "phoenix-colocated/quintal";
 import topbar from "../vendor/topbar";
 
 // Prosear: o composer da home (briefing 5.2). auto-grow, contador que só
-// aparece nos últimos 500 grafemes e rascunho local oferecido de volta.
+// aparece nos últimos 500 grafemes, rascunho local oferecido de volta,
+// ctrl/cmd+enter publica e, no mobile, o fundo escurecido e o Esc fecham
+// o sheet.
 const Prosear = {
   mounted() {
     this.campo = this.el.querySelector("textarea");
@@ -54,13 +56,25 @@ const Prosear = {
       }
     });
 
+    this.campo.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        this.el.requestSubmit();
+      }
+
+      if (e.key === "Escape") this.fecha();
+    });
+
+    this.fundo = this.el.querySelector("[data-fecha]");
+    if (this.fundo) this.fundo.addEventListener("click", () => this.fecha());
+
     this.handleEvent("prosear-publicado", () => {
       this.campo.value = "";
       localStorage.removeItem(this.chave);
       this.aviso.hidden = true;
       this.cresce();
       this.conta();
-      this.expande();
+      this.fecha();
     });
 
     this.cresce();
@@ -80,6 +94,13 @@ const Prosear = {
       "prosear--expandido",
       this.campo.value.trim().length > 0,
     );
+  },
+
+  // fechar o sheet: tira a expansao e o foco junto, senao o
+  // :focus-within reabre na hora
+  fecha() {
+    this.campo.blur();
+    this.el.classList.remove("prosear--expandido");
   },
 
   cresce() {

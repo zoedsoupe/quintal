@@ -32,7 +32,7 @@ defmodule Quintal.Feed do
     |> a_partir_do_cursor(Keyword.get(opts, :cursor))
     |> order_by([p, _f], desc: p.created_at, desc: p.uri)
     |> limit(^limit)
-    |> preload([p, _f], [:autor])
+    |> preload([p, _f], [:autor, :imagens])
     |> Repo.all()
   end
 

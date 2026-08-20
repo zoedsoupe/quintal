@@ -32,6 +32,10 @@ defmodule QuintalWeb.OAuthController do
   end
 
   def callback(conn, params) do
+    # o código de convite na sessão marca o primeiro acesso: depois da
+    # portaria, a pessoa nova cai nas boas vindas (briefing 5.7)
+    primeira_vez? = get_session(conn, :convite) != nil
+
     with pending when not is_nil(pending) <- get_session(conn, :oauth_pending),
          {:ok, did} <- Quintal.Auth.impl().open_session(pending, params),
          :ok <- portaria(conn, did) do
@@ -41,7 +45,7 @@ defmodule QuintalWeb.OAuthController do
       |> delete_session(:oauth_pending)
       |> delete_session(:convite)
       |> put_session(:quintal_did, did)
-      |> redirect(to: "/")
+      |> redirect(to: if(primeira_vez?, do: "/boas-vindas", else: "/"))
     else
       {:portaria, conn} ->
         conn

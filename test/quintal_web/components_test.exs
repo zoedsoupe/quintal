@@ -33,16 +33,6 @@ defmodule QuintalWeb.ComponentsTest do
     assert html =~ ~s(class="campo__area")
   end
 
-  test "prosa do tipo pergunta ganha ênfase visual" do
-    assigns = %{}
-
-    normal = rendered_to_string(~H[<.prosa autor="alice" data="hoje">texto</.prosa>])
-    pergunta = rendered_to_string(~H[<.prosa autor="alice" data="hoje" tipo={:pergunta}>?</.prosa>])
-
-    refute normal =~ "prosa--pergunta"
-    assert pergunta =~ "prosa--pergunta"
-  end
-
   test "vazio mostra o axô e o título" do
     assigns = %{}
 
