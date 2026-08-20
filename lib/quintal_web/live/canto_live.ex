@@ -289,7 +289,8 @@ defmodule QuintalWeb.CantoLive do
         {:noreply,
          socket
          |> assign(canto: canto)
-         |> update(:guardado_seq, &(&1 + 1))}
+         |> update(:guardado_seq, &(&1 + 1))
+         |> push_event("aplicar-tema", %{tema: canto.tema, cor: canto.cor})}
 
       {:error, reason} ->
         Logger.warning("[#{__MODULE__}] falha ao arrumar o canto: #{inspect(reason)}")

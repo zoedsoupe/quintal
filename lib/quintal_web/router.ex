@@ -4,6 +4,7 @@ defmodule QuintalWeb.Router do
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
+    plug QuintalWeb.TemaPlug
     plug :fetch_live_flash
     plug :put_root_layout, html: {QuintalWeb.Layouts, :root}
     plug :protect_from_forgery

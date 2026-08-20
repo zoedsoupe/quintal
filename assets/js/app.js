@@ -177,6 +177,21 @@ window.addEventListener("quintal:copiar", (e) => {
   navigator.clipboard?.writeText(e.detail.texto);
 });
 
+// aplicar-tema: o canto guardou tema/cor novos; espelha no <html> para o
+// site inteiro sem esperar o próximo carregamento (o TemaPlug estampa no
+// root layout a cada página cheia). papel volta ao default sem atributo,
+// deixando a lamparina (prefers-color-scheme) decidir a noite.
+window.addEventListener("phx:aplicar-tema", (e) => {
+  const raiz = document.documentElement;
+  const { tema, cor } = e.detail;
+
+  if (tema && tema !== "papel") raiz.dataset.theme = tema;
+  else delete raiz.dataset.theme;
+
+  if (cor) raiz.style.setProperty("--acento", cor);
+  else raiz.style.removeProperty("--acento");
+});
+
 const csrfToken = document
   .querySelector("meta[name='csrf-token']")
   .getAttribute("content");
