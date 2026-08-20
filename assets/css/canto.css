@@ -512,14 +512,3 @@
 .depoimento-form .botao {
   align-self: flex-start;
 }
-
-/* bloco de links: lista simples em sussurro */
-
-.canto-links {
-  display: flex;
-  flex-direction: column;
-  gap: var(--espaco-2);
-  padding: 0;
-  list-style: none;
-  font-size: 0.875rem;
-}

@@ -56,7 +56,6 @@ defmodule Quintal.Canto do
     |> validate_format(:cor, ~r/^#[0-9a-fA-F]{6}$/)
     |> validate_length(:bio, max: 500)
     |> validate_length(:nome, max: 60)
-    |> validate_format(:nome, ~r/^[a-zA-Z0-9\-_\.]+$/)
     |> foreign_key_constraint(:dono_did)
   end
 

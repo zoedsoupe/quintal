@@ -142,7 +142,7 @@ cada canto escolhe um preset e, opcionalmente, uma cor de acento própria dentro
 
 ### 7.4 o canto: arrastar e soltar
 
-blocos fixos, reordenáveis e ocultáveis: **prosas, recados, quem eu leio, links**. sem layout livre. a bio não é bloco: mora no cabeçalho, sempre visível. o nome do canto é de exibição, guardado local no appview (não entra no record): o handle continua sendo o endereço oficial. no desktop, arrastar e soltar; no mobile, long-press ou setas. a ordem escolhida vive no record `canto.config`, ou seja, a decoração também é portátil.
+blocos fixos, reordenáveis e ocultáveis: **prosas, recados, quem eu leio**. sem layout livre. bio e links não são blocos: moram no cabeçalho, sempre visíveis. o nome do canto é de exibição, guardado local no appview (não entra no record): o handle continua sendo o endereço oficial. no desktop, arrastar e soltar; no mobile, long-press ou setas. a ordem escolhida vive no record `canto.config`, ou seja, a decoração também é portátil.
 
 ### 7.5 notificações quietas
 

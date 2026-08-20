@@ -5,7 +5,7 @@ defmodule QuintalWeb.CantoLive do
   Visitação: cabeçalho quieto com o nome do canto em fraunces (o `nome`
   de exibição quando existe, o handle sempre em sussurro), bio de uma
   linha, links em sussurro, e os blocos na ordem que o dono escolheu
-  (prosas, recados, cumadis que recomendo, links). A bio mora no
+  (prosas, recados, cumadis que recomendo). Bio e links moram no
   cabeçalho, fora do rodízio de blocos. Depoimentos aceitos moram em
   seção própria no fim, não pendurados em outro bloco. O tema do canto
   (papel, madrugada, gloss) e a cor de acento vivem num wrapper com
@@ -41,10 +41,10 @@ defmodule QuintalWeb.CantoLive do
 
   require Logger
 
-  # a bio saiu do rodízio: mora no cabeçalho, sempre visível. records
-  # antigos ainda podem trazer "bio" em blocos, o filtro trata disso.
-  @blocos_todos ~w(prosas recados quem-eu-leio links)
-  @blocos_default ~w(prosas recados quem-eu-leio links)
+  # bio e links saíram do rodízio: moram no cabeçalho, sempre visíveis.
+  # records antigos ainda podem trazê-los em blocos, o filtro trata disso.
+  @blocos_todos ~w(prosas recados quem-eu-leio)
+  @blocos_default ~w(prosas recados quem-eu-leio)
   @recados_pagina 20
 
   # swatches do modo arrumar: fundo e acento de cada preset (spec 7.2)
@@ -79,7 +79,10 @@ defmodule QuintalWeb.CantoLive do
 
         seguindo =
           if sessao && !proprio? do
-            Enum.find(Follows.vizinhanca(sessao.did), &(&1.seguido_did == dono.did))
+            Repo.one(
+              from f in Quintal.Follow,
+                where: f.seguidor_did == ^sessao.did and f.seguido_did == ^dono.did
+            )
           end
 
         prosas = Prosas.list_por_autor(dono.did, limit: 20)
@@ -184,9 +187,11 @@ defmodule QuintalWeb.CantoLive do
     end
   end
 
-  def handle_event("arrumar", _params, socket) do
+  def handle_event("arrumar", _params, %{assigns: %{proprio?: true}} = socket) do
     {:noreply, update(socket, :arrumar, &(!&1))}
   end
+
+  def handle_event("arrumar", _params, socket), do: {:noreply, socket}
 
   def handle_event("tema", %{"tema" => tema}, socket) do
     if socket.assigns.proprio? do
@@ -684,12 +689,6 @@ defmodule QuintalWeb.CantoLive do
                   <.campo name="note" label="nota (opcional)" placeholder="leio sempre" />
                   <.botao variante={:fantasma} type="submit">adicionar</.botao>
                 </form>
-              <% "links" -> %>
-                <ul class="canto-links">
-                  <li :for={link <- @canto.links}>
-                    <a href={link.url} target="_blank" rel="noopener">{link.titulo}</a>
-                  </li>
-                </ul>
             <% end %>
           </section>
         </div>
