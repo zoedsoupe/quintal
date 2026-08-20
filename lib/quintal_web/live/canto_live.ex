@@ -653,7 +653,11 @@ defmodule QuintalWeb.CantoLive do
             </li>
           </ul>
 
-          <.botao :if={@fundadora? || @convites_restantes > 0} variante={:sutil} phx-click="gerar_convite">
+          <.botao
+            :if={@fundadora? || @convites_restantes > 0}
+            variante={:sutil}
+            phx-click="gerar_convite"
+          >
             gerar um convite
           </.botao>
         </section>

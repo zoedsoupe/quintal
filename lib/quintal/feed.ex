@@ -27,9 +27,7 @@ defmodule Quintal.Feed do
     limit = Keyword.get(opts, :limit, 50)
 
     Prosa
-    |> join(:left, [p], f in Follow,
-      on: f.seguido_did == p.autor_did and f.seguidor_did == ^did
-    )
+    |> join(:left, [p], f in Follow, on: f.seguido_did == p.autor_did and f.seguidor_did == ^did)
     |> where([p, f], p.autor_did == ^did or f.seguidor_did == ^did)
     |> a_partir_do_cursor(Keyword.get(opts, :cursor))
     |> order_by([p, _f], desc: p.created_at, desc: p.uri)

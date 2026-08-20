@@ -243,7 +243,7 @@ o fluxo inteiro de login e autorização:
 - client metadata: `client_id` como url apontando para o documento de metadados servido pelo quintal
 - descoberta por conta: handle resolve para did, did document aponta o pds, o pds expõe o authorization server (protected resource metadata e authorization server metadata)
 - par (pushed authorization request), pkce, e dpop com tratamento de nonce (retry em `use_dpop_nonce`)
-- **escopo por coleção**: pedir apenas `repo:place.quintal.feed.prosa`, `repo:place.quintal.canto.*` e `repo:place.quintal.graph.follow`. nunca escopo amplo, nunca coleções do bluesky
+- **escopo por coleção**: pedir apenas `repo:place.quintal.feed.prosa`, os quatro `repo:place.quintal.canto.<nome>` (config, blogroll, depoimento, recado) e `repo:place.quintal.graph.follow`. nunca escopo amplo, nunca coleções do bluesky. atenção: a spec de permissões do atproto não aceita wildcard parcial (`canto.*`), só `repo:*` ou coleção exata
 - refresh de token transparente, revogação no logout, sessão indexada por did
 - surface em elixir: um behaviour `Quintal.Auth` com a implementação proto_rune atrás, testável com mox
 

@@ -25,8 +25,11 @@ config :phoenix_live_view, root_tag_attribute: "phx-r"
 # AT Protocol OAuth, shared parts. client_id and redirect_uri are set
 # per environment. Scope stays restricted to the place.quintal.*
 # collections: never broad atproto access, never Bluesky collections.
+# NOTE: partial wildcards (place.quintal.canto.*) are invalid per the
+# atproto permission spec; each collection must be listed explicitly.
 config :quintal, Quintal.Auth.ProtoRune,
-  scope: "atproto repo:place.quintal.feed.prosa repo:place.quintal.canto.* repo:place.quintal.graph.follow"
+  scope:
+    "atproto repo:place.quintal.feed.prosa repo:place.quintal.canto.config repo:place.quintal.canto.blogroll repo:place.quintal.canto.depoimento repo:place.quintal.canto.recado repo:place.quintal.graph.follow"
 
 # Configure the endpoint
 config :quintal, QuintalWeb.Endpoint,
@@ -39,13 +42,13 @@ config :quintal, QuintalWeb.Endpoint,
   pubsub_server: Quintal.PubSub,
   live_view: [signing_salt: "wCdIpsWV"]
 
-# Quem funda o quintal entra sem convite: a portaria do alpha fecha para
-# cara nova, nunca para as fundadoras (spec 6.1).
-config :quintal, :fundadoras, ["did:plc:4rt5dyqvarrbolr7qmfcbcsm"]
-
 # pt-br primeiro (spec 2): erros de changeset chegam em portugues
 config :quintal, QuintalWeb.Gettext, default_locale: "pt_BR"
 config :quintal, :env, config_env()
+
+# Quem funda o quintal entra sem convite: a portaria do alpha fecha para
+# cara nova, nunca para as fundadoras (spec 6.1).
+config :quintal, :fundadoras, ["did:plc:4rt5dyqvarrbolr7qmfcbcsm"]
 
 config :quintal,
   ecto_repos: [Quintal.Repo],

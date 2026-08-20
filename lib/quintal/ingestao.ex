@@ -171,9 +171,7 @@ defmodule Quintal.Ingestao do
   defp process(_event), do: :ok
 
   defp record(%Event{record: nil} = event) do
-    Logger.warning(
-      "[#{__MODULE__}] record ausente no commit de #{event.did} (#{event.collection}/#{event.rkey})"
-    )
+    Logger.warning("[#{__MODULE__}] record ausente no commit de #{event.did} (#{event.collection}/#{event.rkey})")
 
     nil
   end
