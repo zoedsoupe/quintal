@@ -148,6 +148,8 @@ blocos fixos, reordenáveis e ocultáveis: **bio, prosas, recados, quem eu leio,
 
 sem badges vermelhos, sem contagens permanentes, sem push, sem email. uma página **visitas** com o resumo desde a última passada: "3 recados, 1 resposta, 2 vizinhos novos te lendo". o resumo zera a cada visita. notificações são um resgate de orkut no melhor sentido: alguém passou aqui.
 
+leitura nunca é rastreada. a visita de leitura só existe quando o leitor a deixa, com um toque em "li até aqui" na página da prosa. sem marcação passiva, sem contagem de views: quem decide dizer "eu li" é quem leu.
+
 ### 7.6 o axô: escalação
 
 aparece em: botão de descoberta ("passear com o axô"), estados vazios, loading (nadando), 404, tela de convite. **máximo uma vez por tela, nunca dentro do fluxo de leitura.** mascote que interrompe leitura vira anúncio.
@@ -224,7 +226,7 @@ tabelas e colunas principais:
 - **cantos**: dono_did (pk), tema, cor, blocos (jsonb), bio, links (jsonb), updated_at
 - **follows**: seguidor_did, seguido_did, uri, created_at (pk composta; uri guardada para processar deletes)
 - **convites**: codigo (pk), criado_por, usado_por, criado_em, usado_em
-- **visitas_eventos**: id, dono_did, tipo (recado, resposta, novo_leitor, depoimento), ref_uri, autor_did, created_at
+- **visitas_eventos**: id, dono_did, tipo (recado, resposta, novo_leitor, depoimento, leitura), ref_uri, autor_did, created_at. único por (tipo, ref_uri, autor_did): leituras são uma por pessoa por prosa
 - **visitas_lido_em**: dono_did (pk), visto_em
 - **firehose_cursor**: id, cursor
 

@@ -53,4 +53,27 @@ defmodule QuintalWeb.Formatacao do
     rkey = uri |> String.split("/") |> List.last()
     "/canto/#{handle}/prosa/#{rkey}"
   end
+
+  @doc """
+  As imagens de uma prosa prontas para o card: `%{src, alt}`.
+
+  A url aponta direto para o `getBlob` do pds do autor (o `pds_url` vem
+  da identidade indexada). ponytail: sem proxy próprio no alpha; o proxy
+  com cache do spec 9.6 entra quando a leitura de blobs pesar.
+  """
+  def imagens_card(%{imagens: imagens} = prosa) do
+    pds_url = if Ecto.assoc_loaded?(prosa.autor) && prosa.autor, do: prosa.autor.pds_url
+
+    if pds_url && is_list(imagens) do
+      Enum.map(imagens, &%{src: imagem_url(pds_url, prosa.autor_did, &1.blob), alt: &1.alt})
+    else
+      []
+    end
+  end
+
+  defp imagem_url(pds_url, did, blob) do
+    cid = get_in(blob, ["ref", "$link"]) || get_in(blob, [:ref, :"$link"])
+
+    "#{pds_url}/xrpc/com.atproto.sync.getBlob?did=#{URI.encode_www_form(did)}&cid=#{URI.encode_www_form(to_string(cid))}"
+  end
 end

@@ -63,29 +63,82 @@ defmodule QuintalWeb.Components do
   end
 
   @doc """
-  Uma prosa na lista ou na leitura. `tipo: :pergunta` ganha ênfase
-  visual; os demais tipos não mudam a apresentação (spec 10.1). O slot
-  `acoes` leva ações do dono (apagar), à direita do meta.
+  Uma prosa no feed, no canto ou na thread: o card de leitura.
+
+  Avatar miúdo de 32px com gradiente blobby semeado pelo handle (não
+  guardamos avatar, a cor nasce do nome), nome do canto em peso 600,
+  tempo em sussurro e um chip miúdo de tipo quando a prosa não é nota
+  (o tipo é metadado, não cerimônia: nota é o estado default e não
+  marca nada, spec 10.1).
+
+  `em_resposta` traz o handle da prosa mãe e acende o fio lilás que
+  conecta o card para cima. `respostas` é a contagem sussurrada de
+  respostas diretas. `path` é a página de leitura: o "continuar lendo",
+  o "responder" e a contagem apontam todos para lá.
   """
   attr :autor, :string, required: true
   attr :data, :string, required: true
   attr :tipo, :atom, default: :nota, values: [:nota, :pergunta, :cronica, :ensaio]
+  attr :path, :string, default: nil
+  attr :cortou, :boolean, default: false
+  attr :respostas, :integer, default: 0
+  attr :em_resposta, :string, default: nil
+  attr :responder, :boolean, default: true
   attr :class, :string, default: nil
+  attr :imagens, :list, default: []
   slot :acoes
   slot :inner_block, required: true
 
   def prosa(assigns) do
     ~H"""
-    <article class={["prosa", @tipo == :pergunta && "prosa--pergunta", @class]}>
-      <header class="prosa__meta">
-        <span class="prosa__autor">{@autor}</span>
-        <time>{@data}</time>
-        <span :if={@acoes != []} class="prosa__acoes">{render_slot(@acoes)}</span>
-      </header>
-      <div class="prosa__texto">{render_slot(@inner_block)}</div>
+    <article class={["prosa-card", @em_resposta && "prosa-card--resposta", @class]}>
+      <p :if={@em_resposta} class="prosa-card__fio">
+        em resposta a <span class="prosa-card__fio-autor">{@em_resposta}</span>
+      </p>
+
+      <div class="prosa-card__corpo">
+        <header class="prosa-card__cabeca">
+          <span
+            class="prosa-card__avatar"
+            style={"--matiz: #{:erlang.phash2(@autor, 360)}"}
+            aria-hidden="true"
+          ></span>
+          <div class="prosa-card__identidade">
+            <span class="prosa-card__autor">{@autor}</span>
+            <time class="prosa-card__tempo">{@data}</time>
+          </div>
+          <span :if={@tipo != :nota} class="prosa-card__chip">{rotulo_tipo(@tipo)}</span>
+          <span :if={@acoes != []} class="prosa-card__acoes">{render_slot(@acoes)}</span>
+        </header>
+
+        <div class="prosa-card__texto">{render_slot(@inner_block)}</div>
+
+        <.link :if={@cortou && @path} navigate={@path} class="prosa-card__continua">
+          continuar lendo
+        </.link>
+
+        <div :if={@imagens != []} class="prosa-card__imagens">
+          <img :for={img <- @imagens} src={img.src} alt={img.alt} loading="lazy" />
+        </div>
+
+        <footer :if={@path} class="prosa-card__rodape">
+          <.link :if={@responder} navigate={@path} class="prosa-card__responder">responder</.link>
+          <.link :if={@respostas > 0} navigate={@path} class="prosa-card__respostas">
+            {contagem_respostas(@respostas)}
+          </.link>
+        </footer>
+      </div>
     </article>
     """
   end
+
+  defp rotulo_tipo(:pergunta), do: "pergunta"
+  defp rotulo_tipo(:cronica), do: "crônica"
+  defp rotulo_tipo(:ensaio), do: "ensaio"
+  defp rotulo_tipo(_outro), do: nil
+
+  defp contagem_respostas(1), do: "1 resposta"
+  defp contagem_respostas(n), do: "#{n} respostas"
 
   @doc "Um recado no livro de visitas de um canto."
   attr :autor, :string, required: true

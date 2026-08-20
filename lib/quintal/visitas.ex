@@ -6,8 +6,12 @@ defmodule Quintal.Visitas do
 
   Tudo é estado local do appview: os eventos nascem das indexações
   (`Quintal.Recados`, `Quintal.Depoimentos`, `Quintal.Prosas`,
-  `Quintal.Follows`) e dedupam pelo par `(tipo, ref_uri)`, então a
-  escrita otimista e o eco do firehose contam uma vez só.
+  `Quintal.Follows`) e dedupam pela tripla `(tipo, ref_uri, autor_did)`,
+  então a escrita otimista e o eco do firehose contam uma vez só.
+
+  A `leitura` é a exceção voluntária: nunca rastreamos quem lê. O
+  leitor marca a prosa como lida na página de leitura, se quiser, e só
+  então a visita chega para quem escreveu.
 
   O resumo zera a cada visita: `marcar_lido/1` sobe a marca e
   `resumo/1` conta só o que veio depois.
@@ -21,13 +25,14 @@ defmodule Quintal.Visitas do
 
   require Logger
 
-  @tipos ~w(recado resposta novo_leitor depoimento)
+  @tipos ~w(recado resposta novo_leitor depoimento leitura)
 
   @doc """
   Registra um evento de visita no canto de `dono_did`.
 
-  Idempotente por `(tipo, ref_uri)`: chamar de novo com o mesmo par não
-  duplica. Visita da própria pessoa no próprio canto nunca registra.
+  Idempotente por `(tipo, ref_uri, autor_did)`: chamar de novo com a
+  mesma tripla não duplica. Visita da própria pessoa no próprio canto
+  nunca registra.
   """
   @spec registrar(dono_did :: String.t(), tipo :: String.t(), ref_uri :: String.t(), autor_did :: String.t()) ::
           :ok | {:error, Ecto.Changeset.t()}
@@ -42,7 +47,7 @@ defmodule Quintal.Visitas do
       autor_did: autor_did,
       created_at: DateTime.utc_now()
     })
-    |> Repo.insert(on_conflict: :nothing, conflict_target: [:tipo, :ref_uri])
+    |> Repo.insert(on_conflict: :nothing, conflict_target: [:tipo, :ref_uri, :autor_did])
     |> case do
       {:ok, _evento} ->
         :ok
@@ -58,7 +63,8 @@ defmodule Quintal.Visitas do
           recado: non_neg_integer(),
           resposta: non_neg_integer(),
           novo_leitor: non_neg_integer(),
-          depoimento: non_neg_integer()
+          depoimento: non_neg_integer(),
+          leitura: non_neg_integer()
         }
   def resumo(did) do
     contagens =
@@ -70,7 +76,7 @@ defmodule Quintal.Visitas do
       |> Repo.all()
       |> Map.new()
 
-    Map.new(@tipos, fn tipo -> {String.to_existing_atom(tipo), Map.get(contagens, tipo, 0)} end)
+    Map.new(@tipos, fn tipo -> {String.to_atom(tipo), Map.get(contagens, tipo, 0)} end)
   end
 
   @doc "Os eventos desde a última passada, do mais novo para o mais antigo, com a identidade de quem passou."
@@ -100,6 +106,15 @@ defmodule Quintal.Visitas do
   @spec novidade?(did :: String.t()) :: boolean()
   def novidade?(did) do
     Repo.exists?(from e in VisitaEvento, where: e.dono_did == ^did and e.created_at > ^visto_em(did))
+  end
+
+  @doc "Essa pessoa já deixou visita nessa prosa?"
+  @spec leitura_marcada?(ref_uri :: String.t(), autor_did :: String.t()) :: boolean()
+  def leitura_marcada?(ref_uri, autor_did) do
+    Repo.exists?(
+      from e in VisitaEvento,
+        where: e.tipo == "leitura" and e.ref_uri == ^ref_uri and e.autor_did == ^autor_did
+    )
   end
 
   defp visto_em(did) do

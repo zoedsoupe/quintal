@@ -67,7 +67,8 @@ defmodule QuintalWeb.VisitasLive do
   end
 
   defp zerado?(resumo) do
-    resumo.recado == 0 && resumo.resposta == 0 && resumo.novo_leitor == 0 && resumo.depoimento == 0
+    resumo.recado == 0 && resumo.resposta == 0 && resumo.novo_leitor == 0 &&
+      resumo.depoimento == 0 && resumo.leitura == 0
   end
 
   # agrupamento por dia, cabeçalhos em sussurro: "hoje", "ontem", "12 de agosto"
@@ -93,6 +94,7 @@ defmodule QuintalWeb.VisitasLive do
     [
       contagem(resumo.recado, "recado", "recados"),
       contagem(resumo.resposta, "resposta", "respostas"),
+      contagem(resumo.leitura, "prosa lida", "prosas lidas"),
       leitores(resumo.novo_leitor),
       contagem(resumo.depoimento, "depoimento", "depoimentos")
     ]
@@ -113,6 +115,7 @@ defmodule QuintalWeb.VisitasLive do
     case to_string(tipo) do
       "recado" -> "deixou um recado"
       "resposta" -> "respondeu sua prosa"
+      "leitura" -> "leu sua prosa"
       "novo_leitor" -> "começou a ler seu canto"
       "depoimento" -> "te deixou um depoimento, quer pendurar na parede?"
       _outro -> "passou pelo seu canto"

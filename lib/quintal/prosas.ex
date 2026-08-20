@@ -31,20 +31,50 @@ defmodule Quintal.Prosas do
   Escreve uma prosa nova no pds da pessoa e indexa otimista.
 
   `tipo` é metadado interno opcional (nota, pergunta, cronica, ensaio,
-  spec 10.1); `nil` deixa o campo fora do record.
+  spec 10.1); `nil` deixa o campo fora do record. `imagens` é uma lista
+  de `%{"image" => blob, "alt" => texto}` (máx. 4, alt obrigatório,
+  spec 10.1).
 
   Retorna `{:ok, %Prosa{}}` com a prosa já indexada, ou `{:error, _}`
   sem efeito colateral no índice. Texto em branco falha em casa, antes
   da rede.
   """
-  @spec prosear(Quintal.PDS.session(), texto :: String.t(), tipo :: String.t() | nil) ::
+  @spec prosear(Quintal.PDS.session(), texto :: String.t(), tipo :: String.t() | nil, imagens :: [map()]) ::
           {:ok, Prosa.t()} | {:error, :texto_vazio | term()}
-  def prosear(session, texto, tipo \\ nil) when is_binary(texto) do
+  def prosear(session, texto, tipo \\ nil, imagens \\ []) do
+    criar(session, texto, tipo, nil, imagens)
+  end
+
+  @doc """
+  Responde uma prosa (spec 5.1, feature 4): mesmo record, mesma
+  estrutura, com `reply` apontando para a raiz e para a mãe. A mãe
+  precisa estar no índice para montarmos o strongRef (uri + cid).
+  """
+  @spec responder(Quintal.PDS.session(), parent :: Prosa.t(), texto :: String.t()) ::
+          {:ok, Prosa.t()} | {:error, :texto_vazio | :mae_fora_do_indice | term()}
+  def responder(session, %Prosa{} = parent, texto) do
+    root_uri = parent.reply_root || parent.uri
+
+    with %Prosa{} = root <- root_uri == parent.uri && parent || Repo.get(Prosa, root_uri) do
+      reply = %{
+        "root" => %{"uri" => root.uri, "cid" => root.cid},
+        "parent" => %{"uri" => parent.uri, "cid" => parent.cid}
+      }
+
+      criar(session, texto, nil, reply, [])
+    else
+      _sem_raiz -> {:error, :mae_fora_do_indice}
+    end
+  end
+
+  defp criar(session, texto, tipo, reply, imagens) when is_binary(texto) do
     if String.trim(texto) == "" do
       {:error, :texto_vazio}
     else
       record = %{"text" => texto, "createdAt" => DateTime.to_iso8601(DateTime.utc_now())}
       record = if tipo in @tipos, do: Map.put(record, "tipo", tipo), else: record
+      record = if reply, do: Map.put(record, "reply", reply), else: record
+      record = if imagens == [], do: record, else: Map.put(record, "images", imagens)
 
       with {:ok, %{uri: uri, cid: cid}} <- pds().create_record(session, @prosa, record) do
         indexar(session.did, %{uri: uri, cid: cid, value: record})
@@ -85,8 +115,61 @@ defmodule Quintal.Prosas do
       from p in Prosa,
         where: p.autor_did == ^autor_did,
         order_by: [desc: p.created_at],
-        limit: ^limit
+        limit: ^limit,
+        preload: [:autor, :imagens]
     )
+  end
+
+  @doc """
+  As respostas diretas de uma prosa, da mais antiga para a mais nova
+  (briefing 5.4): a thread cresce para baixo, como conversa de varanda.
+  """
+  @spec respostas(uri :: String.t(), opts :: keyword()) :: [Prosa.t()]
+  def respostas(uri, opts \\ []) do
+    limit = Keyword.get(opts, :limit, 50)
+
+    Repo.all(
+      from p in Prosa,
+        where: p.reply_parent == ^uri,
+        order_by: [asc: p.created_at],
+        limit: ^limit,
+        preload: [:autor, :imagens]
+    )
+  end
+
+  @doc """
+  Contagem de respostas diretas por prosa, em lote: `%{uri => n}`.
+  O feed e o canto sussurram "3 respostas" sem N+1.
+  """
+  @spec contar_respostas(uris :: [String.t()]) :: %{String.t() => non_neg_integer()}
+  def contar_respostas([]), do: %{}
+
+  def contar_respostas(uris) do
+    Repo.all(
+      from p in Prosa,
+        where: p.reply_parent in ^uris,
+        group_by: p.reply_parent,
+        select: {p.reply_parent, count()}
+    )
+    |> Map.new()
+  end
+
+  @doc """
+  Os handles das prosas mãe de uma lista de uris, em lote:
+  `%{uri => handle}`. É o "em resposta a fulana" dos cards de resposta
+  no feed. Mãe fora do índice simplesmente não aparece no mapa.
+  """
+  @spec pais(uris :: [String.t()]) :: %{String.t() => String.t()}
+  def pais([]), do: %{}
+
+  def pais(uris) do
+    Repo.all(
+      from p in Prosa,
+        join: a in assoc(p, :autor),
+        where: p.uri in ^uris,
+        select: {p.uri, a.handle}
+    )
+    |> Map.new()
   end
 
   @doc "Remove uma prosa do índice (delete vindo da firehose)."
@@ -119,18 +202,23 @@ defmodule Quintal.Prosas do
       indexed_at: DateTime.utc_now()
     }
 
-    %Prosa{}
-    |> Prosa.changeset(attrs)
-    |> Repo.insert(
-      on_conflict: {:replace, [:cid, :texto, :tipo, :reply_root, :reply_parent, :langs, :created_at, :indexed_at]},
+    imagens = imagens_attrs(uri, campo(value, :images))
+
+    Ecto.Multi.new()
+    |> Ecto.Multi.insert(:prosa, Prosa.changeset(%Prosa{}, attrs),
+      on_conflict:
+        {:replace, [:cid, :texto, :tipo, :reply_root, :reply_parent, :langs, :created_at, :indexed_at]},
       conflict_target: :uri
     )
+    |> Ecto.Multi.delete_all(:limpa_imagens, from(i in Quintal.ProsaImagem, where: i.prosa_uri == ^uri))
+    |> Ecto.Multi.insert_all(:imagens, Quintal.ProsaImagem, imagens)
+    |> Repo.transaction()
     |> case do
-      {:ok, prosa} ->
+      {:ok, %{prosa: prosa}} ->
         registra_resposta(prosa)
-        {:ok, prosa}
+        {:ok, Repo.preload(prosa, [:autor, :imagens])}
 
-      {:error, changeset} ->
+      {:error, :prosa, changeset, _mudancas} ->
         Logger.warning("[#{__MODULE__}] prosa #{uri} fora do índice: #{inspect(changeset.errors)}")
         {:error, changeset}
     end
@@ -153,6 +241,25 @@ defmodule Quintal.Prosas do
       _sem_mae_no_indice ->
         :ok
     end
+  end
+
+  # Imagens do record (máx. 4, alt obrigatório, spec 10.1): aceita as
+  # chaves atom do decode XRPC e as string do lexicon; alt ausente na
+  # firehose vira string vazia, nunca derruba a indexação.
+  defp imagens_attrs(_uri, imagens) when not is_list(imagens), do: []
+
+  defp imagens_attrs(uri, imagens) do
+    imagens
+    |> Enum.take(4)
+    |> Enum.with_index()
+    |> Enum.map(fn {item, posicao} ->
+      %{
+        prosa_uri: uri,
+        posicao: posicao,
+        blob: campo(item, :image) || %{},
+        alt: campo(item, :alt) || ""
+      }
+    end)
   end
 
   # Record values arrive atom-keyed from the XRPC decode and

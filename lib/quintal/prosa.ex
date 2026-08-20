@@ -36,6 +36,11 @@ defmodule Quintal.Prosa do
       foreign_key: :autor_did,
       references: :did,
       type: :string
+
+    has_many :imagens, Quintal.ProsaImagem,
+      foreign_key: :prosa_uri,
+      references: :uri,
+      preload_order: [asc: :posicao]
   end
 
   @doc false
