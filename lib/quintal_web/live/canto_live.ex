@@ -566,7 +566,12 @@ defmodule QuintalWeb.CantoLive do
                     class="prosear recados__form"
                     data-rascunho={"quintal:rascunho:recado:#{@dono.did}"}
                   >
-                    <button type="button" class="icone-botao prosear__fechar" data-fecha aria-label="fechar">
+                    <button
+                      type="button"
+                      class="icone-botao prosear__fechar"
+                      data-fecha
+                      aria-label="fechar"
+                    >
                       <Lucideicons.x aria-hidden="true" />
                     </button>
 

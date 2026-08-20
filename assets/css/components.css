@@ -952,6 +952,11 @@
    opcional em serifada grande, corpo sem borda, contador de palavras
    em sussurro e o prosear sempre a vista. calmo, sem distracao */
 
+/* a transicao e de pagina abrindo, nao de popup: sobe devagar de
+   leve enquanto aparece, 280ms na mesma curva do composer. a classe
+   faz o trabalho porque display none nao transiciona; o hidden so
+   volta depois que a saida termina (app.js) */
+
 .ensaio {
   position: fixed;
   inset: 0;
@@ -960,6 +965,20 @@
   flex-direction: column;
   padding: var(--espaco-3) var(--espaco-4);
   background: var(--fundo);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(1.25rem);
+  transition:
+    opacity 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0ms 280ms;
+}
+
+.ensaio--aberto {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition-delay: 0ms;
 }
 
 .ensaio[hidden] {

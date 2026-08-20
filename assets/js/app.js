@@ -304,7 +304,11 @@ const Composer = {
   // campo principal sai do form (disabled nao submete). o rascunho do
   // ensaio tem chave propria, nao mistura com a nota rapida
   abreEnsaio() {
+    clearTimeout(this.ensaioSaida);
     this.ensaio.hidden = false;
+    // display none -> flex nao transiciona: a classe entra no frame
+    // seguinte pra animacao de pagina abrindo acontecer
+    requestAnimationFrame(() => this.ensaio.classList.add("ensaio--aberto"));
     this.campo.disabled = true;
     this.ensaioTitulo.disabled = false;
     this.ensaioCorpo.disabled = false;
@@ -324,9 +328,14 @@ const Composer = {
 
   fechaEnsaio() {
     if (!this.ensaio || this.ensaio.hidden) return;
-    this.ensaio.hidden = true;
-    this.ensaio.style.height = "";
-    this.ensaio.style.top = "";
+    this.ensaio.classList.remove("ensaio--aberto");
+    // o hidden so volta quando a saida termina; 300ms cobre os 280ms
+    // da transicao com folga
+    this.ensaioSaida = setTimeout(() => {
+      this.ensaio.hidden = true;
+      this.ensaio.style.height = "";
+      this.ensaio.style.top = "";
+    }, 300);
     this.campo.disabled = false;
     this.ensaioTitulo.disabled = true;
     this.ensaioCorpo.disabled = true;
