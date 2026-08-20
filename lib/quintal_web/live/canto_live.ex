@@ -17,12 +17,12 @@ defmodule QuintalWeb.CantoLive do
   use QuintalWeb, :live_view
 
   import Ecto.Query, only: [from: 2]
-  import QuintalWeb.Formatacao, only: [tempo_relativo: 1, tipo: 1, trecho: 1, prosa_path: 2]
+  import QuintalWeb.Formatacao,
+    only: [tempo_relativo: 1, tipo: 1, trecho: 1, prosa_path: 2, imagens_card: 1]
 
   alias Quintal.Blogrolls
   alias Quintal.Canto
   alias Quintal.Cantos
-  alias Quintal.Convites
   alias Quintal.Depoimentos
   alias Quintal.Follows
   alias Quintal.Identidade
@@ -71,7 +71,7 @@ defmodule QuintalWeb.CantoLive do
             Enum.find(Follows.vizinhanca(sessao.did), &(&1.seguido_did == dono.did))
           end
 
-        convites = if proprio?, do: Convites.disponiveis(dono.did), else: []
+        prosas = Prosas.list_por_autor(dono.did, limit: 20)
 
         {:ok,
          assign(socket,
@@ -84,15 +84,19 @@ defmodule QuintalWeb.CantoLive do
            arrumar: false,
            guardado_seq: 0,
            seguindo: seguindo,
-           prosas: Prosas.list_por_autor(dono.did, limit: 20),
+           prosas: prosas,
+           contagens: Prosas.contar_respostas(Enum.map(prosas, & &1.uri)),
+           pais:
+             prosas
+             |> Enum.map(& &1.reply_parent)
+             |> Enum.reject(&is_nil/1)
+             |> Enum.uniq()
+             |> Prosas.pais(),
            recados: Recados.listar_por_canto(dono.did, viewer_did),
            recados_visiveis: @recados_pagina,
            depoimentos: Depoimentos.aceitos(dono.did),
            depoimento_form: false,
-           blogroll_items: blogroll_items(dono.did),
-           convites: convites,
-           convites_restantes: if(proprio?, do: Convites.restantes(dono.did), else: 0),
-           fundadora?: proprio? && Convites.fundadora?(dono.did)
+           blogroll_items: blogroll_items(dono.did)
          )}
     end
   end
@@ -168,26 +172,6 @@ defmodule QuintalWeb.CantoLive do
 
   def handle_event("arrumar", _params, socket) do
     {:noreply, update(socket, :arrumar, &(!&1))}
-  end
-
-  def handle_event("gerar_convite", _params, socket) do
-    if socket.assigns.proprio? do
-      case Convites.gerar(socket.assigns.sessao.did) do
-        {:ok, convite} ->
-          {:noreply,
-           socket
-           |> update(:convites, &[convite | &1])
-           |> assign(convites_restantes: Convites.restantes(socket.assigns.sessao.did))}
-
-        {:error, :cota_esgotada} ->
-          {:noreply, put_flash(socket, :error, "sua cota de convites acabou por enquanto")}
-
-        {:error, _reason} ->
-          {:noreply, put_flash(socket, :error, "ih, algo deu errado. tenta de novo?")}
-      end
-    else
-      {:noreply, socket}
-    end
   end
 
   def handle_event("tema", %{"tema" => tema}, socket) do
@@ -370,10 +354,6 @@ defmodule QuintalWeb.CantoLive do
 
   defp acento_padrao(tema), do: @presets[tema].acento
 
-  # microcopy da cota, no tom da casa (spec 7.7)
-  defp convites_linha(1), do: "você ainda pode chamar 1 pessoa pro quintal"
-  defp convites_linha(n), do: "você ainda pode chamar #{n} pessoas pro quintal"
-
   @impl true
   def render(assigns) do
     ~H"""
@@ -502,14 +482,14 @@ defmodule QuintalWeb.CantoLive do
                       autor={@dono.handle}
                       data={tempo_relativo(prosa.created_at)}
                       tipo={tipo(prosa.tipo)}
+                      path={prosa_path(prosa.uri, @dono.handle)}
+                      cortou={cortou?}
+                      respostas={Map.get(@contagens, prosa.uri, 0)}
+                      em_resposta={prosa.reply_parent && Map.get(@pais, prosa.reply_parent)}
+                      imagens={imagens_card(prosa)}
                     >
                       {texto}
                     </.prosa>
-                    <p :if={cortou?} class="prosa__continua">
-                      <.link navigate={prosa_path(prosa.uri, @dono.handle)}>
-                        continua lendo aqui
-                      </.link>
-                    </p>
                   </div>
                 </div>
               <% "recados" -> %>
@@ -628,43 +608,8 @@ defmodule QuintalWeb.CantoLive do
           </section>
         </div>
 
-        <section :if={@proprio? && !@arrumar} class="convidar">
-          <h2 class="canto-bloco__titulo">convidar</h2>
-          <p :if={@fundadora?} class="convidar__linha">
-            você fundou o quintal, chame quem quiser
-          </p>
-          <p :if={!@fundadora? && @convites_restantes > 0} class="convidar__linha">
-            {convites_linha(@convites_restantes)}
-          </p>
-          <p :if={!@fundadora? && @convites_restantes == 0} class="convidar__linha">
-            sua cota de convites acabou por enquanto
-          </p>
-
-          <ul :if={@convites != []} class="convidar__codigos">
-            <li :for={convite <- @convites}>
-              <code>{convite.codigo}</code>
-              <button
-                type="button"
-                class="icone-botao"
-                phx-click={JS.dispatch("quintal:copiar", detail: %{texto: convite.codigo})}
-                aria-label={"copiar código #{convite.codigo}"}
-              >
-                <Lucideicons.copy aria-hidden="true" />
-              </button>
-            </li>
-          </ul>
-
-          <.botao
-            :if={@fundadora? || @convites_restantes > 0}
-            variante={:sutil}
-            phx-click="gerar_convite"
-          >
-            gerar um convite
-          </.botao>
-        </section>
-
         <nav :if={@proprio? && !@arrumar} class="rodape">
-          <.link href="/oauth/logout">sair</.link>
+          <.link navigate={~p"/conta"}>conta</.link>
         </nav>
       </div>
     </Layouts.app>

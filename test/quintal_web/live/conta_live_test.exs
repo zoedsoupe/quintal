@@ -1,4 +1,4 @@
-defmodule QuintalWeb.CantoLiveConvidarTest do
+defmodule QuintalWeb.ContaLiveTest do
   use QuintalWeb.ConnCase, async: true
 
   import Mox
@@ -34,16 +34,25 @@ defmodule QuintalWeb.CantoLiveConvidarTest do
     {:ok, conn: conn}
   end
 
-  test "dono vê a seção convidar com a cota cheia", %{conn: conn} do
-    {:ok, _view, html} = live(conn, "/canto/alice.bsky.social")
+  test "mostra a conta conectada com handle, did e pds", %{conn: conn} do
+    {:ok, _view, html} = live(conn, "/conta")
 
-    assert html =~ "convidar"
+    assert html =~ "conta conectada"
+    assert html =~ "alice.bsky.social"
+    assert html =~ "did:plc:alice"
+    assert html =~ "pds.example"
+  end
+
+  test "mostra a cota de convites cheia", %{conn: conn} do
+    {:ok, _view, html} = live(conn, "/conta")
+
+    assert html =~ "convites"
     assert html =~ "você ainda pode chamar 5 pessoas pro quintal"
     assert html =~ "gerar um convite"
   end
 
   test "gerar um convite mostra o código na lista", %{conn: conn} do
-    {:ok, view, _html} = live(conn, "/canto/alice.bsky.social")
+    {:ok, view, _html} = live(conn, "/conta")
 
     html = view |> element("button", "gerar um convite") |> render_click()
 
@@ -56,9 +65,20 @@ defmodule QuintalWeb.CantoLiveConvidarTest do
       :ok = Convites.usar(convite.codigo, "did:plc:convidada#{i}")
     end
 
-    {:ok, _view, html} = live(conn, "/canto/alice.bsky.social")
+    {:ok, _view, html} = live(conn, "/conta")
 
     assert html =~ "sua cota de convites acabou por enquanto"
     refute html =~ "gerar um convite"
+  end
+
+  test "mostra a linha de exportar e o sair quieto", %{conn: conn} do
+    {:ok, _view, html} = live(conn, "/conta")
+
+    assert html =~ "/conta/exportar"
+    assert html =~ "/oauth/logout"
+  end
+
+  test "sem sessão, a portaria manda para a home" do
+    assert {:error, {:redirect, %{to: "/"}}} = live(build_conn(), "/conta")
   end
 end

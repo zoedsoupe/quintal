@@ -1,0 +1,85 @@
+/* conta: quem esta conectada, convites, exportacao e saida. coluna
+   unica estreita de secoes agrupadas, cada uma um cartao de superficie
+   suave com cantos generosos e borda de um fio. sem vermelho, sem
+   aviso: ate o sair e uma linha quieta em vinho fechado. */
+
+.conta {
+  max-width: 32rem;
+  margin-inline: auto;
+}
+
+.conta h1 {
+  margin-bottom: var(--espaco-4);
+}
+
+.conta__secao {
+  margin-bottom: var(--espaco-4);
+}
+
+.conta__titulo {
+  font-family: var(--fonte-chrome);
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--meta);
+  margin-bottom: var(--espaco-2);
+}
+
+.conta__card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--espaco-2);
+  padding: var(--espaco-3);
+  background: var(--fundo-card);
+  border: 1px solid var(--borda-card);
+  border-radius: var(--raio-card);
+}
+
+.conta__linha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-2);
+  width: 100%;
+  min-height: 2.75rem;
+}
+
+.conta__handle {
+  font-family: var(--fonte-leitura);
+  font-weight: 600;
+}
+
+.conta__did {
+  font-size: 0.8125rem;
+  color: var(--meta);
+  overflow-wrap: anywhere;
+}
+
+.conta__linha code:not(.conta__did) {
+  font-size: 0.875rem;
+  color: var(--tinta);
+  border: 1px solid var(--sussurro);
+  border-radius: var(--raio);
+  padding: 0.125rem 0.5rem;
+}
+
+.conta__nota {
+  font-size: 0.875rem;
+  color: var(--meta);
+}
+
+.conta__sair {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 2.75rem;
+  color: var(--erro);
+  text-decoration: none;
+}
+
+.conta__sair:hover {
+  color: var(--erro);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.15em;
+}

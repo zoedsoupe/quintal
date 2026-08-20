@@ -28,15 +28,18 @@ defmodule QuintalWeb.Router do
 
     # conteúdo do quintal: portaria fechada, só com sessão (spec 6.1)
     live_session :privado, on_mount: [{QuintalWeb.SessaoHook, :privado}] do
+      live "/boas-vindas", BoasVindasLive
       live "/passear", PassearLive
       live "/canto/:handle/prosa/:rkey", ProsaLive
       live "/canto/:handle", CantoLive
       live "/visitas", VisitasLive
+      live "/conta", ContaLive
     end
 
     get "/oauth/login", OAuthController, :login
     get "/oauth/logout", OAuthController, :logout
     get "/oauth/callback", OAuthController, :callback
+    get "/conta/exportar", ContaController, :exportar
     post "/convite", ConviteController, :create
   end
 
