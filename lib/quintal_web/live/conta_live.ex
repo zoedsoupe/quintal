@@ -140,7 +140,7 @@ defmodule QuintalWeb.ContaLive do
 
         <section class="conta__secao">
           <div class="conta__card conta__card--lista">
-            <a href="/oauth/logout" class="conta__item conta__item--sair">sair</a>
+            <.link href="/oauth/logout" method="post" class="conta__item conta__item--sair">sair</.link>
           </div>
         </section>
       </div>

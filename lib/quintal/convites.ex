@@ -9,8 +9,8 @@ defmodule Quintal.Convites do
   `mix quintal.convite`.
 
   O contador é derivado (spec 6.2): convites restantes = 5 menos os já
-  usados, contados por `criado_por`. Códigos gerados e ainda não usados
-  não descontam da cota.
+  criados, contados por `criado_por`. Código gerado já compromete a cota,
+  usado ou não; revogar deleta a linha e libera a vaga.
   """
 
   import Ecto.Query
@@ -37,7 +37,7 @@ defmodule Quintal.Convites do
   @doc """
   Gera um código novo para `criado_por` (did ou `"admin"`).
 
-  Pessoa comum respeita a cota de 5 usados; `"admin"` e fundadoras são sempre livres.
+  Pessoa comum respeita a cota de 5 criados; `"admin"` e fundadoras são sempre livres.
   """
   @spec gerar(criado_por :: String.t()) :: {:ok, Convite.t()} | {:error, :cota_esgotada | Ecto.Changeset.t()}
   def gerar(@admin), do: inserir(@admin)
@@ -50,17 +50,17 @@ defmodule Quintal.Convites do
     end
   end
 
-  @doc "Os convites ainda disponíveis na cota da pessoa (5 menos os usados)."
+  @doc "Os convites ainda disponíveis na cota da pessoa (5 menos os criados)."
   @spec restantes(criado_por :: String.t()) :: non_neg_integer()
   def restantes(criado_por) do
-    usados =
+    criados =
       Repo.one(
         from c in Convite,
-          where: c.criado_por == ^criado_por and not is_nil(c.usado_por),
+          where: c.criado_por == ^criado_por,
           select: count(c.codigo)
       )
 
-    max(@cota - usados, 0)
+    max(@cota - criados, 0)
   end
 
   @doc "Os códigos gerados pela pessoa ainda não usados, do mais novo para o mais antigo."
@@ -123,8 +123,14 @@ defmodule Quintal.Convites do
     |> Repo.insert()
   end
 
+  # :crypto no lugar de Enum.random: o código é credencial de entrada,
+  # e 8 chars do alfabeto dão ~8,5e11 combinações contra brute force
   defp codigo do
-    sufixo = for _ <- 1..4, into: "", do: <<Enum.random(@alfabeto)>>
+    sufixo =
+      for <<b <- :crypto.strong_rand_bytes(8)>>,
+        into: "",
+        do: <<Enum.at(@alfabeto, rem(b, length(@alfabeto)))>>
+
     "axo-#{sufixo}"
   end
 end

@@ -77,6 +77,11 @@ defmodule Quintal.RichText do
     |> Enum.reject(&is_nil/1)
   end
 
+  # Resolver é rede (plc/did:web): cap de 20 menções por prosa e
+  # resolução concorrente com timeout, pra uma prosa cheia de @handles
+  # não segurar o publicar em centenas de chamadas sequenciais.
+  @max_mencoes 20
+
   defp mention_facets(nodes, offsets, resolver) do
     nodes
     |> textos_fora_de_link()
@@ -88,11 +93,21 @@ defmodule Quintal.RichText do
       |> Enum.map(fn [{index, len}] -> {base + index, base + index + len, binary_part(literal, index, len)} end)
     end)
     |> Enum.uniq_by(fn {_s, _e, handle} -> handle end)
-    |> Enum.flat_map(fn {s, e, handle} ->
-      case resolver.(String.trim_leading(handle, "@")) do
-        {:ok, did} -> [facet_map(s, e, %{"$type" => "#{@bsky_facet}#mention", "did" => did})]
-        {:error, _sem_resolve} -> []
-      end
+    |> Enum.take(@max_mencoes)
+    |> Task.async_stream(
+      fn {s, e, handle} ->
+        case resolver.(String.trim_leading(handle, "@")) do
+          {:ok, did} -> [facet_map(s, e, %{"$type" => "#{@bsky_facet}#mention", "did" => did})]
+          {:error, _sem_resolve} -> []
+        end
+      end,
+      max_concurrency: 8,
+      timeout: 2_000,
+      on_timeout: :kill_task
+    )
+    |> Enum.flat_map(fn
+      {:ok, facets} -> facets
+      _timeout_ou_queda -> []
     end)
   end
 

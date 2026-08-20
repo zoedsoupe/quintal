@@ -8,7 +8,11 @@ defmodule QuintalWeb.Router do
     plug :fetch_live_flash
     plug :put_root_layout, html: {QuintalWeb.Layouts, :root}
     plug :protect_from_forgery
-    plug :put_secure_browser_headers
+
+    plug :put_secure_browser_headers, %{
+      "content-security-policy" =>
+        "default-src 'self'; img-src 'self' https:; style-src 'self' 'unsafe-inline'; connect-src 'self' ws: wss:"
+    }
   end
 
   pipeline :api do
@@ -31,7 +35,7 @@ defmodule QuintalWeb.Router do
     end
 
     get "/oauth/login", OAuthController, :login
-    get "/oauth/logout", OAuthController, :logout
+    post "/oauth/logout", OAuthController, :logout
     get "/oauth/callback", OAuthController, :callback
     post "/convite", ConviteController, :create
   end

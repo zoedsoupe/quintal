@@ -9,12 +9,23 @@ defmodule QuintalWeb.ContaController do
 
   use QuintalWeb, :controller
 
-  # rota protegida pela pipeline :portaria (spec 6.1)
+  # rota protegida pela pipeline :portaria (spec 6.1); aqui a sessão
+  # oauth também precisa estar viva no banco, como o SessaoHook faz nas
+  # LiveViews: cookie sozinho não exporta dados
   def exportar(conn, _params) do
-    did = get_session(conn, :quintal_did)
-    {:ok, zip} = Quintal.Exportar.zip(did)
-    data = Date.utc_today() |> Date.to_string() |> String.replace("-", "")
+    with did when is_binary(did) <- get_session(conn, :quintal_did),
+         {:ok, _sessao} <- Quintal.Auth.impl().current_session(did) do
+      {:ok, zip} = Quintal.Exportar.zip(did)
+      data = Date.utc_today() |> Date.to_string() |> String.replace("-", "")
 
-    send_download(conn, {:binary, zip}, filename: "quintal-#{data}.zip")
+      send_download(conn, {:binary, zip}, filename: "quintal-#{data}.zip")
+    else
+      _ ->
+        conn
+        |> put_status(:unauthorized)
+        |> put_view(html: QuintalWeb.ErrorHTML)
+        |> render("401.html")
+        |> halt()
+    end
   end
 end

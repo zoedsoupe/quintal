@@ -70,14 +70,19 @@ defmodule Quintal.Recados do
   identidade de quem escreveu.
 
   O dono do canto vê também os ocultos; qualquer outra pessoa, só os
-  visíveis.
+  visíveis. A lista é limitada (@maximo_recados): ela inteira vai para o
+  assigns do LiveView, e canto popular não pode virar diff gigante.
+  Paginação por cursor entra quando algum canto passar disso.
   """
+  @maximo_recados 100
+
   @spec listar_por_canto(dono_did :: String.t(), viewer_did :: String.t() | nil) :: [Recado.t()]
   def listar_por_canto(dono_did, viewer_did) do
     query =
       from r in Recado,
         where: r.subject_did == ^dono_did,
         order_by: [desc: r.created_at],
+        limit: @maximo_recados,
         preload: [:autor]
 
     query =

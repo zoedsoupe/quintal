@@ -107,7 +107,35 @@ defmodule Quintal.Ingestao do
   @impl true
   def terminate(_reason, state), do: persist_cursor(state.last_cursor)
 
-  defp process(%Event{type: :commit, operation: :delete} = event) do
+  # portaria do índice: o jetstream filtra por coleção, não por repo, e
+  # qualquer pessoa da rede pode publicar place.quintal.* no próprio pds.
+  # Evento de did que não mora no quintal vira no-op aqui, antes de
+  # gastar query (o insert morreria na FK de identidades de qualquer
+  # jeito) e sem encher a mailbox deste GenServer sob flood.
+  defp process(%Event{type: :commit, did: did} = event) do
+    if is_binary(did) and Repo.exists?(from i in Identidade, where: i.did == ^did) do
+      process_commit(event)
+    else
+      :ok
+    end
+  end
+
+  defp process(%Event{type: :identity, did: did, payload: payload}) when is_binary(did) do
+    case payload do
+      %{"identity" => %{"handle" => handle}} when is_binary(handle) ->
+        Repo.update_all(
+          from(i in Identidade, where: i.did == ^did),
+          set: [handle: handle, atualizado_em: DateTime.utc_now()]
+        )
+
+      _sem_handle ->
+        :ok
+    end
+  end
+
+  defp process(_event), do: :ok
+
+  defp process_commit(%Event{operation: :delete} = event) do
     uri = "at://#{event.did}/#{event.collection}/#{event.rkey}"
 
     case event.collection do
@@ -124,7 +152,7 @@ defmodule Quintal.Ingestao do
     :ok
   end
 
-  defp process(%Event{type: :commit} = event) do
+  defp process_commit(%Event{} = event) do
     uri = "at://#{event.did}/#{event.collection}/#{event.rkey}"
 
     case event.collection do
@@ -152,21 +180,6 @@ defmodule Quintal.Ingestao do
 
     :ok
   end
-
-  defp process(%Event{type: :identity, did: did, payload: payload}) when is_binary(did) do
-    case payload do
-      %{"identity" => %{"handle" => handle}} when is_binary(handle) ->
-        Repo.update_all(
-          from(i in Identidade, where: i.did == ^did),
-          set: [handle: handle, atualizado_em: DateTime.utc_now()]
-        )
-
-      _sem_handle ->
-        :ok
-    end
-  end
-
-  defp process(_event), do: :ok
 
   defp record(%Event{record: nil} = event) do
     Logger.warning("[#{__MODULE__}] record ausente no commit de #{event.did} (#{event.collection}/#{event.rkey})")

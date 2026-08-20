@@ -8,7 +8,10 @@ defmodule QuintalWeb.TemaPlug do
   (`prefers-color-scheme`) resolve a noite sozinha. Deslogada, nada.
   """
 
+  import Ecto.Query, only: [from: 2]
   import Plug.Conn
+
+  alias Quintal.Repo
 
   def init(opts), do: opts
 
@@ -25,5 +28,10 @@ defmodule QuintalWeb.TemaPlug do
   end
 
   defp canto(nil), do: nil
-  defp canto(did), do: Quintal.Cantos.get(did)
+
+  # uma query, sem preload: o plug roda em todo request e só precisa de
+  # tema e cor (Cantos.get/1 traria a identidade junto, desperdiçada)
+  defp canto(did) do
+    Repo.one(from c in Quintal.Canto, where: c.dono_did == ^did, select: %{tema: c.tema, cor: c.cor})
+  end
 end

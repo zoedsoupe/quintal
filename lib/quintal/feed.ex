@@ -25,14 +25,14 @@ defmodule Quintal.Feed do
   @spec list(did :: String.t(), opts :: keyword()) :: [Prosa.t()]
   def list(did, opts \\ []) do
     limit = Keyword.get(opts, :limit, 50)
+    autores = from f in Follow, where: f.seguidor_did == ^did, select: f.seguido_did
 
     Prosa
-    |> join(:left, [p], f in Follow, on: f.seguido_did == p.autor_did and f.seguidor_did == ^did)
-    |> where([p, f], p.autor_did == ^did or f.seguidor_did == ^did)
+    |> where([p], p.autor_did == ^did or p.autor_did in subquery(autores))
     |> a_partir_do_cursor(Keyword.get(opts, :cursor))
-    |> order_by([p, _f], desc: p.created_at, desc: p.uri)
+    |> order_by([p], desc: p.created_at, desc: p.uri)
     |> limit(^limit)
-    |> preload([p, _f], [:autor, :imagens])
+    |> preload([:autor, :imagens])
     |> Repo.all()
   end
 

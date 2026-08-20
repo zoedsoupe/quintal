@@ -187,7 +187,7 @@ defmodule QuintalWeb.HomeLive do
         </section>
 
         <nav class="rodape">
-          <.link href="/oauth/logout">sair</.link>
+          <.link href="/oauth/logout" method="post">sair</.link>
         </nav>
       </div>
     </Layouts.app>
