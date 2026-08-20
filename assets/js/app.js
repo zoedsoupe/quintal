@@ -57,8 +57,15 @@ const Prosear = {
       }
     });
 
-    // uma vez aberto, fica aberto: clicar fora nao desmonta o composer
-    // no meio da prosa. so o Esc, o fundo do sheet ou publicar fecham
+    // clicar fora recolhe o composer so quando o campo ta vazio;
+    // com texto ele fica aberto pra nao perder o fio da prosa
+    this.cliqueFora = (e) => {
+      if (!this.el.contains(e.target) && !this.campo.value.trim()) {
+        this.fecha();
+      }
+    };
+    document.addEventListener("click", this.cliqueFora);
+
     this.el.addEventListener("focusin", () => {
       this.aberto = true;
       this.expande();
@@ -88,6 +95,10 @@ const Prosear = {
     this.cresce();
     this.conta();
     this.expande();
+  },
+
+  destroyed() {
+    document.removeEventListener("click", this.cliqueFora);
   },
 
   updated() {
