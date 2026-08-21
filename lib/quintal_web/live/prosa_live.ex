@@ -134,6 +134,7 @@ defmodule QuintalWeb.ProsaLive do
         <.prosa
           :for={resposta <- @thread}
           autor={Map.get(@nomes, resposta.autor_did, resposta.autor.handle)}
+          canto={resposta.autor.handle}
           data={tempo_relativo(resposta.created_at)}
           texto={resposta.texto}
           path={prosa_path(resposta.uri, resposta.autor.handle)}

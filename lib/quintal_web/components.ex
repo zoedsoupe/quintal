@@ -300,7 +300,9 @@ defmodule QuintalWeb.Components do
   nunca vira rótulo no card (spec 10.1).
 
   `em_resposta` traz o handle da prosa mãe e acende o fio lilás que
-  conecta o card para cima. `path` é a página de leitura: o "continuar
+  conecta o card para cima. Autor e mãe sempre levam ao canto deles:
+  `canto` é o handle do autor (o nome de exibição não entra em url).
+  `path` é a página de leitura: o "continuar
   lendo" e o "responder" apontam para lá. Sem métricas em lugar nenhum:
   o rodapé é uma linha só com essas duas ações quietas.
   """
@@ -320,13 +322,23 @@ defmodule QuintalWeb.Components do
     ~H"""
     <article class={["prosa-card", @class]}>
       <p :if={@em_resposta} class="prosa-card__fio">
-        em resposta a <span class="prosa-card__fio-autor">{@em_resposta}</span>
+        em resposta a
+        <.link navigate={~p"/canto/#{@em_resposta}"} class="prosa-card__fio-autor">
+          {@em_resposta}
+        </.link>
       </p>
 
       <div class="prosa-card__corpo">
         <header class="prosa-card__cabeca">
           <div class="prosa-card__identidade">
-            <span class="prosa-card__autor">{@autor}</span>
+            <.link
+              :if={@canto}
+              navigate={~p"/canto/#{@canto}"}
+              class="prosa-card__autor"
+            >
+              {@autor}
+            </.link>
+            <span :if={!@canto} class="prosa-card__autor">{@autor}</span>
             <time class="prosa-card__tempo">{@data}</time>
           </div>
           <span :if={@acoes != []} class="prosa-card__acoes">{render_slot(@acoes)}</span>
@@ -407,8 +419,9 @@ defmodule QuintalWeb.Components do
     """
   end
 
-  @doc "Um recado no livro de visitas de um canto."
+  @doc "Um recado no livro de visitas de um canto. `canto` é o handle do autor, que vira link pro canto dele."
   attr :autor, :string, required: true
+  attr :canto, :string, default: nil
   attr :data, :string, required: true
   slot :inner_block, required: true
 
@@ -416,7 +429,8 @@ defmodule QuintalWeb.Components do
     ~H"""
     <div class="recado">
       <header class="recado__meta">
-        <span>{@autor}</span>
+        <.link :if={@canto} navigate={~p"/canto/#{@canto}"}>{@autor}</.link>
+        <span :if={!@canto}>{@autor}</span>
         <time>{@data}</time>
       </header>
       {render_slot(@inner_block)}

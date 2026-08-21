@@ -584,6 +584,7 @@ defmodule QuintalWeb.CantoLive do
                   >
                     <.recado
                       autor={autor_recado(recado, @sessao && Map.get(@sessao, :handle))}
+                      canto={autor_recado(recado, @sessao && Map.get(@sessao, :handle))}
                       data={tempo_relativo(recado.created_at)}
                     >
                       {Markdown.render(recado.texto)}

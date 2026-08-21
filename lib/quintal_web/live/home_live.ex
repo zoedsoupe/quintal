@@ -155,6 +155,7 @@ defmodule QuintalWeb.HomeLive do
             <% autor = Map.get(@nomes, prosa.autor_did, handle) %>
             <.prosa
               autor={autor}
+              canto={handle}
               data={tempo_relativo(prosa.created_at)}
               texto={texto}
               path={prosa_path(prosa.uri, handle)}

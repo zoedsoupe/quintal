@@ -95,7 +95,12 @@ defmodule QuintalWeb.PassearLive do
         <blockquote class="passeio__trecho">
           {Markdown.render(trecho(@carta.texto))}
         </blockquote>
-        <p class="passeio__autor">do canto de {@nome || @carta.autor.handle}</p>
+        <p class="passeio__autor">
+          do canto de
+          <.link navigate={~p"/canto/#{@carta.autor.handle}"}>
+            {@nome || @carta.autor.handle}
+          </.link>
+        </p>
 
         <div class="passeio__caminhos">
           <.link navigate={~p"/canto/#{@carta.autor.handle}"} class="botao botao--primario">
