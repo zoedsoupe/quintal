@@ -21,6 +21,8 @@ defmodule QuintalWeb.HomeLive do
   alias Quintal.Prosas
   alias Quintal.Visitas
 
+  require Logger
+
   @feed_pagina 20
 
   @impl true
@@ -72,7 +74,8 @@ defmodule QuintalWeb.HomeLive do
       {:error, :alt_faltando} ->
         {:noreply, put_flash(socket, :error, "descreve cada imagem pra quem não vê, aí a gente prosa")}
 
-      {:error, _reason} ->
+      {:error, reason} ->
+        Logger.warning("[#{__MODULE__}] prosear falhou: #{inspect(reason)}")
         {:noreply, put_flash(socket, :error, "ih, algo deu errado. tenta de novo?")}
     end
   end

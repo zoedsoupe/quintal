@@ -27,9 +27,11 @@ config :phoenix_live_view, root_tag_attribute: "phx-r"
 # collections: never broad atproto access, never Bluesky collections.
 # NOTE: partial wildcards (place.quintal.canto.*) are invalid per the
 # atproto permission spec; each collection must be listed explicitly.
+# Blob upload is a separate permission from repo: without blob:,
+# com.atproto.repo.uploadBlob answers 403 (mirror of the lexicon accept).
 config :quintal, Quintal.Auth.ProtoRune,
   scope:
-    "atproto repo:place.quintal.feed.prosa repo:place.quintal.canto.config repo:place.quintal.canto.blogroll repo:place.quintal.canto.depoimento repo:place.quintal.canto.recado repo:place.quintal.graph.follow"
+    "atproto repo:place.quintal.feed.prosa repo:place.quintal.canto.config repo:place.quintal.canto.blogroll repo:place.quintal.canto.depoimento repo:place.quintal.canto.recado repo:place.quintal.graph.follow blob:image/jpeg blob:image/png blob:image/webp"
 
 # Configure the endpoint
 config :quintal, QuintalWeb.Endpoint,

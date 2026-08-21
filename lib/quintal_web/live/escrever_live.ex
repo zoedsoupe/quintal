@@ -27,6 +27,8 @@ defmodule QuintalWeb.EscreverLive do
   alias Quintal.Recados
   alias Quintal.Repo
 
+  require Logger
+
   @tipos ~w(nota pergunta cronica ensaio)
 
   @impl true
@@ -144,7 +146,8 @@ defmodule QuintalWeb.EscreverLive do
       {:error, :alt_faltando} ->
         {:noreply, put_flash(socket, :error, "descreve cada imagem pra quem não vê, aí a gente prosa")}
 
-      {:error, _reason} ->
+      {:error, reason} ->
+        Logger.warning("[#{__MODULE__}] escrever falhou (#{socket.assigns.modo}): #{inspect(reason)}")
         {:noreply, put_flash(socket, :error, "ih, algo deu errado. tenta de novo?")}
     end
   end
