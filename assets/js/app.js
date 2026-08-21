@@ -435,6 +435,44 @@ document.addEventListener("click", (e) => {
 // data-confirm: phoenix_html ja cobre (confirma e cancela o phx-click
 // no cancel). um listener proprio aqui mostrava o dialogo duas vezes.
 
+// TemaCanto: visitar um canto veste a página inteira com o tema dele,
+// não só o miolo (o chrome mora fora do wrapper .canto-tema). espelha
+// o data-theme e o --acento do wrapper no <html> e devolve o tema
+// anterior ao sair. na carga cheia o TemaPlug já estampa o tema certo;
+// o hook cobre a navegação viva, que não passa pelo plug.
+const TemaCanto = {
+  mounted() {
+    const raiz = document.documentElement;
+    this.antes = {
+      tema: raiz.getAttribute("data-theme"),
+      acento: raiz.style.getPropertyValue("--acento"),
+    };
+    this.espelhar();
+  },
+
+  updated() {
+    this.espelhar();
+  },
+
+  destroyed() {
+    const raiz = document.documentElement;
+    if (this.antes.tema) raiz.setAttribute("data-theme", this.antes.tema);
+    else raiz.removeAttribute("data-theme");
+    if (this.antes.acento) raiz.style.setProperty("--acento", this.antes.acento);
+    else raiz.style.removeProperty("--acento");
+  },
+
+  espelhar() {
+    const raiz = document.documentElement;
+    const tema = this.el.getAttribute("data-theme");
+    const acento = this.el.style.getPropertyValue("--acento");
+    if (tema) raiz.setAttribute("data-theme", tema);
+    else raiz.removeAttribute("data-theme");
+    if (acento) raiz.style.setProperty("--acento", acento);
+    else raiz.style.removeProperty("--acento");
+  },
+};
+
 // aplicar-tema: o canto guardou tema/cor novos; espelha no <html> para o
 // site inteiro sem esperar o próximo carregamento (o TemaPlug estampa no
 // root layout a cada página cheia). papel volta ao default sem atributo,
@@ -456,7 +494,7 @@ const csrfToken = document
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: { _csrf_token: csrfToken },
-  hooks: { Composer, MdToolbar, ArrumarBlocos, FeedNovidade, ...colocatedHooks },
+  hooks: { Composer, MdToolbar, ArrumarBlocos, FeedNovidade, TemaCanto, ...colocatedHooks },
 });
 
 // Show progress bar on live navigation and form submits

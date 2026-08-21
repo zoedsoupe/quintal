@@ -9,7 +9,9 @@ defmodule QuintalWeb.CantoLive do
   cabeçalho, fora do rodízio de blocos. Depoimentos aceitos moram em
   seção própria no fim, não pendurados em outro bloco. O tema do canto
   (papel, madrugada, gloss) e a cor de acento vivem num wrapper com
-  `data-theme`, de onde as variáveis cascateiam (spec 7.2).
+  `data-theme`, de onde as variáveis cascateiam (spec 7.2); o hook
+  TemaCanto espelha no `<html>`, vestindo a página inteira, chrome
+  incluso, com o tema do canto visitado.
 
   Modo arrumar (só no próprio canto, logado): edição in place, nunca um
   painel distante. Nome e bio se editam no próprio cabeçalho; pill
@@ -414,6 +416,8 @@ defmodule QuintalWeb.CantoLive do
         class="canto-tema"
         data-theme={if @canto.tema != "papel", do: @canto.tema}
         style={@canto.cor && "--acento: #{@canto.cor}"}
+        phx-hook="TemaCanto"
+        id="canto-tema"
       >
         <div :if={@arrumar} class="arrumar__barra">
           <div class="arrumar__temas">

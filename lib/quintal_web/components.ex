@@ -305,6 +305,7 @@ defmodule QuintalWeb.Components do
   o rodapé é uma linha só com essas duas ações quietas.
   """
   attr :autor, :string, required: true
+  attr :canto, :string, default: nil
   attr :data, :string, required: true
   attr :texto, :string, required: true
   attr :path, :string, default: nil
