@@ -46,13 +46,19 @@ defmodule QuintalWeb.ProsaLive do
 
     thread = if prosa, do: Prosas.respostas(prosa.uri), else: []
 
-    dids = Enum.reject([prosa && prosa.autor_did | Enum.map(thread, & &1.autor_did)], &is_nil/1)
+    mae =
+      if prosa && prosa.reply_parent do
+        Prosa |> Repo.get(prosa.reply_parent) |> Repo.preload(:autor)
+      end
+
+    dids = Enum.reject([prosa && prosa.autor_did, mae && mae.autor_did | Enum.map(thread, & &1.autor_did)], &is_nil/1)
 
     {:ok,
      assign(socket,
        novidade: novidade,
        handle: handle,
        prosa: prosa,
+       mae: mae,
        thread: thread,
        nomes: Cantos.nomes(dids),
        visita_deixada: visita_deixada?(prosa, sessao),
@@ -97,6 +103,10 @@ defmodule QuintalWeb.ProsaLive do
     end
   end
 
+  def handle_event("ver-fio", %{"prosa-path" => path}, socket) do
+    {:noreply, push_navigate(socket, to: path)}
+  end
+
   # nunca rastreamos leitura: a visita nasce do gesto do leitor
   defp visita_deixada?(%Prosa{uri: uri}, %{did: did}), do: Visitas.leitura_marcada?(uri, did)
   defp visita_deixada?(_prosa, _sessao), do: false
@@ -114,6 +124,13 @@ defmodule QuintalWeb.ProsaLive do
       </.vazio>
 
       <article :if={@prosa} class="prosa-pagina">
+        <.link
+          :if={@mae}
+          navigate={prosa_path(@mae.uri, @mae.autor.handle)}
+          class="prosa-pagina__mae"
+        >
+          em resposta a {Map.get(@nomes, @mae.autor_did, @mae.autor.handle)}
+        </.link>
         <header class="prosa-pagina__meta">
           <.link navigate={~p"/canto/#{@handle}"} class="prosa-pagina__autor">
             {Map.get(@nomes, @prosa.autor_did, @handle)}

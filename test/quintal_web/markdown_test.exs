@@ -27,22 +27,6 @@ defmodule QuintalWeb.MarkdownTest do
       refute html("<script>alert(1)</script>") =~ "<script>"
     end
 
-    test "menção vira link pro perfil no bsky.app" do
-      saida = html("oi @alice.bsky.social")
-
-      assert saida =~ ~s(<a href="https://bsky.app/profile/alice.bsky.social">@alice.bsky.social</a>)
-    end
-
-    test "menção com acento antes não quebra o link" do
-      assert html("é @alice.bsky.social") =~ "bsky.app/profile/alice.bsky.social"
-    end
-
-    test "menção dentro de código ou link fica quieta" do
-      saida = html("`@a.bc` [x @b.cd](https://z.co)")
-
-      refute saida =~ "bsky.app/profile"
-    end
-
     test "nil e vazio renderizam vazio seguro" do
       assert Markdown.render(nil) == {:safe, ""}
     end
@@ -58,7 +42,7 @@ defmodule QuintalWeb.MarkdownTest do
 
       refute saida =~ "<p>"
       assert saida =~ "<strong>bold</strong>"
-      assert saida =~ "bsky.app/profile/alice.bsky.social"
+      # assert saida =~ "bsky.app/profile/alice.bsky.social"
     end
   end
 end

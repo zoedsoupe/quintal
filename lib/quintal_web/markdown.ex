@@ -2,12 +2,8 @@ defmodule QuintalWeb.Markdown do
   @moduledoc """
   Render server-side da fonte markdown das prosas (e recados, bios e
   depoimentos): MDEx/comrak com strikethrough e autolink GFM, HTML cru
-  escapado pelo próprio comrak — markdown da pessoa vira HTML seguro
+  escapado pelo próprio comrak: markdown da pessoa vira HTML seguro
   sem sanitize extra.
-
-  `@handle` vira link para o perfil no bsky.app: sempre resolve, mesmo
-  pra quem não tem canto no quintal. Menção dentro de link ou código
-  fica quieta.
   """
 
   @mention ~r/@[a-zA-Z0-9][a-zA-Z0-9.-]*\.[a-zA-Z]{2,}/
@@ -72,7 +68,8 @@ defmodule QuintalWeb.Markdown do
 
   defp linkify_trecho(texto) do
     Regex.replace(@mention, texto, fn handle ->
-      ~s(<a href="https://bsky.app/profile/#{String.trim_leading(handle, "@")}">#{handle}</a>)
+      linkified_handle = String.trim_leading(handle, "@")
+      ~s(<a href="/canto/#{linkified_handle}">#{handle}</a>)
     end)
   end
 end

@@ -319,8 +319,18 @@ defmodule QuintalWeb.Components do
   slot :acoes
 
   def prosa(assigns) do
+    should_link? = !!assigns[:path]
+    role = if should_link?, do: "button", else: "article"
+
+    assigns = assign(assigns, role: role, click: (should_link? && "ver-fio") || nil)
+
     ~H"""
-    <article class={["prosa-card", @class]}>
+    <article
+      class={["prosa-card", @class]}
+      role={@role}
+      phx-click={@click}
+      phx-value-prosa-path={@path || nil}
+    >
       <p :if={@em_resposta} class="prosa-card__fio">
         em resposta a
         <.link navigate={~p"/canto/#{@em_resposta}"} class="prosa-card__fio-autor">
@@ -356,7 +366,6 @@ defmodule QuintalWeb.Components do
           <.link :if={@cortou} navigate={@path} class="prosa-card__continua">
             continuar lendo
           </.link>
-          <.link :if={@responder} navigate={@path} class="prosa-card__responder">responder</.link>
         </footer>
       </div>
     </article>

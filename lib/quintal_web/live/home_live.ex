@@ -100,6 +100,10 @@ defmodule QuintalWeb.HomeLive do
      |> enriquecer(pagina)}
   end
 
+  def handle_event("ver-fio", %{"prosa-path" => path}, socket) do
+    {:noreply, push_navigate(socket, to: path)}
+  end
+
   # Só há próxima página se a atual veio cheia.
   defp proxima_pagina(pagina) do
     if length(pagina) == @feed_pagina do

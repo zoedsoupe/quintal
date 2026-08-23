@@ -137,6 +137,10 @@
   max-width: var(--medida-leitura);
 }
 
+.prosa-card[role="button"] {
+  cursor: pointer;
+}
+
 .prosa-card__corpo {
   padding: var(--espaco-2) var(--espaco-3);
   border: 1px solid var(--borda-card);
@@ -281,6 +285,18 @@
   font-family: var(--fonte-leitura);
 }
 
+.prosa-pagina__mae {
+  display: inline-block;
+  margin-bottom: var(--espaco-3);
+  font-size: 0.8125rem;
+  color: var(--meta);
+  text-decoration: none;
+}
+
+.prosa-pagina__mae:hover {
+  color: var(--tinta);
+}
+
 .prosa-pagina__meta {
   display: flex;
   align-items: baseline;
@@ -319,8 +335,7 @@
 }
 
 /* thread (briefing 5.4): hairline, respostas em ordem cronologica no
-   mesmo formato de card, cada uma ligada para cima por um fio lilas
-   curvo, e no fim o composer de resposta */
+   mesmo formato de card, e no fim o composer de resposta */
 
 .thread {
   display: flex;
@@ -331,30 +346,7 @@
   border-top: 1px solid var(--sussurro);
 }
 
-.thread .prosa-card {
-  position: relative;
-  margin-left: var(--espaco-4);
-}
-
-.thread .prosa-card::before {
-  content: "";
-  position: absolute;
-  left: calc(-1 * var(--espaco-4) + 0.75rem);
-  top: calc(-1 * var(--espaco-4));
-  width: 1rem;
-  height: calc(var(--espaco-4) + 1.5rem);
-  border-bottom: 2px solid var(--acento);
-  border-bottom-left-radius: 1rem;
-  opacity: 0.45;
-  pointer-events: none;
-}
-
-/* responder: o mesmo composer do prosear, alinhado com os cards da
-   thread */
-
-.thread__responder {
-  margin: 0 0 0 var(--espaco-4);
-}
+/* responder: o mesmo composer do prosear, no fluxo da thread */
 
 /* separador de novidade: hairline quieta entre o novo e o já lido
    (briefing 5.2). inserida pelo hook FeedNovidade, sem contador */
