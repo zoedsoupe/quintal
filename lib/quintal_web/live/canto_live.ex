@@ -81,7 +81,7 @@ defmodule QuintalWeb.CantoLive do
 
         seguindo = seguindo(sessao, proprio?, dono.did)
 
-        prosas = Prosas.list_por_autor(dono.did, limit: 20)
+        prosas = Prosas.list_por_autor(dono.did, limit: 10)
 
         {:ok,
          assign(socket,

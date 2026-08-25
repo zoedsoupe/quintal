@@ -333,6 +333,8 @@
 }
 
 .indice__frase {
+  flex: 1;
+  min-width: 0;
   overflow: hidden;
   font-family: var(--fonte-leitura);
   text-overflow: ellipsis;
