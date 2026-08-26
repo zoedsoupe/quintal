@@ -54,7 +54,7 @@ defmodule Quintal.Canto do
     |> validate_inclusion(:tema, @temas)
     |> validate_subset(:blocos, @blocos)
     |> validate_format(:cor, ~r/^#[0-9a-fA-F]{6}$/)
-    |> validate_length(:bio, max: 500)
+    |> validate_length(:bio, max: 2000)
     |> validate_length(:nome, max: 60)
     |> foreign_key_constraint(:dono_did)
   end
