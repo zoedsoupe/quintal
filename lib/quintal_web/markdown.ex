@@ -22,6 +22,7 @@ defmodule QuintalWeb.Markdown do
       |> MDEx.new()
       |> MDEx.Document.put_markdown(texto)
       |> MDEx.to_html!()
+      |> limpa_incompletos()
       |> ajusta_links()
 
     {:safe, html}
@@ -58,6 +59,16 @@ defmodule QuintalWeb.Markdown do
   # <code> ela fica quieta. O charset do handle (letra, dígito, ponto,
   # traço) não quebra HTML.
   @tag ~r/<[^>]+>/
+
+  # Resumo cortado no meio de uma referência (`![foto]`, `[texto]` no
+  # fim do trecho) vira `mdex:incomplete-link` no src/href: a imagem
+  # quebrada dispara a CSP e o link não leva a lugar nenhum. A imagem
+  # vira o próprio alt e a âncora vira texto puro.
+  defp limpa_incompletos(html) do
+    html
+    |> String.replace(~r/<img src="mdex:incomplete-link" alt="([^"]*)" \/>/, "\\1")
+    |> String.replace(~r/<a href="mdex:incomplete-link">(.*?)<\/a>/s, "\\1")
+  end
 
   defp ajusta_links(html) do
     {partes, _estado} =

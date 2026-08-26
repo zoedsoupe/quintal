@@ -14,7 +14,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="quintal" />
-    <link rel="manifest" href={~p"/manifest.webmanifest"} />
+    <%!-- href literal: ~p reescreve para o nome digerido em prod, mas o
+    Plug.Static :only não casa "manifest-<hash>.webmanifest" e o arquivo 404. --%>
+    <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="apple-touch-icon" href={~p"/images/icone-192.png"} />
     <.live_title default="quintal" phx-no-format>{assigns[:page_title]}</.live_title>
     <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
