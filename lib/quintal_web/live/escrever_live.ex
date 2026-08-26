@@ -106,7 +106,7 @@ defmodule QuintalWeb.EscreverLive do
   # Chips e título somem (modo :edicao renderiza como resposta): tipo,
   # reply e imagens ficam intocados no record salvo
   defp monta_edicao(socket, uri) do
-    prosa = if uri =~ ~r/^at:\/\//, do: Repo.get(Prosa, uri), else: nil
+    prosa = if uri =~ ~r/^at:\/\//, do: Repo.get(Prosa, uri)
 
     case prosa do
       %Prosa{autor_did: did} when did == socket.assigns.sessao.did ->
