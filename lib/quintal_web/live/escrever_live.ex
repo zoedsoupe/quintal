@@ -6,7 +6,9 @@ defmodule QuintalWeb.EscreverLive do
   - `/prosear` (`:prosear`): prosa nova, com chips de tipo. `?tipo=` abre
     direto num tipo — o ensaio é o modo foco e sempre mora aqui, até no
     desktop. `?reply=<uri>` vira resposta: a prosa-mãe aparece num card
-    quieto no topo, com o fio da thread.
+    quieto no topo, com o fio da thread. `?editar=<uri>` vira edição: a
+    prosa própria volta com o texto de sempre, sem chips nem título
+    (tipo, reply e imagens ficam no record como estavam).
   - `/recadar` (`:recado`): recado no livro de visitas de um canto,
     `?para=<handle>`. Texto puro, limite curto, sem chips nem régua.
 
@@ -49,46 +51,85 @@ defmodule QuintalWeb.EscreverLive do
   defp monta_prosear(socket, params) do
     tipo = if params["tipo"] in @tipos, do: params["tipo"], else: "nota"
 
-    case params["reply"] do
-      nil ->
+    cond do
+      params["editar"] -> monta_edicao(socket, params["editar"])
+      params["reply"] -> monta_resposta(socket, params["reply"], tipo)
+      true -> monta_nova(socket, tipo)
+    end
+  end
+
+  defp monta_nova(socket, tipo) do
+    {:ok,
+     assign(socket,
+       modo: :prosa,
+       tipo: tipo,
+       mae: nil,
+       canto: nil,
+       texto_inicial: nil,
+       voltar: "/inicio",
+       placeholder: nil,
+       maxlength: 10_000,
+       rotulo: "prosear",
+       rascunho: "quintal:rascunho",
+       page_title: "prosear"
+     )}
+  end
+
+  defp monta_resposta(socket, uri, tipo) do
+    case Repo.get(Prosa, uri) do
+      %Prosa{} = mae ->
+        mae = Repo.preload(mae, :autor)
+
         {:ok,
          assign(socket,
-           modo: :prosa,
+           modo: :resposta,
            tipo: tipo,
-           mae: nil,
+           mae: mae,
            canto: nil,
-           voltar: "/inicio",
-           placeholder: nil,
+           texto_inicial: nil,
+           voltar: prosa_path(mae.uri, mae.autor.handle),
+           placeholder: "responder com uma prosa...",
            maxlength: 10_000,
-           rotulo: "prosear",
-           rascunho: "quintal:rascunho",
-           page_title: "prosear"
+           rotulo: "responder",
+           rascunho: "quintal:rascunho:responder:#{mae.uri}",
+           page_title: "responder #{mae.autor.handle}"
          )}
 
-      uri ->
-        case Repo.get(Prosa, uri) do
-          %Prosa{} = mae ->
-            mae = Repo.preload(mae, :autor)
+      nil ->
+        # mãe fora do índice: resposta sem contexto não faz sentido,
+        # cai na prosa nova
+        {:ok, push_navigate(socket, to: "/prosear")}
+    end
+  end
 
-            {:ok,
-             assign(socket,
-               modo: :resposta,
-               tipo: tipo,
-               mae: mae,
-               canto: nil,
-               voltar: prosa_path(mae.uri, mae.autor.handle),
-               placeholder: "responder com uma prosa...",
-               maxlength: 10_000,
-               rotulo: "responder",
-               rascunho: "quintal:rascunho:responder:#{mae.uri}",
-               page_title: "responder #{mae.autor.handle}"
-             )}
+  # `?editar=<uri>`: a prosa volta pro composer com o texto de sempre.
+  # Chips e título somem (modo :edicao renderiza como resposta): tipo,
+  # reply e imagens ficam intocados no record salvo
+  defp monta_edicao(socket, uri) do
+    prosa = if uri =~ ~r/^at:\/\//, do: Repo.get(Prosa, uri), else: nil
 
-          nil ->
-            # mãe fora do índice: resposta sem contexto não faz sentido,
-            # cai na prosa nova
-            {:ok, push_navigate(socket, to: "/prosear")}
-        end
+    case prosa do
+      %Prosa{autor_did: did} when did == socket.assigns.sessao.did ->
+        prosa = Repo.preload(prosa, :autor)
+
+        {:ok,
+         assign(socket,
+           modo: :edicao,
+           tipo: prosa.tipo || "nota",
+           mae: nil,
+           canto: nil,
+           editando: prosa,
+           texto_inicial: prosa.texto,
+           voltar: prosa_path(prosa.uri, prosa.autor.handle),
+           placeholder: nil,
+           maxlength: 10_000,
+           rotulo: "salvar",
+           rascunho: "quintal:rascunho:editar:#{prosa.uri}",
+           page_title: "editar prosa"
+         )}
+
+      _alheia_ou_nada ->
+        {:ok, push_navigate(socket, to: "/inicio")}
     end
   end
 
@@ -111,6 +152,7 @@ defmodule QuintalWeb.EscreverLive do
            tipo: "nota",
            mae: nil,
            canto: handle,
+           texto_inicial: nil,
            voltar: "/canto/#{handle}",
            placeholder: "deixa um recado pra #{handle}",
            maxlength: 500,
@@ -146,6 +188,9 @@ defmodule QuintalWeb.EscreverLive do
       {:error, :alt_faltando} ->
         {:noreply, put_flash(socket, :error, "descreve cada imagem pra quem não vê, aí a gente prosa")}
 
+      {:error, :mae_fora_do_indice} ->
+        {:noreply, put_flash(socket, :error, "a prosa que você respondeu não tá mais aqui. recarrega e tenta de novo?")}
+
       {:error, reason} ->
         Logger.warning("[#{__MODULE__}] escrever falhou (#{socket.assigns.modo}): #{inspect(reason)}")
         {:noreply, put_flash(socket, :error, "ih, algo deu errado. tenta de novo?")}
@@ -160,6 +205,10 @@ defmodule QuintalWeb.EscreverLive do
     end
   end
 
+  defp publicar(:edicao, socket, texto, _params) do
+    Prosas.editar(socket.assigns.sessao, socket.assigns.editando.uri, texto)
+  end
+
   defp publicar(:resposta, socket, texto, _params) do
     Prosas.responder(socket.assigns.sessao, socket.assigns.mae, texto)
   end
@@ -169,6 +218,7 @@ defmodule QuintalWeb.EscreverLive do
   end
 
   defp flash_sucesso(:recado), do: "pronto, seu recado tá no livro de visitas"
+  defp flash_sucesso(:edicao), do: "pronto, sua prosa tá atualizada"
   defp flash_sucesso(_modo), do: "pronto, sua prosa tá no quintal"
 
   @impl true
@@ -181,6 +231,7 @@ defmodule QuintalWeb.EscreverLive do
         tipo={@tipo}
         mae={@mae}
         canto={@canto}
+        texto_inicial={@texto_inicial}
         voltar={@voltar}
         placeholder={@placeholder}
         maxlength={@maxlength}

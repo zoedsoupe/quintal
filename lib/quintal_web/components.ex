@@ -83,6 +83,7 @@ defmodule QuintalWeb.Components do
   attr :tipo, :string, default: "nota"
   attr :mae, :any, default: nil
   attr :canto, :any, default: nil
+  attr :texto_inicial, :string, default: nil
   attr :voltar, :string, default: "/"
   attr :placeholder, :string, default: nil
   attr :maxlength, :integer, default: 10_000
@@ -226,6 +227,7 @@ defmodule QuintalWeb.Components do
       <.campo
         name="texto"
         area
+        value={@texto_inicial}
         aria-label={@rotulo}
         placeholder={@placeholder}
         rows="1"

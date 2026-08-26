@@ -313,6 +313,29 @@
   color: var(--tinta);
 }
 
+.prosa-pagina__acoes {
+  display: flex;
+  gap: var(--espaco-2);
+  margin-left: auto;
+  font-size: 0.8125rem;
+}
+
+.prosa-pagina__acoes button,
+.prosa-pagina__acoes a {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--meta);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.prosa-pagina__acoes button:hover,
+.prosa-pagina__acoes a:hover {
+  color: var(--tinta);
+}
+
 .prosa-pagina__texto {
   font-size: 1.125rem;
   line-height: 1.8;

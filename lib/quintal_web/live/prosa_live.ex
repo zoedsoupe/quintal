@@ -136,6 +136,15 @@ defmodule QuintalWeb.ProsaLive do
             {Map.get(@nomes, @prosa.autor_did, @handle)}
           </.link>
           <time>{tempo_relativo(@prosa.created_at)}</time>
+          <span :if={@sessao && @prosa.autor_did == @sessao.did} class="prosa-pagina__acoes">
+            <.link navigate={"/prosear?editar=#{URI.encode_www_form(@prosa.uri)}"}>editar</.link>
+            <button
+              type="button"
+              phx-click={JS.dispatch("quintal:copiar", detail: %{texto: @prosa.texto})}
+            >
+              copiar
+            </button>
+          </span>
         </header>
 
         <div class="prosa-pagina__texto">
@@ -158,6 +167,13 @@ defmodule QuintalWeb.ProsaLive do
           imagens={imagens_card(resposta)}
         >
           <:acoes :if={@sessao && resposta.autor_did == @sessao.did}>
+            <.link
+              navigate={"/prosear?editar=#{URI.encode_www_form(resposta.uri)}"}
+              class="icone-botao"
+              aria-label="editar prosa"
+            >
+              <Lucideicons.pencil aria-hidden="true" />
+            </.link>
             <button
               type="button"
               class="icone-botao"

@@ -176,6 +176,83 @@ defmodule Quintal.ProsasTest do
     end
   end
 
+  describe "editar/3" do
+    test "salva o texto novo no pds e reindexa", %{session: session} do
+      indexa_identidade()
+      uri = "at://did:plc:alice/place.quintal.feed.prosa/abc"
+
+      {:ok, _} =
+        Prosas.indexar(session.did, %{
+          uri: uri,
+          cid: "bafy",
+          value: %{text: "texto velho", created_at: "2026-08-01T10:00:00Z"}
+        })
+
+      expect(PDSMock, :put_record, fn _session, "place.quintal.feed.prosa", "abc", record, _opts ->
+        assert record["text"] == "texto novo"
+        assert {:ok, ~U[2026-08-01 10:00:00.000000Z], 0} = DateTime.from_iso8601(record["createdAt"])
+        refute Map.has_key?(record, "reply")
+        {:ok, %{uri: uri, cid: "bafy2"}}
+      end)
+
+      assert {:ok, prosa} = Prosas.editar(session, uri, "texto novo")
+      assert prosa.texto == "texto novo"
+      assert prosa.cid == "bafy2"
+    end
+
+    test "resposta mantém o reply do record", %{session: session} do
+      indexa_identidade()
+      mae_uri = "at://did:plc:alice/place.quintal.feed.prosa/raiz"
+      uri = "at://did:plc:alice/place.quintal.feed.prosa/abc"
+
+      {:ok, _} =
+        Prosas.indexar(session.did, %{
+          uri: mae_uri,
+          cid: "bafymae",
+          value: %{text: "mãe", created_at: "2026-08-01T10:00:00Z"}
+        })
+
+      {:ok, _} =
+        Prosas.indexar(session.did, %{
+          uri: uri,
+          cid: "bafy",
+          value: %{
+            text: "resposta velha",
+            created_at: "2026-08-01T11:00:00Z",
+            reply: %{root: %{uri: mae_uri, cid: "bafymae"}, parent: %{uri: mae_uri, cid: "bafymae"}}
+          }
+        })
+
+      expect(PDSMock, :put_record, fn _session, "place.quintal.feed.prosa", "abc", record, _opts ->
+        assert record["reply"]["root"] == %{"uri" => mae_uri, "cid" => "bafymae"}
+        {:ok, %{uri: uri, cid: "bafy2"}}
+      end)
+
+      assert {:ok, prosa} = Prosas.editar(session, uri, "resposta nova")
+      assert prosa.reply_root == mae_uri
+    end
+
+    test "prosa alheia não sai de casa", %{session: session} do
+      indexa_identidade("did:plc:beto")
+      uri = "at://did:plc:beto/place.quintal.feed.prosa/xyz"
+
+      {:ok, _} =
+        Prosas.indexar("did:plc:beto", %{
+          uri: uri,
+          cid: "bafy",
+          value: %{text: "prosa do beto", created_at: "2026-08-01T10:00:00Z"}
+        })
+
+      assert {:error, :prosa_alheia} = Prosas.editar(session, uri, "roubada")
+      assert Repo.get(Prosa, uri).texto == "prosa do beto"
+    end
+
+    test "texto em branco falha em casa", %{session: session} do
+      uri = "at://did:plc:alice/place.quintal.feed.prosa/abc"
+      assert {:error, :texto_vazio} = Prosas.editar(session, uri, "   ")
+    end
+  end
+
   describe "list_por_autor/2" do
     test "cronológica, da mais nova para a mais antiga", %{session: session} do
       indexa_identidade()

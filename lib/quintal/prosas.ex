@@ -90,6 +90,79 @@ defmodule Quintal.Prosas do
   end
 
   @doc """
+  Salva o texto novo de uma prosa própria: `put_record` no mesmo rkey
+  (spec 9.4), com o resto do record (createdAt, reply, imagens, tipo)
+  reconstruído do índice, e reindexa.
+
+  Prosa fora do índice ou alheia é `{:error, :prosa_alheia}`. Resposta
+  cuja mãe ou raiz saiu do índice é `{:error, :mae_fora_do_indice}`:
+  sem os cids não dá pra reconstruir o strongRef.
+  """
+  @spec editar(Quintal.PDS.session(), uri :: String.t(), texto :: String.t()) ::
+          {:ok, Prosa.t()} | {:error, :texto_vazio | :prosa_alheia | :mae_fora_do_indice | term()}
+  def editar(session, "at://" <> rest = uri, texto) when is_binary(texto) do
+    if String.trim(texto) == "" do
+      {:error, :texto_vazio}
+    else
+      with [did, @prosa, rkey] <- String.split(rest, "/"),
+           true <- did == session.did,
+           %Prosa{} = prosa <- Repo.get(Prosa, uri),
+           prosa = Repo.preload(prosa, :imagens),
+           {:ok, record} <- record_lexicon(prosa, texto),
+           {:ok, %{uri: uri, cid: cid}} <- pds().put_record(session, @prosa, rkey, record, []) do
+        indexar(session.did, %{uri: uri, cid: cid, value: record})
+      else
+        {:error, _reason} = error -> error
+        _other -> {:error, :prosa_alheia}
+      end
+    end
+  end
+
+  def editar(_session, _uri, _texto), do: {:error, :prosa_alheia}
+
+  # Reconstrói o record no formato do lexicon a partir do índice, com o
+  # texto novo. O blob da imagem já mora normalizado no índice (chaves
+  # string, cortesia do ProsearForm.blob_lexicon/1 e da firehose crua).
+  defp record_lexicon(%Prosa{} = prosa, texto) do
+    with {:ok, reply} <- reply_lexicon(prosa) do
+      record = %{"text" => texto, "createdAt" => DateTime.to_iso8601(prosa.created_at)}
+      record = if prosa.tipo, do: Map.put(record, "tipo", prosa.tipo), else: record
+      record = if prosa.langs in [nil, []], do: record, else: Map.put(record, "langs", prosa.langs)
+      record = if reply, do: Map.put(record, "reply", reply), else: record
+
+      record =
+        case RichText.facets(texto) do
+          [] -> record
+          facets -> Map.put(record, "facets", facets)
+        end
+
+      record =
+        if prosa.imagens == [] do
+          record
+        else
+          Map.put(record, "images", Enum.map(prosa.imagens, &%{"image" => &1.blob, "alt" => &1.alt}))
+        end
+
+      {:ok, record}
+    end
+  end
+
+  defp reply_lexicon(%Prosa{reply_root: nil}), do: {:ok, nil}
+
+  defp reply_lexicon(%Prosa{reply_root: root_uri, reply_parent: parent_uri}) do
+    with %Prosa{} = root <- Repo.get(Prosa, root_uri),
+         %Prosa{} = parent <- Repo.get(Prosa, parent_uri) do
+      {:ok,
+       %{
+         "root" => %{"uri" => root.uri, "cid" => root.cid},
+         "parent" => %{"uri" => parent.uri, "cid" => parent.cid}
+       }}
+    else
+      _sem_mae_ou_raiz -> {:error, :mae_fora_do_indice}
+    end
+  end
+
+  @doc """
   Apaga uma prosa do pds e do índice.
 
   Só apaga prosa da própria pessoa: uri fora do repo da sessão é
