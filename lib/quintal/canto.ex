@@ -30,6 +30,7 @@ defmodule Quintal.Canto do
     field :cor, :string
     field :blocos, {:array, :string}
     field :bio, :string
+    field :avatar, :map
     field :nome, :string
     field :updated_at, :utc_datetime_usec
 
@@ -48,7 +49,7 @@ defmodule Quintal.Canto do
   @doc false
   def changeset(canto, attrs) do
     canto
-    |> cast(attrs, [:dono_did, :tema, :cor, :blocos, :bio, :nome, :updated_at])
+    |> cast(attrs, [:dono_did, :tema, :cor, :blocos, :bio, :avatar, :nome, :updated_at])
     |> cast_embed(:links, with: &link_changeset/2)
     |> validate_required([:dono_did, :tema, :blocos, :updated_at])
     |> validate_inclusion(:tema, @temas)

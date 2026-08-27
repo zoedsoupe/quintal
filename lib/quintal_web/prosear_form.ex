@@ -57,7 +57,7 @@ defmodule QuintalWeb.ProsearForm do
 
   # a resposta do uploadBlob chega decodificada pelo proto_rune; o record
   # precisa do blob no formato do lexicon, com chaves string
-  defp blob_lexicon(resposta) do
+  def blob_lexicon(resposta) do
     blob = resposta[:blob] || resposta["blob"] || resposta
 
     %{

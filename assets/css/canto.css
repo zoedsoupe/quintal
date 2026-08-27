@@ -59,6 +59,56 @@
   gap: var(--espaco-3);
 }
 
+/* a foto redondinha da casa, maior no cabeçalho que no feed */
+
+.canto__avatar {
+  width: 4.5rem;
+  height: 4.5rem;
+  align-self: center;
+}
+
+.canto__titulo .canto__identidade {
+  flex: 1;
+}
+
+/* troca da foto no modo arrumar: o círculo é o botão */
+
+.canto__avatar-arrumar {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+  margin-top: var(--espaco-3);
+}
+
+.canto__avatar-trocar {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  cursor: pointer;
+}
+
+.canto__avatar-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+}
+
+.canto__avatar--vazio {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--meta);
+  border: 1px dashed var(--sussurro);
+}
+
+.canto__avatar-dica {
+  font-size: 0.875rem;
+  color: var(--meta);
+}
+
 .canto__acoes {
   flex: none;
 }

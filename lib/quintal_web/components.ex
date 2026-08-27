@@ -298,11 +298,25 @@ defmodule QuintalWeb.Components do
   defp tipos_inline, do: Enum.take(tipos(), 3)
 
   @doc """
+  A foto de perfil de um canto, redondinha. Quando a pessoa não
+  escolheu uma, quem aparece é a cara do axô: ninguém fica sem rosto
+  na vizinhança.
+  """
+  attr :src, :string, default: nil
+  attr :class, :string, default: nil
+
+  def avatar(assigns) do
+    ~H"""
+    <img src={@src || "/images/axo-avatar.png"} alt="" class={["avatar", @class]} />
+    """
+  end
+
+  @doc """
   Uma prosa no feed, no canto ou na thread: o card de leitura.
 
-  Nome do canto em peso 600 e tempo em sussurro, sem avatar: a
-  identidade da casa é o nome. O tipo da prosa é metadado interno e
-  nunca vira rótulo no card (spec 10.1).
+  Nome do canto em peso 600, foto redondinha (a do axô quando a
+  pessoa não escolheu uma) e tempo em sussurro. O tipo da prosa é
+  metadado interno e nunca vira rótulo no card (spec 10.1).
 
   `em_resposta` traz o handle da prosa mãe e acende o fio lilás que
   conecta o card para cima. Autor e mãe sempre levam ao canto deles:
@@ -313,6 +327,7 @@ defmodule QuintalWeb.Components do
   """
   attr :autor, :string, required: true
   attr :canto, :string, default: nil
+  attr :avatar, :string, default: nil
   attr :data, :string, required: true
   attr :texto, :string, required: true
   attr :path, :string, default: nil
@@ -348,15 +363,18 @@ defmodule QuintalWeb.Components do
       <div class="prosa-card__corpo">
         <header class="prosa-card__cabeca">
           <div class="prosa-card__identidade">
-            <.link
-              :if={@canto}
-              navigate={~p"/canto/#{@canto}"}
-              class="prosa-card__autor"
-            >
-              {@autor}
-            </.link>
-            <span :if={!@canto} class="prosa-card__autor">{@autor}</span>
-            <time class="prosa-card__tempo">{@data}</time>
+            <.avatar src={@avatar} />
+            <div class="prosa-card__quem">
+              <.link
+                :if={@canto}
+                navigate={~p"/canto/#{@canto}"}
+                class="prosa-card__autor"
+              >
+                {@autor}
+              </.link>
+              <span :if={!@canto} class="prosa-card__autor">{@autor}</span>
+              <time class="prosa-card__tempo">{@data}</time>
+            </div>
           </div>
           <span :if={@acoes != []} class="prosa-card__acoes">{render_slot(@acoes)}</span>
         </header>
@@ -438,6 +456,7 @@ defmodule QuintalWeb.Components do
   @doc "Um recado no livro de visitas de um canto. `canto` é o handle do autor, que vira link pro canto dele."
   attr :autor, :string, required: true
   attr :canto, :string, default: nil
+  attr :avatar, :string, default: nil
   attr :data, :string, required: true
   slot :inner_block, required: true
 
@@ -445,6 +464,7 @@ defmodule QuintalWeb.Components do
     ~H"""
     <div class="recado">
       <header class="recado__meta">
+        <.avatar src={@avatar} />
         <.link :if={@canto} navigate={~p"/canto/#{@canto}"}>{@autor}</.link>
         <span :if={!@canto}>{@autor}</span>
         <time>{@data}</time>

@@ -12,7 +12,7 @@ defmodule QuintalWeb.HomeLive do
   use QuintalWeb, :live_view
 
   import QuintalWeb.Formatacao,
-    only: [tempo_relativo: 1, trecho: 1, prosa_path: 2, imagens_card: 1]
+    only: [tempo_relativo: 1, trecho: 1, prosa_path: 2, imagens_card: 1, avatar_url: 2]
 
   import QuintalWeb.ProsearForm, only: [com_titulo: 2, imagens_dos_anexos: 2]
 
@@ -45,7 +45,8 @@ defmodule QuintalWeb.HomeLive do
        feed: feed,
        feed_cursor: proxima_pagina(feed),
        pais: %{},
-       nomes: %{}
+       nomes: %{},
+       avatars: %{}
      )
      |> enriquecer(feed)}
   end
@@ -124,6 +125,7 @@ defmodule QuintalWeb.HomeLive do
     socket
     |> update(:pais, &Map.merge(&1, Prosas.pais(pais_uris)))
     |> update(:nomes, &Map.merge(&1, Cantos.nomes(dids)))
+    |> update(:avatars, &Map.merge(&1, Cantos.avatars(dids)))
   end
 
   @impl true
@@ -165,6 +167,7 @@ defmodule QuintalWeb.HomeLive do
             <.prosa
               autor={autor}
               canto={handle}
+              avatar={avatar_url(prosa.autor, @avatars[prosa.autor_did])}
               data={tempo_relativo(prosa.created_at)}
               texto={texto}
               tipo={prosa.tipo}

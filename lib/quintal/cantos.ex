@@ -39,11 +39,13 @@ defmodule Quintal.Cantos do
   Arruma o canto: mescla `attrs` sobre a configuração atual, escreve o
   record no pds e indexa otimista.
 
-  `attrs` pode trazer `:tema`, `:cor`, `:blocos`, `:bio`, `:links` e
-  `:nome` (chaves atom ou string); o que não vier fica como está, e o
-  que nunca existiu cai no padrão (tema papel, todos os blocos
+  `attrs` pode trazer `:tema`, `:cor`, `:blocos`, `:bio`, `:avatar`,
+  `:links` e `:nome` (chaves atom ou string); o que não vier fica como
+  está, e o que nunca existiu cai no padrão (tema papel, todos os blocos
   visíveis). `cor` `nil` ou `""` tira o acento do record. O `:nome` é
   local do appview: quando é a única mudança, nem rede acontece.
+  `:avatar` é a referência do blob já subido (formato lexicon, chaves
+  string); `nil` tira a foto do record.
 
   Tema fora dos presets ou bloco desconhecido falham em casa, antes da
   rede.
@@ -129,6 +131,19 @@ defmodule Quintal.Cantos do
     |> Map.new()
   end
 
+  @doc "Os avatares dos dids dados, como `%{did => blob}`. Só quem escolheu uma foto aparece."
+  @spec avatars([String.t()]) :: %{String.t() => map()}
+  def avatars(dids) do
+    import Ecto.Query
+
+    from(c in Canto,
+      where: c.dono_did in ^dids and not is_nil(c.avatar),
+      select: {c.dono_did, c.avatar}
+    )
+    |> Repo.all()
+    |> Map.new()
+  end
+
   @doc """
   Upsert idempotente da configuração do canto no índice.
 
@@ -145,6 +160,7 @@ defmodule Quintal.Cantos do
       cor: campo(value, :cor),
       blocos: campo(value, :blocos),
       bio: campo(value, :bio),
+      avatar: campo(value, :avatar),
       links: campo(value, :links) || [],
       updated_at: parse_datetime(campo(value, :updated_at) || campo(value, :updatedAt))
     }
@@ -152,7 +168,7 @@ defmodule Quintal.Cantos do
     %Canto{}
     |> Canto.changeset(attrs)
     |> Repo.insert(
-      on_conflict: {:replace, [:tema, :cor, :blocos, :bio, :links, :updated_at]},
+      on_conflict: {:replace, [:tema, :cor, :blocos, :bio, :avatar, :links, :updated_at]},
       conflict_target: :dono_did
     )
     |> case do
@@ -174,15 +190,15 @@ defmodule Quintal.Cantos do
     case Repo.get(Canto, dono_did) do
       %Canto{} = canto ->
         links = Enum.map(canto.links, &%{titulo: &1.titulo, url: &1.url})
-        %{tema: canto.tema, cor: canto.cor, blocos: canto.blocos, bio: canto.bio, links: links}
+        %{tema: canto.tema, cor: canto.cor, blocos: canto.blocos, bio: canto.bio, avatar: canto.avatar, links: links}
 
       nil ->
-        %{tema: "papel", cor: nil, blocos: @blocos_padrao, bio: nil, links: []}
+        %{tema: "papel", cor: nil, blocos: @blocos_padrao, bio: nil, avatar: nil, links: []}
     end
   end
 
   defp mescla(config, attrs) do
-    Enum.reduce([:tema, :cor, :blocos, :bio, :links], config, fn chave, acc ->
+    Enum.reduce([:tema, :cor, :blocos, :bio, :avatar, :links], config, fn chave, acc ->
       case busca_attr(attrs, chave) do
         {:ok, valor} -> Map.put(acc, chave, valor)
         :ausente -> acc
@@ -227,6 +243,12 @@ defmodule Quintal.Cantos do
       case Ecto.Changeset.get_field(changeset, :bio) do
         nil -> record
         bio -> Map.put(record, "bio", bio)
+      end
+
+    record =
+      case Ecto.Changeset.get_field(changeset, :avatar) do
+        nil -> record
+        avatar -> Map.put(record, "avatar", avatar)
       end
 
     case Ecto.Changeset.get_field(changeset, :links) do

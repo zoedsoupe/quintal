@@ -27,7 +27,7 @@ defmodule QuintalWeb.CantoLive do
   import Ecto.Query, only: [from: 2]
 
   import QuintalWeb.Formatacao,
-    only: [tempo_relativo: 1, data_curta: 1, primeira_frase: 1, prosa_path: 2]
+    only: [tempo_relativo: 1, data_curta: 1, primeira_frase: 1, prosa_path: 2, avatar_url: 2]
 
   alias Quintal.Blogrolls
   alias Quintal.Canto
@@ -82,9 +82,17 @@ defmodule QuintalWeb.CantoLive do
         seguindo = seguindo(sessao, proprio?, dono.did)
 
         prosas = Prosas.list_por_autor(dono.did, limit: 10)
+        recados = Recados.listar_por_canto(dono.did, viewer_did)
 
         {:ok,
-         assign(socket,
+         socket
+         |> allow_upload(:avatar,
+           accept: ~w(image/jpeg image/png image/webp),
+           max_entries: 1,
+           max_file_size: 1_000_000,
+           auto_upload: true
+         )
+         |> assign(
            novidade: novidade,
            encontrou: true,
            page_title: "canto de #{dono.handle}",
@@ -96,11 +104,12 @@ defmodule QuintalWeb.CantoLive do
            guardado_seq: 0,
            seguindo: seguindo,
            prosas: prosas,
-           recados: Recados.listar_por_canto(dono.did, viewer_did),
+           recados: recados,
            recados_visiveis: @recados_pagina,
            depoimentos: Depoimentos.aceitos(dono.did),
            depoimento_form: false,
            blogroll_items: blogroll_items(dono.did),
+           avatars: Cantos.avatars([dono.did | Enum.map(recados, & &1.autor_did)]),
            presets: @presets
          )}
     end
@@ -127,6 +136,7 @@ defmodule QuintalWeb.CantoLive do
         {:noreply,
          socket
          |> update(:recados, &[recado | &1])
+         |> update(:avatars, &Map.merge(&1, Cantos.avatars([recado.autor_did])))
          |> push_event("composer-publicado", %{})}
 
       {:error, _reason} ->
@@ -214,6 +224,28 @@ defmodule QuintalWeb.CantoLive do
     else
       {:noreply, socket}
     end
+  end
+
+  # a foto do canto sobe como blob pro pds e vira o `avatar` do record
+  # de configuração; autosave como o resto do modo arrumar
+  def handle_event("avatar", _params, %{assigns: %{proprio?: true}} = socket) do
+    arquivos =
+      consume_uploaded_entries(socket, :avatar, fn %{path: path}, entry ->
+        {:ok, %{bin: File.read!(path), tipo: entry.client_type}}
+      end)
+
+    with [%{bin: bin, tipo: tipo}] <- arquivos,
+         {:ok, resposta} <- Quintal.PDS.impl().upload_blob(socket.assigns.sessao, bin, tipo) do
+      guardar(socket, %{avatar: QuintalWeb.ProsearForm.blob_lexicon(resposta)})
+    else
+      _outro -> {:noreply, put_flash(socket, :error, "ih, a foto não subiu. tenta de novo?")}
+    end
+  end
+
+  def handle_event("avatar", _params, socket), do: {:noreply, socket}
+
+  def handle_event("tirar_avatar", _params, %{assigns: %{proprio?: true}} = socket) do
+    guardar(socket, %{avatar: nil})
   end
 
   def handle_event("alternar-bloco", %{"bloco" => bloco}, socket) do
@@ -444,6 +476,7 @@ defmodule QuintalWeb.CantoLive do
 
         <header class="canto__cabeca">
           <div class="canto__titulo">
+            <.avatar src={avatar_url(@dono, @canto.avatar)} class="canto__avatar" />
             <div class="canto__identidade">
               <h1 class="canto__nome">{@canto.nome || @dono.handle}</h1>
               <p :if={@canto.nome} class="canto__handle">{@dono.handle}</p>
@@ -472,6 +505,30 @@ defmodule QuintalWeb.CantoLive do
 
           <%!-- nome e bio se editam aqui mesmo, no lugar: o canto se
                arruma como é visto, nunca num painel distante --%>
+          <form :if={@arrumar} id="avatar" phx-change="avatar" class="canto__avatar-arrumar">
+            <label class="canto__avatar-trocar">
+              <%= if url = avatar_url(@dono, @canto.avatar) do %>
+                <img src={url} alt="" class="canto__avatar" />
+              <% else %>
+                <span class="canto__avatar canto__avatar--vazio" aria-hidden="true">
+                  <Lucideicons.camera />
+                </span>
+              <% end %>
+              <.live_file_input upload={@uploads.avatar} class="canto__avatar-input" />
+              <span class="canto__avatar-dica">
+                {if @canto.avatar, do: "trocar a foto", else: "escolher uma foto"}
+              </span>
+            </label>
+            <button
+              :if={@canto.avatar}
+              type="button"
+              class="conta__link"
+              phx-click="tirar_avatar"
+            >
+              tirar a foto
+            </button>
+          </form>
+
           <form :if={@arrumar} phx-change="cabeca" phx-debounce="600" class="canto__cabeca-form">
             <.campo
               name="nome"
@@ -586,6 +643,7 @@ defmodule QuintalWeb.CantoLive do
                     <.recado
                       autor={autor_recado(recado, @sessao && Map.get(@sessao, :handle))}
                       canto={autor_recado(recado, @sessao && Map.get(@sessao, :handle))}
+                      avatar={avatar_url(recado.autor, @avatars[recado.autor_did])}
                       data={tempo_relativo(recado.created_at)}
                     >
                       {Markdown.render(recado.texto)}

@@ -121,6 +121,42 @@ defmodule Quintal.CantosTest do
       assert Repo.aggregate(Canto, :count) == 0
     end
 
+    test "avatar entra no record e volta pro índice", %{session: session} do
+      blob = %{"$type" => "blob", "ref" => %{"$link" => "bafyfoto"}, "mimeType" => "image/png", "size" => 1234}
+
+      expect(PDSMock, :put_record, fn _session, "place.quintal.canto.config", "self", record, _opts ->
+        assert record["avatar"] == blob
+        {:ok, %{uri: "at://did:plc:alice/place.quintal.canto.config/self", cid: "bafy"}}
+      end)
+
+      assert {:ok, canto} = Cantos.arrumar(session, %{avatar: blob})
+      assert canto.avatar == blob
+      assert Cantos.avatars(["did:plc:alice"]) == %{"did:plc:alice" => blob}
+    end
+
+    test "avatar nil tira a foto do record", %{session: session} do
+      blob = %{"$type" => "blob", "ref" => %{"$link" => "bafyfoto"}, "mimeType" => "image/png", "size" => 1234}
+
+      {:ok, _} =
+        Cantos.indexar("did:plc:alice", %{
+          value: %{
+            "tema" => "papel",
+            "blocos" => ~w(prosas),
+            "avatar" => blob,
+            "updatedAt" => "2026-08-01T10:00:00Z"
+          }
+        })
+
+      expect(PDSMock, :put_record, fn _session, "place.quintal.canto.config", "self", record, _opts ->
+        refute Map.has_key?(record, "avatar")
+        {:ok, %{uri: "at://did:plc:alice/place.quintal.canto.config/self", cid: "bafy"}}
+      end)
+
+      assert {:ok, canto} = Cantos.arrumar(session, %{avatar: nil})
+      assert canto.avatar == nil
+      assert Cantos.avatars(["did:plc:alice"]) == %{}
+    end
+
     test "erro do pds não indexa nada", %{session: session} do
       stub(PDSMock, :put_record, fn _session, _collection, _rkey, _record, _opts ->
         {:error, :pds_fora_do_ar}

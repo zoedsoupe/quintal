@@ -28,6 +28,11 @@
             }
           },
           "bio": { "type": "string", "maxGraphemes": 500 },
+          "avatar": {
+            "type": "blob",
+            "accept": ["image/jpeg", "image/png", "image/webp"],
+            "maxSize": 1000000
+          },
           "links": {
             "type": "array",
             "maxLength": 8,
