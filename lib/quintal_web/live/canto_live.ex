@@ -229,16 +229,24 @@ defmodule QuintalWeb.CantoLive do
   # a foto do canto sobe como blob pro pds e vira o `avatar` do record
   # de configuração; autosave como o resto do modo arrumar
   def handle_event("avatar", _params, %{assigns: %{proprio?: true}} = socket) do
-    arquivos =
-      consume_uploaded_entries(socket, :avatar, fn %{path: path}, entry ->
-        {:ok, %{bin: File.read!(path), tipo: entry.client_type}}
-      end)
+    # auto_upload dispara o change ao escolher o arquivo, antes do upload
+    # terminar, e de novo ao completar; só consome quando não há nada pendente
+    case uploaded_entries(socket, :avatar) do
+      {[_ | _], []} ->
+        arquivos =
+          consume_uploaded_entries(socket, :avatar, fn %{path: path}, entry ->
+            {:ok, %{bin: File.read!(path), tipo: entry.client_type}}
+          end)
 
-    with [%{bin: bin, tipo: tipo}] <- arquivos,
-         {:ok, resposta} <- Quintal.PDS.impl().upload_blob(socket.assigns.sessao, bin, tipo) do
-      guardar(socket, %{avatar: QuintalWeb.ProsearForm.blob_lexicon(resposta)})
-    else
-      _outro -> {:noreply, put_flash(socket, :error, "ih, a foto não subiu. tenta de novo?")}
+        with [%{bin: bin, tipo: tipo}] <- arquivos,
+             {:ok, resposta} <- Quintal.PDS.impl().upload_blob(socket.assigns.sessao, bin, tipo) do
+          guardar(socket, %{avatar: QuintalWeb.ProsearForm.blob_lexicon(resposta)})
+        else
+          _outro -> {:noreply, put_flash(socket, :error, "ih, a foto não subiu. tenta de novo?")}
+        end
+
+      _pendente ->
+        {:noreply, socket}
     end
   end
 
