@@ -138,6 +138,31 @@ defmodule Quintal.FollowsTest do
     end
   end
 
+  describe "mencoes/1" do
+    test "handle e nome de exibição de cada canto lido; sem nome, nil" do
+      {:ok, _} =
+        Follows.indexar("did:plc:alice", %{
+          uri: "at://did:plc:alice/place.quintal.graph.follow/f1",
+          value: %{subject: "did:plc:beto", created_at: "2026-08-01T10:00:00Z"}
+        })
+
+      assert [%{handle: "beto.bsky.social", nome: nil}] = Follows.mencoes("did:plc:alice")
+
+      Repo.insert!(
+        Quintal.Canto.changeset(%Quintal.Canto{}, %{
+          dono_did: "did:plc:beto",
+          nome: "beto",
+          tema: "papel",
+          blocos: ~w(bio prosas recados quem-eu-leio links),
+          updated_at: DateTime.utc_now()
+        })
+      )
+
+      assert [%{handle: "beto.bsky.social", nome: "beto"}] = Follows.mencoes("did:plc:alice")
+      assert Follows.mencoes("did:plc:beto") == []
+    end
+  end
+
   describe "indexar/2 e desindexar/1" do
     test "upsert idempotente: o eco do firehose é o mesmo evento" do
       record = %{

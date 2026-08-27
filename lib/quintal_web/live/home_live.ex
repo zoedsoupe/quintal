@@ -18,6 +18,7 @@ defmodule QuintalWeb.HomeLive do
 
   alias Quintal.Cantos
   alias Quintal.Feed
+  alias Quintal.Follows
   alias Quintal.Prosas
   alias Quintal.Visitas
 
@@ -40,6 +41,7 @@ defmodule QuintalWeb.HomeLive do
      |> assign(
        handle: sessao.handle,
        novidade: Visitas.novidade?(sessao.did),
+       mencoes: Follows.mencoes(sessao.did),
        feed: feed,
        feed_cursor: proxima_pagina(feed),
        pais: %{},
@@ -136,7 +138,7 @@ defmodule QuintalWeb.HomeLive do
           <span class="prosear-atalho__placeholder">como foi seu dia?</span>
         </.link>
 
-        <.composer uploads={@uploads} />
+        <.composer uploads={@uploads} mencoes={@mencoes} />
 
         <section class="feed" id="feed" phx-hook="FeedNovidade">
           <.vazio

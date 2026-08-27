@@ -15,6 +15,7 @@ defmodule Quintal.Follows do
 
   import Ecto.Query
 
+  alias Quintal.Cantos
   alias Quintal.Follow
   alias Quintal.Identidade
   alias Quintal.Repo
@@ -75,6 +76,22 @@ defmodule Quintal.Follows do
         order_by: [desc: f.created_at],
         preload: [:seguido]
     )
+  end
+
+  @doc """
+  As sugestões de menção do composer: handle e nome de exibição de
+  cada canto que a pessoa lê, como `[%{handle, nome}]` (`nome` `nil`
+  quando o canto não escolheu um). A lista vai embutida no form
+  (`data-mencoes`) e o autofill filtra em casa, sem rede por tecla.
+  """
+  @spec mencoes(did :: String.t()) :: [%{handle: String.t(), nome: String.t() | nil}]
+  def mencoes(did) do
+    follows = vizinhanca(did)
+    nomes = Cantos.nomes(Enum.map(follows, & &1.seguido_did))
+
+    Enum.map(follows, fn f ->
+      %{handle: f.seguido.handle, nome: Map.get(nomes, f.seguido_did)}
+    end)
   end
 
   @doc """

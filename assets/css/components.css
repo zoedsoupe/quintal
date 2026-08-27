@@ -889,6 +889,32 @@
   color: var(--meta);
 }
 
+/* autofill de menção: lista quieta no fluxo, logo depois do campo.
+   nome de exibição na frente, handle sempre à vista */
+
+.mencoes {
+  margin: var(--espaco-1) 0 0;
+  padding: var(--espaco-1);
+  list-style: none;
+  background: var(--fundo-card);
+  border: 1px solid var(--borda-card);
+  border-radius: var(--raio);
+}
+
+.mencoes__item {
+  padding: var(--espaco-1) var(--espaco-2);
+  border-radius: var(--raio);
+  font-size: 0.875rem;
+  color: var(--meta);
+  cursor: pointer;
+}
+
+.mencoes__item--ativa,
+.mencoes__item:hover {
+  background: color-mix(in srgb, var(--acento) 12%, transparent);
+  color: var(--tinta);
+}
+
 /* sheet mobile: nao existe mais. no mobile qualquer entrada de texto e
    pagina (/prosear, /recadar), em fluxo de documento; os forms inline
    (home, thread, canto) dormem e o atalho com cara de campo vira a

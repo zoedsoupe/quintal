@@ -22,6 +22,7 @@ defmodule QuintalWeb.ProsaLive do
     only: [tempo_relativo: 1, prosa_path: 2, imagens_card: 1]
 
   alias Quintal.Cantos
+  alias Quintal.Follows
   alias Quintal.Identidade
   alias Quintal.Prosa
   alias Quintal.Prosas
@@ -61,6 +62,7 @@ defmodule QuintalWeb.ProsaLive do
        mae: mae,
        thread: thread,
        nomes: Cantos.nomes(dids),
+       mencoes: (sessao && Follows.mencoes(sessao.did)) || [],
        visita_deixada: visita_deixada?(prosa, sessao),
        page_title: if(prosa, do: "prosa de #{handle}", else: "prosa não encontrada")
      )}
@@ -205,6 +207,7 @@ defmodule QuintalWeb.ProsaLive do
           phx-hook="Composer"
           class="prosear thread__responder"
           data-rascunho={"quintal:rascunho:responder:#{@prosa.uri}"}
+          data-mencoes={@mencoes != [] && JSON.encode!(@mencoes)}
         >
           <.campo
             name="texto"

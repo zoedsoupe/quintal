@@ -92,6 +92,7 @@ defmodule QuintalWeb.CantoLive do
            canto: canto,
            proprio?: proprio?,
            arrumar: false,
+           mencoes: (sessao && Follows.mencoes(sessao.did)) || [],
            guardado_seq: 0,
            seguindo: seguindo,
            prosas: prosas,
@@ -627,6 +628,7 @@ defmodule QuintalWeb.CantoLive do
                     phx-hook="Composer"
                     class="prosear recados__form"
                     data-rascunho={"quintal:rascunho:recado:#{@dono.did}"}
+                    data-mencoes={@mencoes != [] && JSON.encode!(@mencoes)}
                   >
                     <.campo
                       name="texto"

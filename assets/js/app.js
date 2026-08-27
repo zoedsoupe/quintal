@@ -187,6 +187,8 @@ const Composer = {
     });
 
     this.campo.addEventListener("keydown", (e) => {
+      if (this.teclaMencao(e)) return;
+
       if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         this.el.requestSubmit();
@@ -194,6 +196,8 @@ const Composer = {
 
       if (e.key === "Escape") this.fecha();
     });
+
+    this.ligaMencoes();
 
     this.handleEvent("composer-publicado", () => {
       this.campo.value = "";
@@ -286,6 +290,106 @@ const Composer = {
       const frac = Math.min(1, len / ref);
       this.progresso.style.strokeDashoffset = (56.55 * (1 - frac)).toFixed(2);
     }
+  },
+
+  // autofill de mencao: a vizinhanca vem embutida no form
+  // (data-mencoes) e o filtro rola em casa, sem rede por tecla. a
+  // lista entra no fluxo logo depois do campo, quieta
+  // ponytail: nada de popover ancorado no caret; se incomodar, vira absolute
+  ligaMencoes() {
+    let vizinhos = [];
+    try {
+      vizinhos = JSON.parse(this.el.dataset.mencoes || "[]");
+    } catch {}
+    if (vizinhos.length === 0) return;
+
+    this.menu = document.createElement("ul");
+    this.menu.className = "mencoes";
+    this.menu.hidden = true;
+    this.campo.insertAdjacentElement("afterend", this.menu);
+
+    this.campo.addEventListener("input", () => this.sugereMencao(vizinhos));
+    this.campo.addEventListener("blur", () => this.fechaMencao());
+  },
+
+  // palavra sob o caret e mencao em aberto? "@", "@ze", "@zoey.s"
+  sugereMencao(vizinhos) {
+    const caret = this.campo.selectionStart;
+    const casamento = this.campo.value.slice(0, caret).match(/(?:^|\s)@([\w.-]*)$/);
+    if (!casamento) return this.fechaMencao();
+
+    const q = casamento[1].toLowerCase();
+    const itens = vizinhos
+      .filter((v) => v.handle.toLowerCase().includes(q) || (v.nome && v.nome.toLowerCase().includes(q)))
+      .slice(0, 5);
+    if (itens.length === 0) return this.fechaMencao();
+
+    this.mencao = { inicio: caret - casamento[1].length - 1, itens, ativa: 0 };
+    this.desenhaMencao();
+  },
+
+  desenhaMencao() {
+    this.menu.textContent = "";
+
+    this.mencao.itens.forEach((item, i) => {
+      const li = document.createElement("li");
+      li.className = "mencoes__item";
+      li.setAttribute("role", "option");
+      li.classList.toggle("mencoes__item--ativa", i === this.mencao.ativa);
+      li.textContent = item.nome ? `${item.nome} (@${item.handle})` : `@${item.handle}`;
+      // pointerdown com preventDefault: o foco fica no campo e a
+      // insercao acontece no mesmo gesto (sem blur no meio)
+      li.addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        this.insereMencao(item);
+      });
+      this.menu.appendChild(li);
+    });
+
+    this.menu.hidden = false;
+  },
+
+  // setas navegam, enter/tab insere, escape so fecha o menu (o composer
+  // segue aberto). true = tecla consumida aqui
+  teclaMencao(e) {
+    if (!this.menu || this.menu.hidden) return false;
+    const { itens, ativa } = this.mencao;
+
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      this.mencao.ativa = (ativa + (e.key === "ArrowDown" ? 1 : itens.length - 1)) % itens.length;
+      this.desenhaMencao();
+      return true;
+    }
+
+    if ((e.key === "Enter" && !e.ctrlKey && !e.metaKey) || e.key === "Tab") {
+      e.preventDefault();
+      this.insereMencao(itens[ativa]);
+      return true;
+    }
+
+    if (e.key === "Escape") {
+      this.fechaMencao();
+      return true;
+    }
+
+    return false;
+  },
+
+  insereMencao(item) {
+    const antes = this.campo.value.slice(0, this.mencao.inicio);
+    const depois = this.campo.value.slice(this.campo.selectionStart);
+    this.campo.value = `${antes}@${item.handle} ${depois}`;
+    const pos = antes.length + item.handle.length + 2;
+    this.campo.setSelectionRange(pos, pos);
+    this.fechaMencao();
+    // input sintetico: rascunho, contador e auto-grow ja escutam ele
+    this.campo.dispatchEvent(new Event("input", { bubbles: true }));
+  },
+
+  fechaMencao() {
+    if (this.menu) this.menu.hidden = true;
+    this.mencao = null;
   },
 };
 

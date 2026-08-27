@@ -23,6 +23,7 @@ defmodule QuintalWeb.EscreverLive do
   import QuintalWeb.Formatacao, only: [prosa_path: 2]
   import QuintalWeb.ProsearForm, only: [com_titulo: 2, imagens_dos_anexos: 2]
 
+  alias Quintal.Follows
   alias Quintal.Identidade
   alias Quintal.Prosa
   alias Quintal.Prosas
@@ -36,11 +37,13 @@ defmodule QuintalWeb.EscreverLive do
   @impl true
   def mount(params, _session, socket) do
     socket =
-      allow_upload(socket, :imagens,
+      socket
+      |> allow_upload(:imagens,
         accept: ~w(image/jpeg image/png image/webp),
         max_entries: 4,
         max_file_size: 2_000_000
       )
+      |> assign(mencoes: Follows.mencoes(socket.assigns.sessao.did))
 
     case socket.assigns.live_action do
       :prosear -> monta_prosear(socket, params)
@@ -237,6 +240,7 @@ defmodule QuintalWeb.EscreverLive do
         maxlength={@maxlength}
         rotulo={@rotulo}
         rascunho={@rascunho}
+        mencoes={@mencoes}
         uploads={@uploads}
       />
     </Layouts.app>

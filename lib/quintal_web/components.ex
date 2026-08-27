@@ -89,6 +89,7 @@ defmodule QuintalWeb.Components do
   attr :maxlength, :integer, default: 10_000
   attr :rotulo, :string, default: "prosear"
   attr :rascunho, :string, default: "quintal:rascunho"
+  attr :mencoes, :list, default: []
   attr :uploads, :any, required: true
 
   def composer(assigns) do
@@ -111,6 +112,7 @@ defmodule QuintalWeb.Components do
       phx-hook="Composer"
       class="prosear"
       data-rascunho="quintal:rascunho"
+      data-mencoes={@mencoes != [] && JSON.encode!(@mencoes)}
     >
       <div class="prosear__topo">
         <div class="prosear__tipos" role="radiogroup" aria-label="tipo da prosa">
@@ -171,6 +173,7 @@ defmodule QuintalWeb.Components do
       phx-hook="Composer"
       class="prosear prosear--pagina"
       data-rascunho={@rascunho}
+      data-mencoes={@mencoes != [] && JSON.encode!(@mencoes)}
     >
       <div class="prosear__barra">
         <.link navigate={@voltar} class="prosear__voltar">voltar</.link>
