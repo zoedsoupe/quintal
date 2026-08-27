@@ -148,6 +148,20 @@
   background: var(--fundo-card);
 }
 
+/* matiz por tipo: uma pitada do acento do tipo misturada no fundo do
+   card, quase imperceptivel. nota fica no papel default */
+.prosa-card[data-tipo="pergunta"] .prosa-card__corpo {
+  background: color-mix(in srgb, var(--fundo-card) 94%, var(--tipo-pergunta));
+}
+
+.prosa-card[data-tipo="cronica"] .prosa-card__corpo {
+  background: color-mix(in srgb, var(--fundo-card) 94%, var(--tipo-cronica));
+}
+
+.prosa-card[data-tipo="ensaio"] .prosa-card__corpo {
+  background: color-mix(in srgb, var(--fundo-card) 94%, var(--tipo-ensaio));
+}
+
 /* cabecalho: nome do canto em peso 600, tempo em sussurro, acoes
    miudas a direita. sem avatar: a identidade da casa e o nome */
 

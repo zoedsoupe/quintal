@@ -318,6 +318,7 @@ defmodule QuintalWeb.Components do
   attr :responder, :boolean, default: true
   attr :class, :string, default: nil
   attr :imagens, :list, default: []
+  attr :tipo, :string, default: nil
   slot :acoes
 
   def prosa(assigns) do
@@ -329,6 +330,7 @@ defmodule QuintalWeb.Components do
     ~H"""
     <article
       class={["prosa-card", @class]}
+      data-tipo={@tipo}
       role={@role}
       phx-click={@click}
       phx-value-prosa-path={@path || nil}

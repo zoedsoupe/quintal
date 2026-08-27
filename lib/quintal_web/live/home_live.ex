@@ -165,6 +165,7 @@ defmodule QuintalWeb.HomeLive do
               canto={handle}
               data={tempo_relativo(prosa.created_at)}
               texto={texto}
+              tipo={prosa.tipo}
               path={prosa_path(prosa.uri, handle)}
               cortou={cortou?}
               em_resposta={prosa.reply_parent && Map.get(@pais, prosa.reply_parent)}

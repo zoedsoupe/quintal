@@ -163,6 +163,7 @@ defmodule QuintalWeb.ProsaLive do
           canto={resposta.autor.handle}
           data={tempo_relativo(resposta.created_at)}
           texto={resposta.texto}
+          tipo={resposta.tipo}
           path={prosa_path(resposta.uri, resposta.autor.handle)}
           imagens={imagens_card(resposta)}
         >
