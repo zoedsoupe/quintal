@@ -103,9 +103,9 @@ const rascunhoStore = {
   },
 };
 
-// tamanho de referencia por tipo, so cosmetico: o anel enche e o
-// contador acorda perto do tamanho esperado daquele tipo de prosa.
-// o maxlength real (10000) continua valendo pra todo mundo
+// tamanho de cada tipo de prosa: referencia pro anel e pro contador,
+// e limite duro do campo (o maxlength troca junto com o radio). sem
+// radios (resposta, recado) vale o maxlength do atributo
 const REF_TIPO = { nota: 280, pergunta: 280, cronica: 2000, ensaio: 10000 };
 
 const Composer = {
@@ -121,15 +121,21 @@ const Composer = {
 
     ligaMd(this.el, this.campo);
 
-    // trocar de tipo troca o placeholder junto; o inicial vem do radio
-    // marcado (a pagina pode abrir direto num tipo, ex. ?tipo=ensaio)
+    // trocar de tipo troca o placeholder e o limite junto; o inicial
+    // vem do radio marcado (a pagina pode abrir direto num tipo, ex.
+    // ?tipo=ensaio)
     const marcado = this.el.querySelector("input[name=tipo]:checked");
-    if (marcado) this.campo.placeholder = marcado.dataset.placeholder;
+    if (marcado) {
+      this.campo.placeholder = marcado.dataset.placeholder;
+      this.aplicaLimite(marcado.value);
+    }
 
     this.el.querySelectorAll("input[name=tipo]").forEach((radio) => {
       radio.addEventListener("change", () => {
         this.campo.placeholder = radio.dataset.placeholder;
+        this.aplicaLimite(radio.value);
         this.conta();
+        this.expande();
       });
     });
 
@@ -227,13 +233,23 @@ const Composer = {
     this.conta();
   },
 
+  // limite duro do tipo: o maxlength nativo barra tecla e cola alem
+  // dele. texto ja escrito maior que o tipo novo fica, mas nao publica
+  // (expande desabilita o botao e o contador avisa quanto cortar)
+  aplicaLimite(tipo) {
+    this.limite = REF_TIPO[tipo] || 10000;
+    this.campo.maxLength = this.limite;
+  },
+
   // com texto no campo o rodape fica aberto mesmo sem foco: trocar o
   // tipo no desktop nao pode esconder o botao de prosear. vazio, o botao
   // dorme em ghost ate a primeira letra
   expande() {
-    const expandido = this.aberto || this.campo.value.trim().length > 0;
+    const vazio = this.campo.value.trim().length === 0;
+    const estourou = [...this.campo.value].length > this.limite;
+    const expandido = this.aberto || !vazio;
     this.el.classList.toggle("prosear--expandido", expandido);
-    this.botao.disabled = this.campo.value.trim().length === 0;
+    this.botao.disabled = vazio || estourou;
   },
 
   // recolher o card inline: tira a expansao e o foco junto, senao o
@@ -269,7 +285,12 @@ const Composer = {
       if (faltamRef >= 0 && faltamRef <= ref * 0.2) faltam = faltamRef;
       if (faltamReal <= margemReal) faltam = faltamReal;
 
-      if (faltam != null) {
+      if (len > this.limite) {
+        // trocou pra um tipo menor com texto comprido: avisa quanto
+        // cortar; o botao dorme ate caber (expande)
+        this.contador.hidden = false;
+        this.contador.textContent = `não cabe nesse tipo, corta ${len - this.limite}`;
+      } else if (faltam != null) {
         this.contador.hidden = false;
         this.contador.textContent = `tá chegando no limite, faltam ${faltam}`;
       } else if (this.limite <= 500) {

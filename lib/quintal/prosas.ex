@@ -278,7 +278,9 @@ defmodule Quintal.Prosas do
     |> case do
       {:ok, %{prosa: prosa}} ->
         registra_resposta(prosa)
-        {:ok, Repo.preload(prosa, [:autor, :imagens])}
+        prosa = Repo.preload(prosa, [:autor, :imagens])
+        Phoenix.PubSub.broadcast(Quintal.PubSub, "prosas", {:prosa_nova, prosa})
+        {:ok, prosa}
 
       {:error, :prosa, changeset, _mudancas} ->
         Logger.warning("[#{__MODULE__}] prosa #{uri} fora do índice: #{inspect(changeset.errors)}")

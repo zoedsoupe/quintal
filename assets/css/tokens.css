@@ -37,12 +37,16 @@
   --medida-leitura: 68ch;
 
   /* acento de cada tipo de prosa no composer: nota neutra, pergunta
-     lilas, cronica rose, ensaio roxo fechado. derivam dos acentos do
+     lilas, cronica rose, ensaio violeta fechado. derivam dos acentos do
      tema, entao madrugada e gloss cascateiam de graca */
   --tipo-nota: var(--meta);
   --tipo-pergunta: var(--acento);
   --tipo-cronica: var(--acento-2);
-  --tipo-ensaio: color-mix(in srgb, var(--acento) 65%, #2e2833);
+  --tipo-ensaio: color-mix(in srgb, var(--acento) 50%, #7c3aed);
+
+  /* quanto do acento do tipo entra no fundo do card: pitada quieta no
+     claro, dose maior no escuro (6% sobre fundo quase preto some) */
+  --tipo-matiz: 6%;
 
   /* movimento gentil: expandir, aparecer e sumir sem chamar atencao */
   --transicao: 160ms ease-out;
@@ -60,6 +64,7 @@
     --erro: #e2a3bf;
     --fundo-card: #262031;
     --borda-card: #3a3345;
+    --tipo-matiz: 16%;
   }
 }
 
@@ -73,6 +78,7 @@
   --erro: #f0a8cc;
   --fundo-card: #1d1828;
   --borda-card: #332b45;
+  --tipo-matiz: 16%;
 }
 
 [data-theme="gloss"] {

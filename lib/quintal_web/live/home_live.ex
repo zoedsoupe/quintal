@@ -31,6 +31,10 @@ defmodule QuintalWeb.HomeLive do
     sessao = socket.assigns.sessao
     feed = Feed.list(sessao.did, limit: @feed_pagina)
 
+    # prosa nova da vizinhança entra no feed sem refresh (o próprio
+    # prosear também transmite: a dedupe por uri absorve o eco)
+    if connected?(socket), do: Phoenix.PubSub.subscribe(Quintal.PubSub, "prosas")
+
     {:ok,
      socket
      |> allow_upload(:imagens,
@@ -105,6 +109,20 @@ defmodule QuintalWeb.HomeLive do
 
   def handle_event("ver-fio", %{"prosa-path" => path}, socket) do
     {:noreply, push_navigate(socket, to: path)}
+  end
+
+  @impl true
+  def handle_info({:prosa_nova, prosa}, socket) do
+    eu = socket.assigns.sessao.did
+
+    da_vizinhanca? = prosa.autor_did == eu or Follows.segue?(eu, prosa.autor_did)
+    repetida? = Enum.any?(socket.assigns.feed, &(&1.uri == prosa.uri))
+
+    if da_vizinhanca? and not repetida? do
+      {:noreply, socket |> update(:feed, &[prosa | &1]) |> enriquecer([prosa])}
+    else
+      {:noreply, socket}
+    end
   end
 
   # Só há próxima página se a atual veio cheia.

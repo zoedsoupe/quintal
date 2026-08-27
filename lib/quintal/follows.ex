@@ -78,6 +78,15 @@ defmodule Quintal.Follows do
     )
   end
 
+  @doc "A pessoa lê esse canto?"
+  @spec segue?(seguidor_did :: String.t(), seguido_did :: String.t()) :: boolean()
+  def segue?(seguidor_did, seguido_did) do
+    Repo.exists?(
+      from f in Follow,
+        where: f.seguidor_did == ^seguidor_did and f.seguido_did == ^seguido_did
+    )
+  end
+
   @doc """
   As sugestões de menção do composer: handle e nome de exibição de
   cada canto que a pessoa lê, como `[%{handle, nome}]` (`nome` `nil`

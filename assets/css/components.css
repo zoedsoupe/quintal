@@ -151,15 +151,15 @@
 /* matiz por tipo: uma pitada do acento do tipo misturada no fundo do
    card, quase imperceptivel. nota fica no papel default */
 .prosa-card[data-tipo="pergunta"] .prosa-card__corpo {
-  background: color-mix(in srgb, var(--fundo-card) 94%, var(--tipo-pergunta));
+  background: color-mix(in srgb, var(--tipo-pergunta) var(--tipo-matiz), var(--fundo-card));
 }
 
 .prosa-card[data-tipo="cronica"] .prosa-card__corpo {
-  background: color-mix(in srgb, var(--fundo-card) 94%, var(--tipo-cronica));
+  background: color-mix(in srgb, var(--tipo-cronica) var(--tipo-matiz), var(--fundo-card));
 }
 
 .prosa-card[data-tipo="ensaio"] .prosa-card__corpo {
-  background: color-mix(in srgb, var(--fundo-card) 94%, var(--tipo-ensaio));
+  background: color-mix(in srgb, var(--tipo-ensaio) var(--tipo-matiz), var(--fundo-card));
 }
 
 /* cabecalho: nome do canto em peso 600, tempo em sussurro, acoes
