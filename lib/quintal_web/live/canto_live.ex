@@ -513,7 +513,7 @@ defmodule QuintalWeb.CantoLive do
 
           <%!-- nome e bio se editam aqui mesmo, no lugar: o canto se
                arruma como é visto, nunca num painel distante --%>
-          <form :if={@arrumar} id="avatar" phx-change="avatar" class="canto__avatar-arrumar">
+          <form :if={@arrumar} id="avatar" phx-submit="avatar" phx-hook="AvatarUpload" class="canto__avatar-arrumar">
             <label class="canto__avatar-trocar">
               <%= if url = avatar_url(@dono, @canto.avatar) do %>
                 <img src={url} alt="" class="canto__avatar" />

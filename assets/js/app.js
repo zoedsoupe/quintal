@@ -595,10 +595,21 @@ window.addEventListener("phx:aplicar-tema", (e) => {
 const csrfToken = document
   .querySelector("meta[name='csrf-token']")
   .getAttribute("content");
+
+// envia o form assim que o arquivo e escolhido; com auto_upload o
+// LiveView segura o submit ate o upload terminar e ai dispara o evento
+const AvatarUpload = {
+  mounted() {
+    this.el.querySelector("input[type=file]").addEventListener("change", () => {
+      this.el.requestSubmit();
+    });
+  },
+};
+
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: { _csrf_token: csrfToken },
-  hooks: { Composer, MdToolbar, ArrumarBlocos, FeedNovidade, TemaCanto, ...colocatedHooks },
+  hooks: { Composer, MdToolbar, ArrumarBlocos, FeedNovidade, TemaCanto, AvatarUpload, ...colocatedHooks },
 });
 
 // Show progress bar on live navigation and form submits
