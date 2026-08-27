@@ -13,6 +13,8 @@ defmodule QuintalWeb.OAuthController do
 
   use QuintalWeb, :controller
 
+  require Logger
+
   def client_metadata(conn, _params) do
     config = Application.fetch_env!(:quintal, Quintal.Auth.ProtoRune)
     client_id = Keyword.fetch!(config, :client_id)
@@ -131,7 +133,9 @@ defmodule QuintalWeb.OAuthController do
         |> put_session(:oauth_pending, pending)
         |> redirect(external: url)
 
-      {:error, _} ->
+      {:error, err} ->
+        Logger.warning("#{__MODULE__} failed to start oauth login: #{inspect(err)}")
+
         conn
         |> put_flash(:error, "não achei essa conta. confere o handle?")
         |> redirect(to: "/")
