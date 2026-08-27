@@ -57,6 +57,8 @@ defmodule Quintal.Auth.ProtoRune do
       {:ok, pid} -> {:ok, SessionManager.session(pid)}
       :error -> restore_session(did)
     end
+  catch
+    :exit, _reason -> restore_session(did)
   end
 
   @impl true
@@ -65,6 +67,8 @@ defmodule Quintal.Auth.ProtoRune do
       {:ok, pid} -> SessionManager.logout(pid)
       :error -> TokenStore.delete(did, [])
     end
+  catch
+    :exit, _reason -> TokenStore.delete(did, [])
   end
 
   @doc """
@@ -93,6 +97,10 @@ defmodule Quintal.Auth.ProtoRune do
          {:ok, pid} <- start_manager(client, session) do
       {:ok, SessionManager.session(pid)}
     end
+  catch
+    :exit, _reason ->
+      TokenStore.delete(did, [])
+      {:error, :session_expired}
   end
 
   defp start_manager(client, session) do

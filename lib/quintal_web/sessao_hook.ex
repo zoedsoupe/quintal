@@ -13,7 +13,7 @@ defmodule QuintalWeb.SessaoHook do
   """
 
   import Phoenix.Component, only: [assign: 3]
-  import Phoenix.LiveView, only: [redirect: 2]
+  import Phoenix.LiveView, only: [put_flash: 3, redirect: 2]
 
   def on_mount(:default, _params, session, socket) do
     {:cont, assign(socket, :sessao, sessao(session))}
@@ -21,8 +21,18 @@ defmodule QuintalWeb.SessaoHook do
 
   def on_mount(:privado, _params, session, socket) do
     case sessao(session) do
-      nil -> {:halt, redirect(socket, to: "/")}
-      sessao -> {:cont, assign(socket, :sessao, sessao)}
+      nil ->
+        socket =
+          if session["quintal_did"] do
+            put_flash(socket, :info, "sua sessão expirou. entre novamente para continuar.")
+          else
+            socket
+          end
+
+        {:halt, redirect(socket, to: "/")}
+
+      sessao ->
+        {:cont, assign(socket, :sessao, sessao)}
     end
   end
 
