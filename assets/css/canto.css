@@ -109,6 +109,56 @@
   color: var(--meta);
 }
 
+/* recorte da foto: a pessoa arrasta e dá zoom até o rosto ficar no círculo */
+
+.canto__recorte {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espaco-3);
+  background: color-mix(in srgb, var(--fundo) 94%, transparent);
+}
+
+.canto__recorte-area {
+  width: 280px;
+  height: 280px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 50%;
+  border: 2px solid var(--sussurro);
+  background: var(--fundo);
+  touch-action: none;
+  cursor: grab;
+}
+
+.canto__recorte-area:active {
+  cursor: grabbing;
+}
+
+.canto__recorte-area img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  max-width: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+
+.canto__recorte-zoom {
+  width: 280px;
+  accent-color: var(--acento);
+}
+
+.canto__recorte-acoes {
+  display: flex;
+  gap: var(--espaco-2);
+}
+
 .canto__acoes {
   flex: none;
 }

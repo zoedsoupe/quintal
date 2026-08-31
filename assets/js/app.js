@@ -123,16 +123,19 @@ const Composer = {
 
     // trocar de tipo troca o placeholder e o limite junto; o inicial
     // vem do radio marcado (a pagina pode abrir direto num tipo, ex.
-    // ?tipo=ensaio)
+    // ?tipo=ensaio). lero nao tem texto: o campo escondido nao pode
+    // segurar o submit com o required
     const marcado = this.el.querySelector("input[name=tipo]:checked");
     if (marcado) {
       this.campo.placeholder = marcado.dataset.placeholder;
+      this.campo.required = marcado.value !== "lero";
       this.aplicaLimite(marcado.value);
     }
 
     this.el.querySelectorAll("input[name=tipo]").forEach((radio) => {
       radio.addEventListener("change", () => {
         this.campo.placeholder = radio.dataset.placeholder;
+        this.campo.required = radio.value !== "lero";
         this.aplicaLimite(radio.value);
         this.conta();
         this.expande();
@@ -243,13 +246,16 @@ const Composer = {
 
   // com texto no campo o rodape fica aberto mesmo sem foco: trocar o
   // tipo no desktop nao pode esconder o botao de prosear. vazio, o botao
-  // dorme em ghost ate a primeira letra
+  // dorme em ghost ate a primeira letra. lero nao tem texto: o botao
+  // acorda quando o chip do audio gravado aparece
   expande() {
     const vazio = this.campo.value.trim().length === 0;
     const estourou = [...this.campo.value].length > this.limite;
-    const expandido = this.aberto || !vazio;
+    const lero = this.el.querySelector("input[name=tipo]:checked")?.value === "lero";
+    const semAudio = lero && !this.el.querySelector(".prosear__anexo--audio");
+    const expandido = this.aberto || !vazio || lero;
     this.el.classList.toggle("prosear--expandido", expandido);
-    this.botao.disabled = vazio || estourou;
+    this.botao.disabled = (vazio && !lero) || estourou || semAudio;
   },
 
   // recolher o card inline: tira a expansao e o foco junto, senao o
@@ -570,6 +576,119 @@ document.addEventListener(
   true
 );
 
+// LeroRecorder: o lero e a prosa falada. um botao, tres estados:
+// parado ("fala ai...") -> gravando (cronometro, clique para) ->
+// gravado (preview toca). o blob gravado entra no fluxo comum de
+// upload do composer (this.upload("audio", ...)), sem caminho
+// paralelo; o X do chip de anexo descarta pra gravar de novo.
+const LeroRecorder = {
+  mounted() {
+    this.botao = this.el.querySelector(".lero__botao");
+    this.rotulo = this.el.querySelector(".lero__rotulo");
+    this.tempo = this.el.querySelector(".lero__tempo");
+    this.preview = this.el.querySelector(".lero__preview");
+    this.erro = this.el.querySelector(".lero__erro");
+    this.estado = "parado";
+
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+      this.botao.disabled = true;
+      this.rotulo.textContent = "esse navegador não grava lero";
+      return;
+    }
+
+    this.botao.addEventListener("click", () => {
+      if (this.estado === "parado") this.grava();
+      else if (this.estado === "gravando") this.para();
+    });
+  },
+
+  updated() {
+    // o X do chip descartou o upload (ou o prosear consumiu): recomeça
+    const anexo = this.el.closest("form").querySelector(".prosear__anexo--audio");
+    if (this.estado === "gravado" && !anexo) this.reseta();
+  },
+
+  destroyed() {
+    clearInterval(this.cronometro);
+  },
+
+  async grava() {
+    this.erro.hidden = true;
+
+    let stream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch {
+      this.erro.textContent = "sem microfone não rola lero. confere a permissão aí";
+      this.erro.hidden = false;
+      return;
+    }
+
+    const mime = ["audio/mp4", "audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus"].find(
+      (t) => MediaRecorder.isTypeSupported(t)
+    );
+
+    this.chunks = [];
+    this.recorder = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+    this.recorder.addEventListener("dataavailable", (e) => {
+      if (e.data.size > 0) this.chunks.push(e.data);
+    });
+    this.recorder.addEventListener("stop", () => this.envia());
+    this.recorder.start();
+
+    this.segundos = 0;
+    this.tempo.textContent = "0:00";
+    this.tempo.hidden = false;
+    this.cronometro = setInterval(() => {
+      this.segundos += 1;
+      const mm = Math.floor(this.segundos / 60);
+      const ss = String(this.segundos % 60).padStart(2, "0");
+      this.tempo.textContent = `${mm}:${ss}`;
+    }, 1000);
+
+    this.estado = "gravando";
+    this.rotulo.textContent = "pronto?";
+    this.el.classList.add("lero--gravando");
+  },
+
+  para() {
+    clearInterval(this.cronometro);
+    this.recorder.stop();
+    this.recorder.stream.getTracks().forEach((t) => t.stop());
+  },
+
+  envia() {
+    const tipo = (this.recorder.mimeType || "audio/webm").split(";")[0];
+    const ext = { "audio/mp4": "m4a", "audio/ogg": "ogg", "audio/webm": "webm" }[tipo] || "webm";
+    const blob = new Blob(this.chunks, { type: tipo });
+
+    if (blob.size === 0) {
+      this.reseta();
+      return;
+    }
+
+    this.upload("audio", [new File([blob], `lero.${ext}`, { type: tipo })]);
+    this.preview.src = URL.createObjectURL(blob);
+    this.preview.hidden = false;
+    this.tempo.hidden = true;
+    this.estado = "gravado";
+    this.botao.disabled = true;
+    this.rotulo.textContent = "fala aí...";
+    this.el.classList.remove("lero--gravando");
+  },
+
+  reseta() {
+    if (this.preview.src) URL.revokeObjectURL(this.preview.src);
+    this.preview.removeAttribute("src");
+    this.preview.hidden = true;
+    this.tempo.hidden = true;
+    this.estado = "parado";
+    this.botao.disabled = false;
+    this.rotulo.textContent = "fala aí...";
+    this.el.classList.remove("lero--gravando");
+  },
+};
+
 // AudioPlayer: skin minima das prosas com áudio. o <audio> nativo
 // escondido faz decodificação, buffering e streaming; o hook só liga o
 // botão play/pause e a trilha clicável. um player por vez: tocar um
@@ -662,42 +781,108 @@ const csrfToken = document
   .getAttribute("content");
 
 // envia o form assim que o arquivo e escolhido; com auto_upload o
-// LiveView segura o submit ate o upload terminar e ai dispara o evento.
-// antes, recorta um quadrado central e reduz pra 512px: avatar e sempre
-// quadrado no canto, entao o crop ja sobe pronto e qualquer foto de
-// celular vira ~100KB.
+// o input e comum (nao live_file_input) e quem sobe e o hook via this.upload,
+// depois da pessoa arrastar a foto no recorte redondo. cortar no cliente vira
+// ~100KB em vez de 5MB de foto de celular. a versao anterior trocava
+// input.files no meio do change do LiveView: corrida, upload ficava pendente
+// pra sempre e o servidor respondia noreply em silencio.
 const AvatarUpload = {
   mounted() {
     const input = this.el.querySelector("input[type=file]");
-    input.addEventListener("change", async () => {
+    input.addEventListener("change", () => {
       const file = input.files && input.files[0];
-      if (file) {
-        try {
-          const bmp = await createImageBitmap(file);
-          const lado = Math.min(bmp.width, bmp.height);
-          const canvas = document.createElement("canvas");
-          canvas.width = canvas.height = 512;
-          canvas
-            .getContext("2d")
-            .drawImage(bmp, (bmp.width - lado) / 2, (bmp.height - lado) / 2, lado, lado, 0, 0, 512, 512);
-          const blob = await new Promise((res) => canvas.toBlob(res, "image/jpeg", 0.85));
-          const dt = new DataTransfer();
-          dt.items.add(new File([blob], "avatar.jpg", { type: "image/jpeg" }));
-          input.files = dt.files;
-        } catch (_e) {
-          // ponytail: se o crop falhar (formato esquisito tipo heic), sobe o
-          // arquivo original e o servidor responde com o erro visivel no form
-        }
-      }
-      this.el.requestSubmit();
+      input.value = "";
+      if (file) this.abrirRecorte(file);
     });
+  },
+
+  abrirRecorte(file) {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => this.montarRecorte(img, url);
+    img.onerror = () => URL.revokeObjectURL(url);
+    img.src = url;
+  },
+
+  montarRecorte(img, url) {
+    const TAM = 280; // casa com .canto__recorte-area no canto.css
+    const minZoom = Math.max(TAM / img.width, TAM / img.height);
+    let zoom = minZoom;
+    let dx = (TAM - img.width * zoom) / 2;
+    let dy = (TAM - img.height * zoom) / 2;
+
+    const overlay = document.createElement("div");
+    overlay.className = "canto__recorte";
+    overlay.innerHTML = `
+      <div class="canto__recorte-area"><img alt=""></div>
+      <input type="range" class="canto__recorte-zoom" aria-label="zoom"
+             min="${minZoom}" max="${minZoom * 4}" step="${minZoom / 100}" value="${zoom}">
+      <div class="canto__recorte-acoes">
+        <button type="button" class="botao" data-usar>usar essa foto</button>
+        <button type="button" class="botao botao--fantasma" data-cancelar>cancelar</button>
+      </div>`;
+
+    const area = overlay.querySelector(".canto__recorte-area");
+    const foto = overlay.querySelector("img");
+    const slider = overlay.querySelector(".canto__recorte-zoom");
+    foto.src = url;
+
+    const desenhar = () => {
+      // a foto nunca deixa buraco: cobre sempre o circulo inteiro
+      dx = Math.min(0, Math.max(TAM - img.width * zoom, dx));
+      dy = Math.min(0, Math.max(TAM - img.height * zoom, dy));
+      foto.style.transform = `translate(${dx}px, ${dy}px)`;
+      foto.style.width = `${img.width * zoom}px`;
+    };
+
+    area.addEventListener("pointerdown", (e) => {
+      area.setPointerCapture(e.pointerId);
+      const origem = { x: e.clientX - dx, y: e.clientY - dy };
+      const mover = (ev) => {
+        dx = ev.clientX - origem.x;
+        dy = ev.clientY - origem.y;
+        desenhar();
+      };
+      area.addEventListener("pointermove", mover);
+      area.addEventListener("pointerup", () => area.removeEventListener("pointermove", mover), { once: true });
+    });
+
+    slider.addEventListener("input", () => {
+      const centro = { x: (TAM / 2 - dx) / zoom, y: (TAM / 2 - dy) / zoom };
+      zoom = parseFloat(slider.value);
+      dx = TAM / 2 - centro.x * zoom;
+      dy = TAM / 2 - centro.y * zoom;
+      desenhar();
+    });
+
+    const fechar = () => {
+      URL.revokeObjectURL(url);
+      overlay.remove();
+    };
+
+    overlay.querySelector("[data-cancelar]").addEventListener("click", fechar);
+    overlay.querySelector("[data-usar]").addEventListener("click", () => {
+      const escala = 512 / TAM;
+      const canvas = document.createElement("canvas");
+      canvas.width = canvas.height = 512;
+      canvas
+        .getContext("2d")
+        .drawImage(img, dx * escala, dy * escala, img.width * zoom * escala, img.height * zoom * escala);
+      canvas.toBlob((blob) => {
+        if (blob) this.upload("avatar", [new File([blob], "avatar.jpg", { type: "image/jpeg" })]);
+        fechar();
+      }, "image/jpeg", 0.85);
+    });
+
+    desenhar();
+    this.el.appendChild(overlay);
   },
 };
 
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: { _csrf_token: csrfToken },
-  hooks: { Composer, MdToolbar, ArrumarBlocos, FeedNovidade, TemaCanto, AvatarUpload, AudioPlayer, ...colocatedHooks },
+  hooks: { Composer, MdToolbar, ArrumarBlocos, FeedNovidade, TemaCanto, AvatarUpload, AudioPlayer, LeroRecorder, ...colocatedHooks },
 });
 
 // Show progress bar on live navigation and form submits

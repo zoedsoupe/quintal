@@ -522,7 +522,6 @@ defmodule QuintalWeb.CantoLive do
             :if={@arrumar}
             id="avatar"
             phx-change="avatar"
-            phx-submit="avatar"
             phx-hook="AvatarUpload"
             class="canto__avatar-arrumar"
           >
@@ -534,7 +533,14 @@ defmodule QuintalWeb.CantoLive do
                   <Lucideicons.camera />
                 </span>
               <% end %>
-              <.live_file_input upload={@uploads.avatar} class="canto__avatar-input" />
+              <%!-- input comum de propósito: quem sobe é o AvatarUpload via
+                   this.upload depois do recorte, nunca o live_file_input --%>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                class="canto__avatar-input"
+                aria-label="escolher foto do canto"
+              />
               <span class="canto__avatar-dica">
                 {if @canto.avatar, do: "trocar a foto", else: "escolher uma foto"}
               </span>
