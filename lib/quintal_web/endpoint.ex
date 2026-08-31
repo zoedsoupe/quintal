@@ -8,7 +8,12 @@ defmodule QuintalWeb.Endpoint do
     store: :cookie,
     key: "_quintal_key",
     signing_salt: "68iZ/9WO",
-    same_site: "Lax"
+    same_site: "Lax",
+    # sem max_age o cookie morre com a "sessão" do browser, e o iOS
+    # encerra a sessão do PWA a cada suspensão: logout constante. o
+    # cookie carrega só o did (os tokens ficam cifrados no server),
+    # então 90 dias não aumentam a superfície de risco
+    max_age: 60 * 60 * 24 * 90
   ]
 
   socket "/live", Phoenix.LiveView.Socket,
