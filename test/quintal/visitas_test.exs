@@ -58,14 +58,43 @@ defmodule Quintal.VisitasTest do
                resposta: 1,
                novo_leitor: 1,
                depoimento: 0,
-               leitura: 0
+               leitura: 0,
+               mencao: 0
              }
     end
 
-    test "marcar_lido zera o resumo e apaga a bolinha" do
+    test "marcar_lido apaga a bolinha, mas o recente sobrevive 30 minutos" do
       Visitas.registrar("did:plc:alice", "recado", "at://x/1", "did:plc:beto")
 
       assert Visitas.novidade?("did:plc:alice") == true
+      assert :ok = Visitas.marcar_lido("did:plc:alice")
+
+      # a bolinha apaga, mas a página não fica vazia logo depois de lida
+      assert Visitas.resumo("did:plc:alice").recado == 1
+      assert Visitas.novidade?("did:plc:alice") == false
+
+      Visitas.registrar("did:plc:alice", "depoimento", "at://x/2", "did:plc:carol")
+      assert Visitas.novidade?("did:plc:alice") == true
+
+      assert Visitas.resumo("did:plc:alice") == %{
+               recado: 1,
+               resposta: 0,
+               novo_leitor: 0,
+               depoimento: 1,
+               leitura: 0,
+               mencao: 0
+             }
+    end
+
+    test "passada a janela de 30 minutos, marcar_lido zera de verdade" do
+      Repo.insert!(%VisitaEvento{
+        dono_did: "did:plc:alice",
+        tipo: "recado",
+        ref_uri: "at://x/velho",
+        autor_did: "did:plc:beto",
+        created_at: DateTime.shift(DateTime.utc_now(), minute: -31)
+      })
+
       assert :ok = Visitas.marcar_lido("did:plc:alice")
 
       assert Visitas.resumo("did:plc:alice") == %{
@@ -73,20 +102,8 @@ defmodule Quintal.VisitasTest do
                resposta: 0,
                novo_leitor: 0,
                depoimento: 0,
-               leitura: 0
-             }
-
-      assert Visitas.novidade?("did:plc:alice") == false
-
-      Visitas.registrar("did:plc:alice", "depoimento", "at://x/2", "did:plc:carol")
-      assert Visitas.novidade?("did:plc:alice") == true
-
-      assert Visitas.resumo("did:plc:alice") == %{
-               recado: 0,
-               resposta: 0,
-               novo_leitor: 0,
-               depoimento: 1,
-               leitura: 0
+               leitura: 0,
+               mencao: 0
              }
     end
 
@@ -109,11 +126,11 @@ defmodule Quintal.VisitasTest do
       assert velho.autor.handle == "beto.bsky.social"
     end
 
-    test "marcar_lido esvazia a lista" do
+    test "marcar_lido mantém os eventos recentes na lista" do
       Visitas.registrar("did:plc:alice", "recado", "at://x/1", "did:plc:beto")
       :ok = Visitas.marcar_lido("did:plc:alice")
 
-      assert Visitas.eventos_desde_ultima("did:plc:alice") == []
+      assert [%VisitaEvento{ref_uri: "at://x/1"}] = Visitas.eventos_desde_ultima("did:plc:alice")
     end
   end
 end

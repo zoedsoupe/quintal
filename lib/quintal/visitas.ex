@@ -13,8 +13,10 @@ defmodule Quintal.Visitas do
   leitor marca a prosa como lida na página de leitura, se quiser, e só
   então a visita chega para quem escreveu.
 
-  O resumo zera a cada visita: `marcar_lido/1` sobe a marca e
-  `resumo/1` conta só o que veio depois.
+  O resumo zera a cada visita, mas com janela de carência: `marcar_lido/1`
+  sobe a marca e `resumo/1` conta o que veio depois dela, sem nunca
+  esconder o que aconteceu nos últimos 30 minutos. Voltar na página
+  logo depois de ler não mostra um canto vazio.
   """
 
   import Ecto.Query
@@ -25,7 +27,10 @@ defmodule Quintal.Visitas do
 
   require Logger
 
-  @tipos ~w(recado resposta novo_leitor depoimento leitura)
+  @tipos ~w(recado resposta novo_leitor depoimento leitura mencao)
+
+  # janela de carência: evento recente sobrevive à releitura da página
+  @carencia_min 30
 
   @doc """
   Registra um evento de visita no canto de `dono_did`.
@@ -64,12 +69,13 @@ defmodule Quintal.Visitas do
           resposta: non_neg_integer(),
           novo_leitor: non_neg_integer(),
           depoimento: non_neg_integer(),
-          leitura: non_neg_integer()
+          leitura: non_neg_integer(),
+          mencao: non_neg_integer()
         }
   def resumo(did) do
     contagens =
       from(e in VisitaEvento,
-        where: e.dono_did == ^did and e.created_at > ^visto_em(did),
+        where: e.dono_did == ^did and e.created_at > ^desde(did),
         group_by: e.tipo,
         select: {e.tipo, count(e.id)}
       )
@@ -84,7 +90,7 @@ defmodule Quintal.Visitas do
   def eventos_desde_ultima(did) do
     Repo.all(
       from e in VisitaEvento,
-        where: e.dono_did == ^did and e.created_at > ^visto_em(did),
+        where: e.dono_did == ^did and e.created_at > ^desde(did),
         order_by: [desc: e.created_at],
         preload: [:autor]
     )
@@ -122,5 +128,13 @@ defmodule Quintal.Visitas do
       %VisitaLidoEm{visto_em: visto_em} -> visto_em
       nil -> DateTime.from_unix!(0)
     end
+  end
+
+  # o corte do resumo e da lista: a marca de leitura, mas nunca mais
+  # recente que a janela de carência. evento com menos de 30 minutos
+  # sempre aparece, mesmo depois de lido
+  defp desde(did) do
+    carencia = DateTime.shift(DateTime.utc_now(), minute: -@carencia_min)
+    Enum.min([visto_em(did), carencia], DateTime)
   end
 end

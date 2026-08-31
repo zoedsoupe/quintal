@@ -8,6 +8,7 @@ defmodule Quintal.ProsasTest do
   alias Quintal.Prosa
   alias Quintal.Prosas
   alias Quintal.Repo
+  alias Quintal.Visitas
 
   setup :verify_on_exit!
 
@@ -326,18 +327,51 @@ defmodule Quintal.ProsasTest do
       assert prosa.audio_alt == nil
     end
 
-    test "prosear com audio manda o campo pro record", %{session: session} do
+    test "prosear com audio fora de lero falha em casa", %{session: session} do
       indexa_identidade()
-      blob = %{"$type" => "blob", "ref" => %{"$link" => "bafysom"}, "mimeType" => "audio/mpeg", "size" => 99}
+
+      audio = %{
+        "audio" => %{"$type" => "blob", "ref" => %{"$link" => "bafysom"}, "mimeType" => "audio/mpeg", "size" => 99}
+      }
+
+      assert {:error, :audio_so_lero} = Prosas.prosear(session, "fiz esse som", nil, [], audio)
+      assert {:error, :audio_so_lero} = Prosas.prosear(session, "fiz esse som", "nota", [], audio)
+    end
+
+    test "lero exige audio e dispensa texto", %{session: session} do
+      indexa_identidade()
+
+      assert {:error, :audio_faltando} = Prosas.prosear(session, "", "lero")
+
+      blob = %{"$type" => "blob", "ref" => %{"$link" => "bafysom"}, "mimeType" => "audio/webm", "size" => 99}
       audio = %{"audio" => blob}
 
       expect(PDSMock, :create_record, fn _session, "place.quintal.feed.prosa", record ->
+        assert record["tipo"] == "lero"
+        assert record["text"] == ""
         assert record["audio"] == audio
         {:ok, %{uri: "at://did:plc:alice/place.quintal.feed.prosa/som", cid: "bafy"}}
       end)
 
-      assert {:ok, prosa} = Prosas.prosear(session, "fiz esse som", nil, [], audio)
+      assert {:ok, prosa} = Prosas.prosear(session, "", "lero", [], audio)
+      assert prosa.tipo == "lero"
+      assert prosa.texto == ""
       assert prosa.audio_blob == blob
+    end
+
+    test "lero sem audio não indexa" do
+      indexa_identidade()
+
+      value = %{"text" => "", "tipo" => "lero", "createdAt" => "2026-08-01T10:00:00Z"}
+
+      assert {:error, changeset} =
+               Prosas.indexar("did:plc:alice", %{
+                 uri: "at://did:plc:alice/place.quintal.feed.prosa/som",
+                 cid: "bafy",
+                 value: value
+               })
+
+      assert %{audio_blob: [_ | _]} = errors_on(changeset)
     end
 
     test "resposta indexa root e parent do reply" do
@@ -388,6 +422,49 @@ defmodule Quintal.ProsasTest do
 
       assert prosa.imagens == []
       assert Repo.aggregate(Quintal.ProsaImagem, :count) == 0
+    end
+
+    test "menção nos facets vira visita pra pessoa mencionada" do
+      indexa_identidade()
+      indexa_identidade("did:plc:beto")
+      uri = "at://did:plc:alice/place.quintal.feed.prosa/mencao"
+
+      value = %{
+        "text" => "oi @beto.bsky.social",
+        "createdAt" => "2026-08-01T10:00:00Z",
+        "facets" => [
+          %{
+            "index" => %{"byteStart" => 3, "byteEnd" => 20},
+            "features" => [%{"$type" => "app.bsky.richtext.facet#mention", "did" => "did:plc:beto"}]
+          }
+        ]
+      }
+
+      assert {:ok, _} = Prosas.indexar("did:plc:alice", %{uri: uri, cid: "bafy", value: value})
+      # o eco do firehose reindexa o mesmo record: dedup pela tripla
+      assert {:ok, _} = Prosas.indexar("did:plc:alice", %{uri: uri, cid: "bafy", value: value})
+
+      assert Visitas.resumo("did:plc:beto").mencao == 1
+      assert Visitas.resumo("did:plc:alice").mencao == 0
+    end
+
+    test "menção a did de fora do quintal não vira visita nem derruba a indexação" do
+      indexa_identidade()
+      uri = "at://did:plc:alice/place.quintal.feed.prosa/mencao-fora"
+
+      value = %{
+        "text" => "oi @estranho.bsky.social",
+        "createdAt" => "2026-08-01T10:00:00Z",
+        "facets" => [
+          %{
+            "index" => %{"byteStart" => 3, "byteEnd" => 25},
+            "features" => [%{"$type" => "app.bsky.richtext.facet#mention", "did" => "did:plc:estranho"}]
+          }
+        ]
+      }
+
+      assert {:ok, _} = Prosas.indexar("did:plc:alice", %{uri: uri, cid: "bafy", value: value})
+      assert Visitas.resumo("did:plc:estranho").mencao == 0
     end
   end
 

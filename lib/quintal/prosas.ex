@@ -26,16 +26,20 @@ defmodule Quintal.Prosas do
 
   @prosa "place.quintal.feed.prosa"
 
-  @tipos ~w(nota pergunta cronica ensaio)
+  @tipos ~w(nota pergunta cronica ensaio lero)
 
   @doc """
   Escreve uma prosa nova no pds da pessoa e indexa otimista.
 
   `tipo` é metadado interno opcional (nota, pergunta, cronica, ensaio,
-  spec 10.1); `nil` deixa o campo fora do record. `imagens` é uma lista
+  lero; spec 10.1); `nil` deixa o campo fora do record. `imagens` é uma lista
   de `%{"image" => blob, "alt" => texto}` (máx. 4, alt obrigatório,
-  spec 10.1). `audio` é um `%{"audio" => blob, "alt" => texto}`
-  opcional, um por prosa.
+  spec 10.1).
+
+  Áudio é coisa de lero: `tipo: "lero"` exige `audio`
+  (`%{"audio" => blob}`) e dispensa texto (o record leva `text` vazio).
+  Áudio em qualquer outro tipo é `{:error, :audio_so_lero}`; lero sem
+  áudio é `{:error, :audio_faltando}`.
 
   Retorna `{:ok, %Prosa{}}` com a prosa já indexada, ou `{:error, _}`
   sem efeito colateral no índice. Texto em branco falha em casa, antes
@@ -48,7 +52,7 @@ defmodule Quintal.Prosas do
           imagens :: [map()],
           audio :: map() | nil
         ) ::
-          {:ok, Prosa.t()} | {:error, :texto_vazio | term()}
+          {:ok, Prosa.t()} | {:error, :texto_vazio | :audio_faltando | :audio_so_lero | term()}
   def prosear(session, texto, tipo \\ nil, imagens \\ [], audio \\ nil) do
     criar(session, texto, tipo, nil, imagens, audio)
   end
@@ -76,24 +80,33 @@ defmodule Quintal.Prosas do
   end
 
   defp criar(session, texto, tipo, reply, imagens, audio) when is_binary(texto) do
-    if String.trim(texto) == "" do
-      {:error, :texto_vazio}
-    else
-      record = %{"text" => texto, "createdAt" => DateTime.to_iso8601(DateTime.utc_now())}
-      record = if tipo in @tipos, do: Map.put(record, "tipo", tipo), else: record
-      record = if reply, do: Map.put(record, "reply", reply), else: record
-      record = if imagens == [], do: record, else: Map.put(record, "images", imagens)
-      record = if audio, do: Map.put(record, "audio", audio), else: record
+    cond do
+      audio && tipo != "lero" ->
+        {:error, :audio_so_lero}
 
-      record =
-        case RichText.facets(texto) do
-          [] -> record
-          facets -> Map.put(record, "facets", facets)
+      tipo == "lero" && is_nil(audio) ->
+        {:error, :audio_faltando}
+
+      tipo != "lero" && String.trim(texto) == "" ->
+        {:error, :texto_vazio}
+
+      true ->
+        texto = if tipo == "lero", do: "", else: texto
+        record = %{"text" => texto, "createdAt" => DateTime.to_iso8601(DateTime.utc_now())}
+        record = if tipo in @tipos, do: Map.put(record, "tipo", tipo), else: record
+        record = if reply, do: Map.put(record, "reply", reply), else: record
+        record = if imagens == [], do: record, else: Map.put(record, "images", imagens)
+        record = if audio, do: Map.put(record, "audio", audio), else: record
+
+        record =
+          case RichText.facets(texto) do
+            [] -> record
+            facets -> Map.put(record, "facets", facets)
+          end
+
+        with {:ok, %{uri: uri, cid: cid}} <- pds().create_record(session, @prosa, record) do
+          indexar(session.did, %{uri: uri, cid: cid, value: record})
         end
-
-      with {:ok, %{uri: uri, cid: cid}} <- pds().create_record(session, @prosa, record) do
-        indexar(session.did, %{uri: uri, cid: cid, value: record})
-      end
     end
   end
 
@@ -299,6 +312,7 @@ defmodule Quintal.Prosas do
     |> case do
       {:ok, %{prosa: prosa}} ->
         registra_resposta(prosa)
+        registra_mencoes(prosa, campo(value, :facets))
         prosa = Repo.preload(prosa, [:autor, :imagens])
         Phoenix.PubSub.broadcast(Quintal.PubSub, "prosas", {:prosa_nova, prosa})
         {:ok, prosa}
@@ -326,6 +340,29 @@ defmodule Quintal.Prosas do
       _sem_mae_no_indice ->
         :ok
     end
+  end
+
+  # Menção avisa a pessoa mencionada na página visitas: os dids vêm das
+  # features `app.bsky.richtext.facet#mention` do record. A menção some
+  # numa edição? a visita fica, o carinho já foi entregue.
+  defp registra_mencoes(_prosa, facets) when not is_list(facets), do: :ok
+
+  defp registra_mencoes(%Prosa{uri: uri, autor_did: autor_did}, facets) do
+    facets
+    |> Enum.flat_map(fn facet -> List.wrap(campo(facet, :features)) end)
+    |> Enum.filter(fn feature -> campo(feature, :"$type") == "app.bsky.richtext.facet#mention" end)
+    |> Enum.map(fn feature -> campo(feature, :did) end)
+    |> Enum.uniq()
+    |> Enum.each(fn
+      # só gente do quintal tem página visitas; did de fora falharia na fk
+      did when is_binary(did) and did != autor_did ->
+        if Repo.exists?(from i in Quintal.Identidade, where: i.did == ^did) do
+          Visitas.registrar(did, "mencao", uri, autor_did)
+        end
+
+      _outro ->
+        :ok
+    end)
   end
 
   # Imagens do record (máx. 4, alt obrigatório, spec 10.1): aceita as

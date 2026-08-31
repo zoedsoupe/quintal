@@ -305,6 +305,48 @@
   background: var(--acento);
 }
 
+/* lero: a prosa falada. o gravador só aparece com o radio lero marcado
+   e o texto (campo, título, régua) sai de cena, tudo via :has, sem JS
+   de visibilidade. no card, lero não tem texto pra mostrar */
+
+.lero {
+  display: none;
+}
+
+.prosear:has(input[name="tipo"][value="lero"]:checked) .lero {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+  margin-top: var(--espaco-3);
+}
+
+.prosear:has(input[name="tipo"][value="lero"]:checked) .campo:has(textarea[name="texto"]),
+.prosear:has(input[name="tipo"][value="lero"]:checked) .prosear__titulo,
+.prosear:has(input[name="tipo"][value="lero"]:checked) .prosear__regua,
+.prosear:has(input[name="tipo"][value="lero"]:checked) .prosear__rascunho {
+  display: none;
+}
+
+.lero__tempo {
+  font-variant-numeric: tabular-nums;
+  color: var(--acento);
+}
+
+.lero--gravando .lero__botao {
+  border-color: var(--acento);
+  color: var(--acento);
+}
+
+.lero__preview {
+  width: 100%;
+  max-width: 20rem;
+  height: 2.25rem;
+}
+
+.prosa-card[data-tipo="lero"] .prosa-card__texto {
+  display: none;
+}
+
 /* embeds derivados da url (youtube, apple music): iframe quieto com o
    link original embaixo como fallback */
 

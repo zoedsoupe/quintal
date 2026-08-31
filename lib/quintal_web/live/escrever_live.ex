@@ -32,7 +32,7 @@ defmodule QuintalWeb.EscreverLive do
 
   require Logger
 
-  @tipos ~w(nota pergunta cronica ensaio)
+  @tipos ~w(nota pergunta cronica ensaio lero)
 
   @impl true
   def mount(params, _session, socket) do
@@ -201,6 +201,9 @@ defmodule QuintalWeb.EscreverLive do
 
       {:error, :alt_faltando} ->
         {:noreply, put_flash(socket, :error, "descreve cada imagem pra quem não vê, aí a gente prosa")}
+
+      {:error, :audio_faltando} ->
+        {:noreply, put_flash(socket, :error, "lero é prosa falada: grava um áudio antes de prosear")}
 
       {:error, :mae_fora_do_indice} ->
         {:noreply, put_flash(socket, :error, "a prosa que você respondeu não tá mais aqui. recarrega e tenta de novo?")}

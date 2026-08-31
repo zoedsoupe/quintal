@@ -22,7 +22,7 @@
           },
           "tipo": {
             "type": "string",
-            "knownValues": ["nota", "pergunta", "cronica", "ensaio"]
+            "knownValues": ["nota", "pergunta", "cronica", "ensaio", "lero"]
           },
           "reply": { "type": "ref", "ref": "#replyRef" },
           "images": {

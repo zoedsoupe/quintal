@@ -70,7 +70,7 @@ defmodule QuintalWeb.VisitasLive do
 
   defp zerado?(resumo) do
     resumo.recado == 0 && resumo.resposta == 0 && resumo.novo_leitor == 0 &&
-      resumo.depoimento == 0 && resumo.leitura == 0
+      resumo.depoimento == 0 && resumo.leitura == 0 && resumo.mencao == 0
   end
 
   # agrupamento por dia, cabeçalhos em sussurro: "hoje", "ontem", "12 de agosto"
@@ -96,6 +96,7 @@ defmodule QuintalWeb.VisitasLive do
     [
       contagem(resumo.recado, "recado", "recados"),
       contagem(resumo.resposta, "resposta", "respostas"),
+      contagem(resumo.mencao, "menção", "menções"),
       contagem(resumo.leitura, "prosa lida", "prosas lidas"),
       leitores(resumo.novo_leitor),
       contagem(resumo.depoimento, "depoimento", "depoimentos")
@@ -113,11 +114,13 @@ defmodule QuintalWeb.VisitasLive do
   defp leitores(n), do: "#{n} vizinhos novos te lendo"
 
   # o destino do evento: resposta abre a prosa resposta (que carrega o
-  # fio pra mãe), leitura abre a prosa lida. recado, depoimento e
-  # novo leitor já resolvem no canto de quem passou.
+  # fio pra mãe), menção abre a prosa onde o nome apareceu, leitura
+  # abre a prosa lida. recado, depoimento e novo leitor já resolvem no
+  # canto de quem passou.
   defp path_evento(evento, meu_handle) do
     case to_string(evento.tipo) do
       "resposta" -> prosa_path(evento.ref_uri, evento.autor.handle)
+      "mencao" -> prosa_path(evento.ref_uri, evento.autor.handle)
       "leitura" -> prosa_path(evento.ref_uri, meu_handle)
       _outro -> nil
     end
@@ -128,6 +131,7 @@ defmodule QuintalWeb.VisitasLive do
     case to_string(tipo) do
       "recado" -> "deixou um recado"
       "resposta" -> "respondeu sua prosa"
+      "mencao" -> "falou de você numa prosa"
       "leitura" -> "leu sua prosa"
       "novo_leitor" -> "começou a ler seu canto"
       "depoimento" -> "te deixou um depoimento, quer pendurar na parede?"

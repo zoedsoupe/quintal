@@ -2,11 +2,12 @@ defmodule Quintal.VisitaEvento do
   @moduledoc """
   Um evento da página visitas (spec 7.5): alguém passou pelo canto.
 
-  Tipos: `recado`, `resposta`, `novo_leitor`, `depoimento`, `leitura`.
-  A tripla `(tipo, ref_uri, autor_did)` é única: a escrita otimista e o
-  eco do firehose chegam como o mesmo evento duas vezes, e o índice
-  dedupa. Para `leitura` isso significa uma marca por pessoa por prosa:
-  a visita nunca é rastreada, é o leitor que a deixa, se quiser.
+  Tipos: `recado`, `resposta`, `novo_leitor`, `depoimento`, `leitura`,
+  `mencao`. A tripla `(tipo, ref_uri, autor_did)` é única: a escrita
+  otimista e o eco do firehose chegam como o mesmo evento duas vezes,
+  e o índice dedupa. Para `leitura` isso significa uma marca por pessoa
+  por prosa: a visita nunca é rastreada, é o leitor que a deixa, se
+  quiser.
 
   Estado local do appview, nunca record: notificações quietas não saem
   de casa.
@@ -16,7 +17,7 @@ defmodule Quintal.VisitaEvento do
 
   import Ecto.Changeset
 
-  @tipos ~w(recado resposta novo_leitor depoimento leitura)
+  @tipos ~w(recado resposta novo_leitor depoimento leitura mencao)
 
   schema "visitas_eventos" do
     field :dono_did, :string

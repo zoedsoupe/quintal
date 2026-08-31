@@ -150,8 +150,15 @@ defmodule QuintalWeb.ProsaLive do
           </.link>
           <time>{tempo_relativo(@prosa.created_at)}</time>
           <span :if={@sessao && @prosa.autor_did == @sessao.did} class="prosa-pagina__acoes">
-            <.link navigate={"/prosear?editar=#{URI.encode_www_form(@prosa.uri)}"}>editar</.link>
+            <%!-- lero não tem texto: editar e copiar não fazem sentido --%>
+            <.link
+              :if={@prosa.tipo != "lero"}
+              navigate={"/prosear?editar=#{URI.encode_www_form(@prosa.uri)}"}
+            >
+              editar
+            </.link>
             <button
+              :if={@prosa.tipo != "lero"}
               type="button"
               phx-click={JS.dispatch("quintal:copiar", detail: %{texto: @prosa.texto})}
             >
@@ -187,6 +194,7 @@ defmodule QuintalWeb.ProsaLive do
         >
           <:acoes :if={@sessao && resposta.autor_did == @sessao.did}>
             <.link
+              :if={resposta.tipo != "lero"}
               navigate={"/prosear?editar=#{URI.encode_www_form(resposta.uri)}"}
               class="icone-botao"
               aria-label="editar prosa"

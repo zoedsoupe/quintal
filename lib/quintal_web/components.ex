@@ -157,10 +157,6 @@ defmodule QuintalWeb.Components do
             <Lucideicons.paperclip aria-hidden="true" />
             <.live_file_input upload={@uploads.imagens} class="sr-only" />
           </label>
-          <label class="icone-botao prosear__clipe" aria-label="anexar áudio">
-            <Lucideicons.mic aria-hidden="true" />
-            <.live_file_input upload={@uploads.audio} class="sr-only" />
-          </label>
           <p class="prosear__contador" hidden></p>
           <span class="prosear__atalho" aria-hidden="true">ctrl+enter pra prosear</span>
           <svg class="prosear__progresso" viewBox="0 0 24 24" aria-hidden="true">
@@ -232,10 +228,6 @@ defmodule QuintalWeb.Components do
           <Lucideicons.paperclip aria-hidden="true" />
           <.live_file_input upload={@uploads.imagens} class="sr-only" />
         </label>
-        <label :if={@modo == :prosa} class="icone-botao prosear__clipe" aria-label="anexar áudio">
-          <Lucideicons.mic aria-hidden="true" />
-          <.live_file_input upload={@uploads.audio} class="sr-only" />
-        </label>
       </div>
 
       <.campo
@@ -249,6 +241,21 @@ defmodule QuintalWeb.Components do
         required
       />
       <p class="prosear__rascunho" hidden>deixou uma prosa pela metade aqui</p>
+
+      <%!-- lero é a prosa falada: o gravador entra no lugar do texto
+           (CSS :has no radio), e a gravação sobe pelo upload :audio
+           comum. o chip do anexo (com X pra descartar) aparece no
+           bloco de anexos ali embaixo --%>
+      <div :if={@modo == :prosa} class="lero" id="lero" phx-hook="LeroRecorder">
+        <.live_file_input upload={@uploads.audio} class="sr-only" />
+        <button type="button" class="lero__botao botao botao--fantasma">
+          <Lucideicons.mic aria-hidden="true" />
+          <span class="lero__rotulo">fala aí...</span>
+        </button>
+        <span class="lero__tempo" hidden>0:00</span>
+        <audio class="lero__preview" controls hidden></audio>
+        <p class="lero__erro campo__erro" hidden></p>
+      </div>
 
       <div
         :if={@modo == :prosa && (@uploads.imagens.entries != [] || @uploads.audio.entries != [])}
@@ -320,13 +327,15 @@ defmodule QuintalWeb.Components do
   defp erro_audio(_outro), do: "ih, esse áudio não subiu. tenta de novo?"
 
   # tipo é metadado interno, nunca rótulo (spec 10.1): no composer vira
-  # pill quieta com placeholder próprio, no card não aparece.
+  # pill quieta com placeholder próprio, no card não aparece. lero é a
+  # prosa falada: o texto some (CSS :has no radio) e o gravador entra
   defp tipos do
     [
       {"nota", "nota", "como foi seu dia?"},
       {"pergunta", "pergunta", "o que tá te intrigando?"},
       {"cronica", "crônica", "conta o que você viu hoje"},
-      {"ensaio", "ensaio", "escreve sem pressa"}
+      {"ensaio", "ensaio", "escreve sem pressa"},
+      {"lero", "lero", "fala aí..."}
     ]
   end
 
