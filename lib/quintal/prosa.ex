@@ -29,6 +29,8 @@ defmodule Quintal.Prosa do
     field :reply_root, :string
     field :reply_parent, :string
     field :langs, {:array, :string}
+    field :audio_blob, :map
+    field :audio_alt, :string
     field :created_at, :utc_datetime_usec
     field :indexed_at, :utc_datetime_usec
 
@@ -55,6 +57,8 @@ defmodule Quintal.Prosa do
       :reply_root,
       :reply_parent,
       :langs,
+      :audio_blob,
+      :audio_alt,
       :created_at,
       :indexed_at
     ])

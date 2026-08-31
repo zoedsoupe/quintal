@@ -12,9 +12,9 @@ defmodule QuintalWeb.HomeLive do
   use QuintalWeb, :live_view
 
   import QuintalWeb.Formatacao,
-    only: [tempo_relativo: 1, trecho: 1, prosa_path: 2, imagens_card: 1, avatar_url: 2]
+    only: [tempo_relativo: 1, trecho: 1, prosa_path: 2, imagens_card: 1, audio_card: 1, avatar_url: 2]
 
-  import QuintalWeb.ProsearForm, only: [com_titulo: 2, imagens_dos_anexos: 2]
+  import QuintalWeb.ProsearForm, only: [com_titulo: 2, imagens_dos_anexos: 2, audio_do_anexo: 1, limpa_links: 1]
 
   alias Quintal.Cantos
   alias Quintal.Feed
@@ -42,6 +42,11 @@ defmodule QuintalWeb.HomeLive do
        max_entries: 4,
        max_file_size: 2_000_000
      )
+     |> allow_upload(:audio,
+       accept: ~w(audio/mpeg audio/mp4 audio/ogg audio/webm audio/wav),
+       max_entries: 1,
+       max_file_size: 20_000_000
+     )
      |> assign(
        handle: sessao.handle,
        novidade: Visitas.novidade?(sessao.did),
@@ -67,14 +72,19 @@ defmodule QuintalWeb.HomeLive do
     {:noreply, cancel_upload(socket, :imagens, ref)}
   end
 
+  def handle_event("remover-audio", %{"ref" => ref}, socket) do
+    {:noreply, cancel_upload(socket, :audio, ref)}
+  end
+
   def handle_event("prosear", %{"texto" => texto} = params, socket) do
-    texto = com_titulo(texto, params)
+    {texto, tirou?} = texto |> com_titulo(params) |> limpa_links()
 
     with {:ok, imagens} <- imagens_dos_anexos(socket, params),
-         {:ok, prosa} <- Prosas.prosear(socket.assigns.sessao, texto, Map.get(params, "tipo"), imagens) do
+         {:ok, audio} <- audio_do_anexo(socket),
+         {:ok, prosa} <- Prosas.prosear(socket.assigns.sessao, texto, Map.get(params, "tipo"), imagens, audio) do
       {:noreply,
        socket
-       |> put_flash(:info, "pronto, sua prosa tá no quintal")
+       |> put_flash(:info, flash_prosear(tirou?))
        |> update(:feed, &[prosa | &1])
        |> push_event("composer-publicado", %{})}
     else
@@ -111,6 +121,11 @@ defmodule QuintalWeb.HomeLive do
     {:noreply, push_navigate(socket, to: path)}
   end
 
+  defp flash_prosear(true = _tirou),
+    do: "pronto, sua prosa tá no quintal. os links de instagram, tiktok e shorts ficaram de fora, aqui eles não tocam"
+
+  defp flash_prosear(_nao_tirou), do: "pronto, sua prosa tá no quintal"
+
   @impl true
   def handle_info({:prosa_nova, prosa}, socket) do
     eu = socket.assigns.sessao.did
@@ -118,7 +133,16 @@ defmodule QuintalWeb.HomeLive do
     da_vizinhanca? = prosa.autor_did == eu or Follows.segue?(eu, prosa.autor_did)
     repetida? = Enum.any?(socket.assigns.feed, &(&1.uri == prosa.uri))
 
-    if da_vizinhanca? and not repetida? do
+    # replay da firehose (reconnect, backfill de follow novo) entrega em
+    # lote: prepend cego inverte o lote no topo. prosa mais velha que a
+    # cabeça do feed não entra ao vivo, aparece na próxima carga
+    mais_nova? =
+      case socket.assigns.feed do
+        [head | _] -> DateTime.compare(prosa.created_at, head.created_at) != :lt
+        [] -> true
+      end
+
+    if da_vizinhanca? and not repetida? and mais_nova? do
       {:noreply, socket |> update(:feed, &[prosa | &1]) |> enriquecer([prosa])}
     else
       {:noreply, socket}
@@ -193,6 +217,7 @@ defmodule QuintalWeb.HomeLive do
               cortou={cortou?}
               em_resposta={prosa.reply_parent && Map.get(@pais, prosa.reply_parent)}
               imagens={imagens_card(prosa)}
+              audio={audio_card(prosa)}
             >
               <:acoes :if={prosa.autor_did == @sessao.did}>
                 <button

@@ -45,4 +45,57 @@ defmodule QuintalWeb.MarkdownTest do
       # assert saida =~ "bsky.app/profile/alice.bsky.social"
     end
   end
+
+  describe "embeds" do
+    test "link do youtube sozinho no parágrafo vira player" do
+      saida = html("olha isso\n\nhttps://www.youtube.com/watch?v=dQw4w9WgXcQ")
+
+      assert saida =~ ~s(src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ")
+      assert saida =~ ~s(href="https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+    end
+
+    test "youtu.be e music.youtube também viram player" do
+      assert html("https://youtu.be/dQw4w9WgXcQ") =~ "youtube-nocookie.com/embed/dQw4w9WgXcQ"
+
+      assert html("https://music.youtube.com/watch?v=dQw4w9WgXcQ") =~
+               "youtube-nocookie.com/embed/dQw4w9WgXcQ"
+    end
+
+    test "shorts não vira embed" do
+      saida = html("https://www.youtube.com/shorts/dQw4w9WgXcQ")
+
+      refute saida =~ "<iframe"
+    end
+
+    test "link do youtube no meio da frase fica link, não vira embed" do
+      saida = html("vi isso no https://www.youtube.com/watch?v=dQw4w9WgXcQ ontem")
+
+      refute saida =~ "<iframe"
+      assert saida =~ "youtube.com/watch"
+    end
+
+    test "apple music vira player do embed.music.apple.com" do
+      url = "https://music.apple.com/br/album/novo/1440841698?i=1440841701"
+      saida = html(url)
+
+      assert saida =~ ~s(src="https://embed.music.apple.com/br/album/novo/1440841698?i=1440841701")
+    end
+
+    test "spotify vira player, com ou sem /intl no caminho" do
+      id = "4uLU6hMCjMI75M1A2tKUQC"
+
+      assert html("https://open.spotify.com/track/#{id}") =~
+               ~s(src="https://open.spotify.com/embed/track/#{id}")
+
+      assert html("https://open.spotify.com/intl-pt/album/#{id}") =~
+               ~s(src="https://open.spotify.com/embed/album/#{id}")
+    end
+
+    test "link comum sozinho continua link" do
+      saida = html("https://exemplo.com/blog")
+
+      refute saida =~ "<iframe"
+      assert saida =~ ~s(href="https://exemplo.com/blog")
+    end
+  end
 end

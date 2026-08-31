@@ -4,7 +4,7 @@ defmodule QuintalWeb.EscreverLive do
   nunca overlay. Um componente, três contextos:
 
   - `/prosear` (`:prosear`): prosa nova, com chips de tipo. `?tipo=` abre
-    direto num tipo — o ensaio é o modo foco e sempre mora aqui, até no
+    direto num tipo: o ensaio é o modo foco e sempre mora aqui, até no
     desktop. `?reply=<uri>` vira resposta: a prosa-mãe aparece num card
     quieto no topo, com o fio da thread. `?editar=<uri>` vira edição: a
     prosa própria volta com o texto de sempre, sem chips nem título
@@ -13,7 +13,7 @@ defmodule QuintalWeb.EscreverLive do
     `?para=<handle>`. Texto puro, limite curto, sem chips nem régua.
 
   Tudo em fluxo de documento: a barra com voltar e o pill de publicar
-  desce junto com a página, o teclado abre e o browser rola — sem hack
+  desce junto com a página, o teclado abre e o browser rola, sem hack
   de viewport.
   """
 
@@ -21,7 +21,7 @@ defmodule QuintalWeb.EscreverLive do
 
   import Ecto.Query, only: [from: 2]
   import QuintalWeb.Formatacao, only: [prosa_path: 2]
-  import QuintalWeb.ProsearForm, only: [com_titulo: 2, imagens_dos_anexos: 2]
+  import QuintalWeb.ProsearForm, only: [com_titulo: 2, imagens_dos_anexos: 2, audio_do_anexo: 1, limpa_links: 1]
 
   alias Quintal.Follows
   alias Quintal.Identidade
@@ -42,6 +42,11 @@ defmodule QuintalWeb.EscreverLive do
         accept: ~w(image/jpeg image/png image/webp),
         max_entries: 4,
         max_file_size: 2_000_000
+      )
+      |> allow_upload(:audio,
+        accept: ~w(audio/mpeg audio/mp4 audio/ogg audio/webm audio/wav),
+        max_entries: 1,
+        max_file_size: 20_000_000
       )
       |> assign(mencoes: Follows.mencoes(socket.assigns.sessao.did))
 
@@ -179,12 +184,18 @@ defmodule QuintalWeb.EscreverLive do
     {:noreply, cancel_upload(socket, :imagens, ref)}
   end
 
+  def handle_event("remover-audio", %{"ref" => ref}, socket) do
+    {:noreply, cancel_upload(socket, :audio, ref)}
+  end
+
   def handle_event("escrever", %{"texto" => texto} = params, socket) do
+    {texto, tirou?} = limpa_links(texto)
+
     case publicar(socket.assigns.modo, socket, texto, params) do
       {:ok, _registro} ->
         {:noreply,
          socket
-         |> put_flash(:info, flash_sucesso(socket.assigns.modo))
+         |> put_flash(:info, flash_sucesso(socket.assigns.modo, tirou?))
          |> push_event("composer-publicado", %{})
          |> push_navigate(to: socket.assigns.voltar)}
 
@@ -203,8 +214,9 @@ defmodule QuintalWeb.EscreverLive do
   defp publicar(:prosa, socket, texto, params) do
     texto = com_titulo(texto, params)
 
-    with {:ok, imagens} <- imagens_dos_anexos(socket, params) do
-      Prosas.prosear(socket.assigns.sessao, texto, Map.get(params, "tipo"), imagens)
+    with {:ok, imagens} <- imagens_dos_anexos(socket, params),
+         {:ok, audio} <- audio_do_anexo(socket) do
+      Prosas.prosear(socket.assigns.sessao, texto, Map.get(params, "tipo"), imagens, audio)
     end
   end
 
@@ -220,9 +232,13 @@ defmodule QuintalWeb.EscreverLive do
     Recados.deixar(socket.assigns.sessao, socket.assigns.canto, texto)
   end
 
-  defp flash_sucesso(:recado), do: "pronto, seu recado tá no livro de visitas"
-  defp flash_sucesso(:edicao), do: "pronto, sua prosa tá atualizada"
-  defp flash_sucesso(_modo), do: "pronto, sua prosa tá no quintal"
+  @links_de_fora ". os links de instagram, tiktok e shorts ficaram de fora, aqui eles não tocam"
+
+  defp flash_sucesso(:recado, _tirou), do: "pronto, seu recado tá no livro de visitas"
+  defp flash_sucesso(:edicao, true), do: "pronto, sua prosa tá atualizada" <> @links_de_fora
+  defp flash_sucesso(:edicao, _nao), do: "pronto, sua prosa tá atualizada"
+  defp flash_sucesso(_modo, true), do: "pronto, sua prosa tá no quintal" <> @links_de_fora
+  defp flash_sucesso(_modo, _nao), do: "pronto, sua prosa tá no quintal"
 
   @impl true
   def render(assigns) do

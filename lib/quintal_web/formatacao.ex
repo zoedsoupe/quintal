@@ -41,7 +41,7 @@ defmodule QuintalWeb.Formatacao do
   A primeira frase de uma prosa, para a linha do índice do canto: corta
   no fim da frase ou da primeira linha, o que vier antes, e no máximo
   em #{@frase} caracteres (no espaço mais perto do limite). Devolve
-  fonte markdown — quem renderiza é o `Markdown.render_inline/1`, que
+  fonte markdown. Quem renderiza é o `Markdown.render_inline/1`, que
   completa um marker aberto pelo corte.
   """
   def primeira_frase(texto) when is_binary(texto) do
@@ -64,7 +64,7 @@ defmodule QuintalWeb.Formatacao do
   @doc """
   Trecho de prosa longa para o feed e o canto: crônicas e ensaios abrem
   em página própria, na lista entra só o começo. Corta no espaço mais
-  perto do limite e devolve `{texto, cortou?}` — fonte markdown, que o
+  perto do limite e devolve `{texto, cortou?}` em fonte markdown, que o
   card renderiza (o modo streaming do comrak completa marker aberto
   pelo corte).
   """
@@ -103,6 +103,22 @@ defmodule QuintalWeb.Formatacao do
       []
     end
   end
+
+  @doc """
+  O áudio de uma prosa pronto para o card: `%{src, alt}` ou `nil`.
+
+  Mesma regra das imagens: a url aponta direto pro `getBlob` do pds do
+  autor. Prosa sem áudio (ou com blob vazio vindo da firehose) é `nil`.
+  """
+  def audio_card(%{audio_blob: %{} = blob} = prosa) do
+    pds_url = if Ecto.assoc_loaded?(prosa.autor) && prosa.autor, do: prosa.autor.pds_url
+
+    if pds_url && (get_in(blob, ["ref", "$link"]) || get_in(blob, [:ref, :"$link"])) do
+      %{src: blob_url(pds_url, prosa.autor_did, blob), alt: prosa.audio_alt || ""}
+    end
+  end
+
+  def audio_card(_prosa), do: nil
 
   @doc "A url de leitura de um blob: `getBlob` direto no pds do autor."
   def blob_url(pds_url, did, blob) do

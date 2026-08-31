@@ -149,7 +149,7 @@ defmodule Quintal.Lexicon do
 
   # Union (facets bsky + quintal): presença de mapa basta. Os membros
   # da union de facets são objetos sem `$type` próprio (quem tem `$type`
-  # são as features dentro), então não dá pra fechar a união por aqui —
+  # são as features dentro), então não dá pra fechar a união por aqui,
   # e client desconhecido ignora feature que não entende, mesmo.
   defp check_field(value, %{"type" => "union"}, _defs, path) do
     if is_map(value), do: [], else: ["#{path}: expected union object"]

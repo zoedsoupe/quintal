@@ -10,7 +10,7 @@ defmodule Quintal.RichText do
   client atproto já entende.
 
   Os ranges são byte offsets UTF-8 (0-based, fim exclusivo) sobre o
-  conteúdo interno do nó — os markers (`**`, crases) ficam de fora.
+  conteúdo interno do nó: os markers (`**`, crases) ficam de fora.
   O sourcepos do comrak é 1-based em bytes com fim inclusivo, daí o
   `- 1` no começo e nada no fim.
 
@@ -51,7 +51,7 @@ defmodule Quintal.RichText do
 
   # Ênfase, código e links: o facet cobre o miolo (do começo do
   # primeiro filho ao fim do último), nunca os markers. Facets de
-  # nós aninhados (itálico dentro de negrito) se sobrepõem — clients
+  # nós aninhados (itálico dentro de negrito) se sobrepõem, e clients
   # que não entendem a sobreposição ignoram a feature desconhecida.
   defp estilo_facets(nodes, offsets) do
     nodes

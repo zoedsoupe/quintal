@@ -13,7 +13,7 @@ defmodule QuintalWeb.Layouts do
   visitas é um pontinho lilás quieto, nunca badge vermelho (briefing 2.8).
 
   O menu da conta (meu canto, conta, sair) mora num `<details>` quieto
-  com o handle como gatilho, à direita da barra superior — visível
+  com o handle como gatilho, à direita da barra superior, visível
   também no mobile, onde a barra inferior não tem espaço para ele.
 
   `moldura: false` tira o chrome (barra superior e nav inferior fixa):

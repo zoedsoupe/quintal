@@ -30,6 +30,7 @@
             "maxLength": 4,
             "items": { "type": "ref", "ref": "#imagem" }
           },
+          "audio": { "type": "ref", "ref": "#audio" },
           "langs": {
             "type": "array",
             "items": { "type": "string", "format": "language" }
@@ -54,6 +55,18 @@
           "type": "blob",
           "accept": ["image/jpeg", "image/png", "image/webp"],
           "maxSize": 2000000
+        },
+        "alt": { "type": "string", "maxGraphemes": 1000 }
+      }
+    },
+    "audio": {
+      "type": "object",
+      "required": ["audio"],
+      "properties": {
+        "audio": {
+          "type": "blob",
+          "accept": ["audio/mpeg", "audio/mp4", "audio/ogg", "audio/webm", "audio/wav"],
+          "maxSize": 20000000
         },
         "alt": { "type": "string", "maxGraphemes": 1000 }
       }

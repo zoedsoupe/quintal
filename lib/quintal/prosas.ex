@@ -34,16 +34,23 @@ defmodule Quintal.Prosas do
   `tipo` é metadado interno opcional (nota, pergunta, cronica, ensaio,
   spec 10.1); `nil` deixa o campo fora do record. `imagens` é uma lista
   de `%{"image" => blob, "alt" => texto}` (máx. 4, alt obrigatório,
-  spec 10.1).
+  spec 10.1). `audio` é um `%{"audio" => blob, "alt" => texto}`
+  opcional, um por prosa.
 
   Retorna `{:ok, %Prosa{}}` com a prosa já indexada, ou `{:error, _}`
   sem efeito colateral no índice. Texto em branco falha em casa, antes
   da rede.
   """
-  @spec prosear(Quintal.PDS.session(), texto :: String.t(), tipo :: String.t() | nil, imagens :: [map()]) ::
+  @spec prosear(
+          Quintal.PDS.session(),
+          texto :: String.t(),
+          tipo :: String.t() | nil,
+          imagens :: [map()],
+          audio :: map() | nil
+        ) ::
           {:ok, Prosa.t()} | {:error, :texto_vazio | term()}
-  def prosear(session, texto, tipo \\ nil, imagens \\ []) do
-    criar(session, texto, tipo, nil, imagens)
+  def prosear(session, texto, tipo \\ nil, imagens \\ [], audio \\ nil) do
+    criar(session, texto, tipo, nil, imagens, audio)
   end
 
   @doc """
@@ -62,13 +69,13 @@ defmodule Quintal.Prosas do
         "parent" => %{"uri" => parent.uri, "cid" => parent.cid}
       }
 
-      criar(session, texto, nil, reply, [])
+      criar(session, texto, nil, reply, [], nil)
     else
       _sem_mae_ou_raiz -> {:error, :mae_fora_do_indice}
     end
   end
 
-  defp criar(session, texto, tipo, reply, imagens) when is_binary(texto) do
+  defp criar(session, texto, tipo, reply, imagens, audio) when is_binary(texto) do
     if String.trim(texto) == "" do
       {:error, :texto_vazio}
     else
@@ -76,6 +83,7 @@ defmodule Quintal.Prosas do
       record = if tipo in @tipos, do: Map.put(record, "tipo", tipo), else: record
       record = if reply, do: Map.put(record, "reply", reply), else: record
       record = if imagens == [], do: record, else: Map.put(record, "images", imagens)
+      record = if audio, do: Map.put(record, "audio", audio), else: record
 
       record =
         case RichText.facets(texto) do
@@ -125,27 +133,38 @@ defmodule Quintal.Prosas do
   # string, cortesia do ProsearForm.blob_lexicon/1 e da firehose crua).
   defp record_lexicon(%Prosa{} = prosa, texto) do
     with {:ok, reply} <- reply_lexicon(prosa) do
-      record = %{"text" => texto, "createdAt" => DateTime.to_iso8601(prosa.created_at)}
-      record = if prosa.tipo, do: Map.put(record, "tipo", prosa.tipo), else: record
-      record = if prosa.langs in [nil, []], do: record, else: Map.put(record, "langs", prosa.langs)
-      record = if reply, do: Map.put(record, "reply", reply), else: record
-
       record =
-        case RichText.facets(texto) do
-          [] -> record
-          facets -> Map.put(record, "facets", facets)
-        end
-
-      record =
-        if prosa.imagens == [] do
-          record
-        else
-          Map.put(record, "images", Enum.map(prosa.imagens, &%{"image" => &1.blob, "alt" => &1.alt}))
-        end
+        %{"text" => texto, "createdAt" => DateTime.to_iso8601(prosa.created_at)}
+        |> put_se_houver("tipo", prosa.tipo)
+        |> put_se_houver("langs", prosa.langs)
+        |> put_se_houver("reply", reply)
+        |> put_se_houver("facets", facets_lexicon(texto))
+        |> put_se_houver("images", imagens_lexicon(prosa.imagens))
+        |> put_se_houver("audio", audio_lexicon(prosa))
 
       {:ok, record}
     end
   end
+
+  defp put_se_houver(record, _chave, valor) when valor in [nil, []], do: record
+  defp put_se_houver(record, chave, valor), do: Map.put(record, chave, valor)
+
+  defp facets_lexicon(texto) do
+    case RichText.facets(texto) do
+      [] -> nil
+      facets -> facets
+    end
+  end
+
+  defp imagens_lexicon([]), do: nil
+
+  defp imagens_lexicon(imagens) do
+    Enum.map(imagens, &%{"image" => &1.blob, "alt" => &1.alt})
+  end
+
+  defp audio_lexicon(%Prosa{audio_blob: nil}), do: nil
+  defp audio_lexicon(%Prosa{audio_blob: blob, audio_alt: alt}) when alt in [nil, ""], do: %{"audio" => blob}
+  defp audio_lexicon(%Prosa{audio_blob: blob, audio_alt: alt}), do: %{"audio" => blob, "alt" => alt}
 
   defp reply_lexicon(%Prosa{reply_root: nil}), do: {:ok, nil}
 
@@ -261,6 +280,8 @@ defmodule Quintal.Prosas do
       reply_root: strong_ref_uri(campo(value, :reply), :root),
       reply_parent: strong_ref_uri(campo(value, :reply), :parent),
       langs: campo(value, :langs),
+      audio_blob: value |> campo(:audio) |> campo(:audio),
+      audio_alt: value |> campo(:audio) |> campo(:alt),
       created_at: parse_datetime(campo(value, :created_at) || campo(value, :createdAt)),
       indexed_at: DateTime.utc_now()
     }
@@ -269,7 +290,7 @@ defmodule Quintal.Prosas do
 
     Ecto.Multi.new()
     |> Ecto.Multi.insert(:prosa, Prosa.changeset(%Prosa{}, attrs),
-      on_conflict: {:replace, [:cid, :texto, :tipo, :reply_root, :reply_parent, :langs, :created_at, :indexed_at]},
+      on_conflict: :replace_all,
       conflict_target: :uri
     )
     |> Ecto.Multi.delete_all(:limpa_imagens, from(i in Quintal.ProsaImagem, where: i.prosa_uri == ^uri))

@@ -24,6 +24,7 @@ defmodule QuintalWeb.Markdown do
       |> MDEx.to_html!()
       |> limpa_incompletos()
       |> ajusta_links()
+      |> embeds()
 
     {:safe, html}
   end
@@ -93,6 +94,91 @@ defmodule QuintalWeb.Markdown do
   end
 
   defp alvo_externo(tag), do: tag
+
+  # Embeds derivados da URL (youtube, apple music, spotify): um
+  # parágrafo que é só o link vira player em iframe, com o link original
+  # embaixo como fallback. O embed é apresentação, nunca dado do record:
+  # outro client vê o link, que já basta. Youtube é vídeo e música:
+  # shorts não vira embed (nem chega aqui, o composer tira do texto).
+  @link_sozinho ~r/<p><a\s[^>]*href="(https?:\/\/[^"]+)"[^>]*>[^<]*<\/a><\/p>/
+
+  defp embeds(html) do
+    Regex.replace(@link_sozinho, html, fn original, url ->
+      case embed_player(url) do
+        nil ->
+          original
+
+        {classe, src, titulo, attrs} ->
+          ~s(<figure class="embed #{classe}">) <>
+            ~s(<iframe src="#{src}" title="#{titulo}" loading="lazy" #{attrs}></iframe>) <>
+            ~s(<figcaption><a href="#{url}" target="_blank" rel="noopener">#{url}</a></figcaption></figure>)
+      end
+    end)
+  end
+
+  defp embed_player(url) do
+    uri = URI.parse(url)
+
+    cond do
+      id = youtube_id(uri) ->
+        {"embed--video", "https://www.youtube-nocookie.com/embed/#{id}", "vídeo do youtube",
+         ~s(sandbox="allow-scripts allow-same-origin allow-presentation allow-popups" allowfullscreen)}
+
+      uri.host == "music.apple.com" && uri.path ->
+        query = if uri.query, do: "?#{uri.query}"
+
+        {"embed--musica", "https://embed.music.apple.com#{uri.path}#{query}", "apple music",
+         ~s(sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-top-navigation-by-user-activation")}
+
+      src = spotify_embed(uri) ->
+        {"embed--musica", src, "spotify",
+         ~s(sandbox="allow-scripts allow-same-origin allow-popups allow-encrypted-media")}
+
+      true ->
+        nil
+    end
+  end
+
+  @youtube_id ~r/^[\w-]{11}$/
+
+  defp youtube_id(%URI{host: host} = uri) when host in ~w(youtube.com www.youtube.com m.youtube.com music.youtube.com) do
+    if uri.path == "/watch" do
+      uri.query |> URI.decode_query() |> Map.get("v") |> valida_youtube_id()
+    end
+  end
+
+  defp youtube_id(%URI{host: "youtu.be", path: "/" <> id}), do: valida_youtube_id(id)
+  defp youtube_id(_uri), do: nil
+
+  defp valida_youtube_id(id) when is_binary(id) do
+    if Regex.match?(@youtube_id, id), do: id
+  end
+
+  defp valida_youtube_id(_sem_id), do: nil
+
+  # open.spotify.com/track|album|playlist|episode|show/<id>, com ou sem
+  # /intl-xx no caminho: o embed é o mesmo path sob /embed
+  @spotify_tipos ~w(track album playlist episode show)
+
+  defp spotify_embed(%URI{host: "open.spotify.com", path: path}) when is_binary(path) do
+    partes = String.split(path, "/", trim: true)
+
+    case Enum.find_index(partes, &(&1 in @spotify_tipos)) do
+      nil ->
+        nil
+
+      i ->
+        with tipo when is_binary(tipo) <- Enum.at(partes, i),
+             id when is_binary(id) <- Enum.at(partes, i + 1),
+             true <- Regex.match?(~r/^\w{22}$/, id) do
+          "https://open.spotify.com/embed/#{tipo}/#{id}"
+        else
+          _forma_estranha -> nil
+        end
+    end
+  end
+
+  defp spotify_embed(_uri), do: nil
 
   defp linkify_trecho(texto) do
     Regex.replace(@mention, texto, fn handle ->

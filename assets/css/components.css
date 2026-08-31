@@ -242,6 +242,103 @@
   grid-template-columns: 1fr;
 }
 
+/* audio: player minimo, botão redondo e trilha fina. o <audio> nativo
+   escondido faz o resto */
+
+.prosa-card__audio,
+.prosa-pagina__audio {
+  margin-top: var(--espaco-3);
+}
+
+.audio {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+}
+
+.audio audio {
+  display: none;
+}
+
+.audio__play {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  padding: 0;
+  border: 1px solid var(--sussurro);
+  border-radius: 50%;
+  background: none;
+  color: var(--acento);
+  cursor: pointer;
+}
+
+.audio__play:hover {
+  border-color: var(--acento);
+}
+
+.audio__icone-pause {
+  display: none;
+}
+
+.audio--tocando .audio__icone-play {
+  display: none;
+}
+
+.audio--tocando .audio__icone-pause {
+  display: block;
+}
+
+.audio__trilha {
+  flex: 1;
+  height: 3px;
+  border-radius: var(--raio-pill);
+  background: var(--sussurro);
+  cursor: pointer;
+}
+
+.audio__progresso {
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--acento);
+}
+
+/* embeds derivados da url (youtube, apple music): iframe quieto com o
+   link original embaixo como fallback */
+
+.embed {
+  margin: var(--espaco-3) 0;
+}
+
+.embed iframe {
+  display: block;
+  width: 100%;
+  border: 0;
+  border-radius: var(--raio);
+  background: var(--sussurro);
+}
+
+.embed--video iframe {
+  aspect-ratio: 16 / 9;
+}
+
+.embed--musica iframe {
+  height: 175px;
+}
+
+.embed figcaption {
+  margin-top: var(--espaco-1);
+  font-size: 0.8125rem;
+  color: var(--meta);
+  overflow-wrap: anywhere;
+}
+
+.embed figcaption a {
+  color: inherit;
+}
+
 /* rodape: uma linha so, o continuar lendo textual e o responder em
    pill fantasma. sem curtir, sem repost, sem contadores (briefing 4.2) */
 

@@ -3,8 +3,8 @@ defmodule Quintal.Ingestao do
   O consumidor do jetstream (spec 8.1 e 9.5; marco m2).
 
   Assina `ProtoRune.Jetstream` filtrando as coleções `place.quintal.*`
-  no servidor — ao contrário do firehose cru, só o que é do quintal
-  chega aqui — mais os eventos de identidade, e mantém o índice
+  no servidor (ao contrário do firehose cru, só o que é do quintal
+  chega aqui), mais os eventos de identidade, e mantém o índice
   postgres em sincronia:
 
     * create/update de prosa, follow, recado e depoimento viram upsert
@@ -60,7 +60,7 @@ defmodule Quintal.Ingestao do
   @collections [@prosa, @follow, @recado, @depoimento, @blogroll, @canto_config]
 
   # 2024-01-01 em microssegundos: abaixo disso o cursor persistido é um
-  # seq do firehose antigo, sem sentido como time_us — retoma do live
+  # seq do firehose antigo, sem sentido como time_us, então retoma do live
   @min_time_us 1_704_067_200_000_000
 
   def start_link(opts \\ []) do

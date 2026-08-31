@@ -19,7 +19,9 @@ defmodule QuintalWeb.ProsaLive do
   import Ecto.Query, only: [from: 2]
 
   import QuintalWeb.Formatacao,
-    only: [tempo_relativo: 1, prosa_path: 2, imagens_card: 1]
+    only: [tempo_relativo: 1, prosa_path: 2, imagens_card: 1, audio_card: 1]
+
+  import QuintalWeb.ProsearForm, only: [limpa_links: 1]
 
   alias Quintal.Cantos
   alias Quintal.Follows
@@ -35,28 +37,15 @@ defmodule QuintalWeb.ProsaLive do
   @impl true
   def mount(%{"handle" => handle, "rkey" => rkey}, _session, socket) do
     sessao = socket.assigns.sessao
-    novidade = if sessao, do: Visitas.novidade?(sessao.did), else: false
-
-    prosa =
-      with %Identidade{did: did} <- Repo.one(from i in Identidade, where: i.handle == ^handle),
-           %Prosa{} = prosa <- Repo.get(Prosa, "at://#{did}/#{@prosa}/#{rkey}") do
-        Repo.preload(prosa, [:autor, :imagens])
-      else
-        _nao_achou -> nil
-      end
-
+    prosa = buscar_prosa(handle, rkey)
     thread = if prosa, do: Prosas.respostas(prosa.uri), else: []
-
-    mae =
-      if prosa && prosa.reply_parent do
-        Prosa |> Repo.get(prosa.reply_parent) |> Repo.preload(:autor)
-      end
+    mae = buscar_mae(prosa)
 
     dids = Enum.reject([prosa && prosa.autor_did, mae && mae.autor_did | Enum.map(thread, & &1.autor_did)], &is_nil/1)
 
     {:ok,
      assign(socket,
-       novidade: novidade,
+       novidade: sessao && Visitas.novidade?(sessao.did),
        handle: handle,
        prosa: prosa,
        mae: mae,
@@ -67,6 +56,21 @@ defmodule QuintalWeb.ProsaLive do
        page_title: if(prosa, do: "prosa de #{handle}", else: "prosa não encontrada")
      )}
   end
+
+  defp buscar_prosa(handle, rkey) do
+    with %Identidade{did: did} <- Repo.one(from i in Identidade, where: i.handle == ^handle),
+         %Prosa{} = prosa <- Repo.get(Prosa, "at://#{did}/#{@prosa}/#{rkey}") do
+      Repo.preload(prosa, [:autor, :imagens])
+    else
+      _nao_achou -> nil
+    end
+  end
+
+  defp buscar_mae(%Prosa{reply_parent: parent}) when is_binary(parent) do
+    Prosa |> Repo.get(parent) |> Repo.preload(:autor)
+  end
+
+  defp buscar_mae(_prosa), do: nil
 
   @impl true
   def handle_event("deixar_visita", _params, socket) do
@@ -82,11 +86,13 @@ defmodule QuintalWeb.ProsaLive do
   end
 
   def handle_event("responder", %{"texto" => texto}, socket) do
+    {texto, tirou?} = limpa_links(texto)
+
     case Prosas.responder(socket.assigns.sessao, socket.assigns.prosa, texto) do
       {:ok, resposta} ->
         {:noreply,
          socket
-         |> put_flash(:info, "pronto, sua prosa tá no quintal")
+         |> put_flash(:info, flash_resposta(tirou?))
          |> update(:thread, &(&1 ++ [resposta]))
          |> push_event("composer-publicado", %{})}
 
@@ -108,6 +114,11 @@ defmodule QuintalWeb.ProsaLive do
   def handle_event("ver-fio", %{"prosa-path" => path}, socket) do
     {:noreply, push_navigate(socket, to: path)}
   end
+
+  defp flash_resposta(true = _tirou),
+    do: "pronto, sua prosa tá no quintal. os links de instagram, tiktok e shorts ficaram de fora, aqui eles não tocam"
+
+  defp flash_resposta(_nao_tirou), do: "pronto, sua prosa tá no quintal"
 
   # nunca rastreamos leitura: a visita nasce do gesto do leitor
   defp visita_deixada?(%Prosa{uri: uri}, %{did: did}), do: Visitas.leitura_marcada?(uri, did)
@@ -156,6 +167,10 @@ defmodule QuintalWeb.ProsaLive do
         <div :if={imagens_card(@prosa) != []} class="prosa-pagina__imagens">
           <img :for={img <- imagens_card(@prosa)} src={img.src} alt={img.alt} loading="lazy" />
         </div>
+
+        <div :if={audio_card(@prosa)} class="prosa-pagina__audio">
+          <.audio_player audio={audio_card(@prosa)} />
+        </div>
       </article>
 
       <section :if={@prosa} class="thread" aria-label="respostas">
@@ -168,6 +183,7 @@ defmodule QuintalWeb.ProsaLive do
           tipo={resposta.tipo}
           path={prosa_path(resposta.uri, resposta.autor.handle)}
           imagens={imagens_card(resposta)}
+          audio={audio_card(resposta)}
         >
           <:acoes :if={@sessao && resposta.autor_did == @sessao.did}>
             <.link

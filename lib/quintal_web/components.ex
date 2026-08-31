@@ -144,7 +144,10 @@ defmodule QuintalWeb.Components do
       <p class="prosear__rascunho" hidden>deixou uma prosa pela metade aqui</p>
       <.md_ferramentas />
 
-      <div :if={@uploads.imagens.entries != []} class="prosear__anexos">
+      <div
+        :if={@uploads.imagens.entries != [] || @uploads.audio.entries != []}
+        class="prosear__anexos"
+      >
         <.anexos uploads={@uploads} />
       </div>
 
@@ -153,6 +156,10 @@ defmodule QuintalWeb.Components do
           <label class="icone-botao prosear__clipe" aria-label="anexar imagem">
             <Lucideicons.paperclip aria-hidden="true" />
             <.live_file_input upload={@uploads.imagens} class="sr-only" />
+          </label>
+          <label class="icone-botao prosear__clipe" aria-label="anexar áudio">
+            <Lucideicons.mic aria-hidden="true" />
+            <.live_file_input upload={@uploads.audio} class="sr-only" />
           </label>
           <p class="prosear__contador" hidden></p>
           <span class="prosear__atalho" aria-hidden="true">ctrl+enter pra prosear</span>
@@ -225,6 +232,10 @@ defmodule QuintalWeb.Components do
           <Lucideicons.paperclip aria-hidden="true" />
           <.live_file_input upload={@uploads.imagens} class="sr-only" />
         </label>
+        <label :if={@modo == :prosa} class="icone-botao prosear__clipe" aria-label="anexar áudio">
+          <Lucideicons.mic aria-hidden="true" />
+          <.live_file_input upload={@uploads.audio} class="sr-only" />
+        </label>
       </div>
 
       <.campo
@@ -239,7 +250,10 @@ defmodule QuintalWeb.Components do
       />
       <p class="prosear__rascunho" hidden>deixou uma prosa pela metade aqui</p>
 
-      <div :if={@modo == :prosa && @uploads.imagens.entries != []} class="prosear__anexos">
+      <div
+        :if={@modo == :prosa && (@uploads.imagens.entries != [] || @uploads.audio.entries != [])}
+        class="prosear__anexos"
+      >
         <.anexos uploads={@uploads} />
       </div>
     </form>
@@ -275,6 +289,24 @@ defmodule QuintalWeb.Components do
         {erro_imagem(erro)}
       </p>
     </div>
+
+    <p :for={erro <- upload_errors(@uploads.audio)} class="campo__erro">{erro_audio(erro)}</p>
+    <div :for={entry <- @uploads.audio.entries} class="prosear__anexo prosear__anexo--audio">
+      <Lucideicons.mic :if={entry.valid?} aria-hidden="true" />
+      <span :if={entry.valid?} class="prosear__audio-nome">{entry.client_name}</span>
+      <button
+        type="button"
+        class="icone-botao"
+        phx-click="remover-audio"
+        phx-value-ref={entry.ref}
+        aria-label="tirar áudio"
+      >
+        <Lucideicons.x aria-hidden="true" />
+      </button>
+      <p :for={erro <- upload_errors(@uploads.audio, entry)} class="campo__erro">
+        {erro_audio(erro)}
+      </p>
+    </div>
     """
   end
 
@@ -282,6 +314,10 @@ defmodule QuintalWeb.Components do
   defp erro_imagem(:too_many_files), do: "uma prosa leva no máximo 4 imagens"
   defp erro_imagem(:not_accepted), do: "só rola jpeg, png ou webp"
   defp erro_imagem(_outro), do: "ih, essa imagem não subiu. tenta de novo?"
+
+  defp erro_audio(:too_large), do: "esse áudio passa de 20MB. corta ou comprime ele e tenta de novo"
+  defp erro_audio(:not_accepted), do: "só rola mp3, m4a, ogg, webm ou wav"
+  defp erro_audio(_outro), do: "ih, esse áudio não subiu. tenta de novo?"
 
   # tipo é metadado interno, nunca rótulo (spec 10.1): no composer vira
   # pill quieta com placeholder próprio, no card não aparece.
@@ -336,6 +372,7 @@ defmodule QuintalWeb.Components do
   attr :responder, :boolean, default: true
   attr :class, :string, default: nil
   attr :imagens, :list, default: []
+  attr :audio, :any, default: nil
   attr :tipo, :string, default: nil
   slot :acoes
 
@@ -387,6 +424,10 @@ defmodule QuintalWeb.Components do
           <img :for={img <- @imagens} src={img.src} alt={img.alt} loading="lazy" />
         </div>
 
+        <div :if={@audio} class="prosa-card__audio">
+          <.audio_player audio={@audio} />
+        </div>
+
         <footer :if={@path} class="prosa-card__rodape">
           <.link :if={@cortou} navigate={@path} class="prosa-card__continua">
             continuar lendo
@@ -394,6 +435,29 @@ defmodule QuintalWeb.Components do
         </footer>
       </div>
     </article>
+    """
+  end
+
+  @doc """
+  O player de áudio das prosas: um botão play/pause e uma trilha
+  clicável, o `<audio>` nativo escondido faz todo o resto (decodificação,
+  buffering, streaming). O hook `AudioPlayer` liga os dois e garante um
+  player tocando por vez na página.
+  """
+  attr :audio, :map, required: true
+
+  def audio_player(assigns) do
+    ~H"""
+    <div class="audio" id="audio-player" phx-hook="AudioPlayer">
+      <audio preload="none" src={@audio.src} aria-label={@audio.alt}></audio>
+      <button type="button" class="audio__play" aria-label="tocar ou pausar o áudio">
+        <Lucideicons.play class="audio__icone-play" aria-hidden="true" />
+        <Lucideicons.pause class="audio__icone-pause" aria-hidden="true" />
+      </button>
+      <div class="audio__trilha">
+        <div class="audio__progresso"></div>
+      </div>
+    </div>
     """
   end
 

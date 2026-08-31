@@ -15,6 +15,10 @@ config :logger, :default_formatter,
   format: "$time $metadata[$level] $message\n",
   metadata: [:request_id]
 
+# m4a: o registry padrão do mime não conhece audio/mp4 e o allow_upload
+# valida contra ele
+config :mime, :types, %{"audio/mp4" => ["m4a"]}
+
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, JSON
 
@@ -31,7 +35,7 @@ config :phoenix_live_view, root_tag_attribute: "phx-r"
 # com.atproto.repo.uploadBlob answers 403 (mirror of the lexicon accept).
 config :quintal, Quintal.Auth.ProtoRune,
   scope:
-    "atproto repo:place.quintal.feed.prosa repo:place.quintal.canto.config repo:place.quintal.canto.blogroll repo:place.quintal.canto.depoimento repo:place.quintal.canto.recado repo:place.quintal.graph.follow blob:image/jpeg blob:image/png blob:image/webp"
+    "atproto repo:place.quintal.feed.prosa repo:place.quintal.canto.config repo:place.quintal.canto.blogroll repo:place.quintal.canto.depoimento repo:place.quintal.canto.recado repo:place.quintal.graph.follow blob:image/jpeg blob:image/png blob:image/webp blob:audio/mpeg blob:audio/mp4 blob:audio/ogg blob:audio/webm blob:audio/wav"
 
 # Configure the endpoint
 config :quintal, QuintalWeb.Endpoint,

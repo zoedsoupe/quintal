@@ -29,7 +29,7 @@ import topbar from "../vendor/topbar";
 
 // A régua de formatação markdown dos composers (componente
 // `md_ferramentas`): os botões escrevem a sintaxe no cursor e deixam o
-// cursor no lugar certo, estilo app do github — sem mágica de seleção.
+// cursor no lugar certo, estilo app do github, sem mágica de seleção.
 // Depois de cada gesto dispara `input` pro Composer (rascunho,
 // contador, auto-grow) ver a mudança, e devolve o foco pro campo.
 
@@ -65,14 +65,14 @@ function ligaMd(el, campo) {
 }
 
 // MdToolbar: a régua nos forms soltos (bio do onboarding, depoimento),
-// que não têm o Composer — aqui ela é o único hook do form.
+// que não têm o Composer. Aqui ela é o único hook do form.
 const MdToolbar = {
   mounted() {
     ligaMd(this.el, this.el.querySelector("textarea"));
   },
 };
 
-// Composer: o gesto de escrita do quintal, em duas superfícies — o
+// Composer: o gesto de escrita do quintal, em duas superfícies: o
 // card inline do desktop (home, thread, canto) e a página de escrita
 // (/prosear, /recadar). auto-grow, contador de palavras quieto que
 // acorda com texto (limite à vista em campo curto), rascunho local
@@ -277,7 +277,7 @@ const Composer = {
     if (this.contador) {
       // acorda nos ultimos 20% da referencia do tipo, ou na reta final
       // do limite real (500 grafemes, ou 10% em campos curtos tipo o
-      // recado) — o que chegar primeiro
+      // recado), o que chegar primeiro
       const faltamRef = ref - len;
       const faltamReal = this.limite - len;
       const margemReal = Math.min(500, this.limite * 0.1);
@@ -548,7 +548,7 @@ window.addEventListener("quintal:copiar", (e) => {
 });
 
 // menu da conta (details no chrome): fecha ao clicar fora ou ao seguir
-// um link dele — o toggle nativo do summary cuida do resto
+// um link dele; o toggle nativo do summary cuida do resto
 document.addEventListener("click", (e) => {
   document.querySelectorAll(".menu-conta[open]").forEach((menu) => {
     if (!menu.contains(e.target) || e.target.closest("a")) {
@@ -559,6 +559,50 @@ document.addEventListener("click", (e) => {
 
 // data-confirm: phoenix_html ja cobre (confirma e cancela o phx-click
 // no cancel). um listener proprio aqui mostrava o dialogo duas vezes.
+
+// o player de áudio mora dentro do card clicável (ver-fio): os gestos
+// nele (play, seek) são dele, nunca navegação
+document.addEventListener(
+  "click",
+  (e) => {
+    if (e.target.closest(".prosa-card__audio")) e.stopPropagation();
+  },
+  true
+);
+
+// AudioPlayer: skin minima das prosas com áudio. o <audio> nativo
+// escondido faz decodificação, buffering e streaming; o hook só liga o
+// botão play/pause e a trilha clicável. um player por vez: tocar um
+// pausa os outros da página
+const AudioPlayer = {
+  mounted() {
+    this.audio = this.el.querySelector("audio");
+    this.progresso = this.el.querySelector(".audio__progresso");
+
+    this.el.querySelector(".audio__play").addEventListener("click", () => {
+      if (this.audio.paused) {
+        document.querySelectorAll(".audio audio").forEach((a) => a.pause());
+        this.audio.play();
+      } else {
+        this.audio.pause();
+      }
+    });
+
+    this.audio.addEventListener("play", () => this.el.classList.add("audio--tocando"));
+    this.audio.addEventListener("pause", () => this.el.classList.remove("audio--tocando"));
+
+    this.audio.addEventListener("timeupdate", () => {
+      const pct = (this.audio.currentTime / this.audio.duration) * 100 || 0;
+      this.progresso.style.width = pct + "%";
+    });
+
+    this.el.querySelector(".audio__trilha").addEventListener("click", (e) => {
+      if (!this.audio.duration) return;
+      const rect = e.currentTarget.getBoundingClientRect();
+      this.audio.currentTime = ((e.clientX - rect.left) / rect.width) * this.audio.duration;
+    });
+  },
+};
 
 // TemaCanto: visitar um canto veste a página inteira com o tema dele,
 // não só o miolo (o chrome mora fora do wrapper .canto-tema). espelha
@@ -653,7 +697,7 @@ const AvatarUpload = {
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: { _csrf_token: csrfToken },
-  hooks: { Composer, MdToolbar, ArrumarBlocos, FeedNovidade, TemaCanto, AvatarUpload, ...colocatedHooks },
+  hooks: { Composer, MdToolbar, ArrumarBlocos, FeedNovidade, TemaCanto, AvatarUpload, AudioPlayer, ...colocatedHooks },
 });
 
 // Show progress bar on live navigation and form submits

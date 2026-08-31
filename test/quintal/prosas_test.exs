@@ -302,6 +302,44 @@ defmodule Quintal.ProsasTest do
       assert Repo.get!(Prosa, record.uri).cid == "bafy2"
     end
 
+    test "audio indexa blob e alt, e some quando o record atualizado não tem mais" do
+      indexa_identidade()
+      uri = "at://did:plc:alice/place.quintal.feed.prosa/som"
+      blob = %{"$type" => "blob", "ref" => %{"$link" => "bafysom"}, "mimeType" => "audio/mpeg", "size" => 99}
+
+      value = %{
+        "text" => "fiz esse som",
+        "createdAt" => "2026-08-01T10:00:00Z",
+        "audio" => %{"audio" => blob, "alt" => "uma demo de violão"}
+      }
+
+      assert {:ok, prosa} = Prosas.indexar("did:plc:alice", %{uri: uri, cid: "bafy", value: value})
+      assert prosa.audio_blob == blob
+      assert prosa.audio_alt == "uma demo de violão"
+
+      sem_audio = %{"text" => "fiz esse som", "createdAt" => "2026-08-01T10:00:00Z"}
+
+      assert {:ok, prosa} =
+               Prosas.indexar("did:plc:alice", %{uri: uri, cid: "bafy2", value: sem_audio})
+
+      assert prosa.audio_blob == nil
+      assert prosa.audio_alt == nil
+    end
+
+    test "prosear com audio manda o campo pro record", %{session: session} do
+      indexa_identidade()
+      blob = %{"$type" => "blob", "ref" => %{"$link" => "bafysom"}, "mimeType" => "audio/mpeg", "size" => 99}
+      audio = %{"audio" => blob}
+
+      expect(PDSMock, :create_record, fn _session, "place.quintal.feed.prosa", record ->
+        assert record["audio"] == audio
+        {:ok, %{uri: "at://did:plc:alice/place.quintal.feed.prosa/som", cid: "bafy"}}
+      end)
+
+      assert {:ok, prosa} = Prosas.prosear(session, "fiz esse som", nil, [], audio)
+      assert prosa.audio_blob == blob
+    end
+
     test "resposta indexa root e parent do reply" do
       indexa_identidade()
 

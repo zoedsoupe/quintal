@@ -2,7 +2,7 @@ defmodule QuintalWeb.ConviteLive do
   @moduledoc """
   A tela de convite (briefing 5.7, passo 1; marco m4): o axô acenando,
   a frase de portaria e um campo único para o código. O POST vai para o
-  `ConviteController`, que valida e guarda o código na sessão — ele
+  `ConviteController`, que valida e guarda o código na sessão. Ele
   entra junto no primeiro acesso oauth.
 
   Uma tela, uma ação (briefing 2.1): nada de landing page, quem chega
