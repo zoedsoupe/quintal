@@ -65,7 +65,7 @@ defmodule QuintalWeb.Layouts do
             <nav class="menu-conta__lista" aria-label="conta">
               <.link navigate={~p"/canto/#{@handle}"}>meu canto</.link>
               <.link navigate={~p"/conta"}>conta</.link>
-              <a href="/oauth/logout">sair</a>
+              <.link href={~p"/oauth/logout"} method="post">sair</.link>
             </nav>
           </details>
         </div>
