@@ -618,10 +618,33 @@ const csrfToken = document
   .getAttribute("content");
 
 // envia o form assim que o arquivo e escolhido; com auto_upload o
-// LiveView segura o submit ate o upload terminar e ai dispara o evento
+// LiveView segura o submit ate o upload terminar e ai dispara o evento.
+// antes, recorta um quadrado central e reduz pra 512px: avatar e sempre
+// quadrado no canto, entao o crop ja sobe pronto e qualquer foto de
+// celular vira ~100KB.
 const AvatarUpload = {
   mounted() {
-    this.el.querySelector("input[type=file]").addEventListener("change", () => {
+    const input = this.el.querySelector("input[type=file]");
+    input.addEventListener("change", async () => {
+      const file = input.files && input.files[0];
+      if (file) {
+        try {
+          const bmp = await createImageBitmap(file);
+          const lado = Math.min(bmp.width, bmp.height);
+          const canvas = document.createElement("canvas");
+          canvas.width = canvas.height = 512;
+          canvas
+            .getContext("2d")
+            .drawImage(bmp, (bmp.width - lado) / 2, (bmp.height - lado) / 2, lado, lado, 0, 0, 512, 512);
+          const blob = await new Promise((res) => canvas.toBlob(res, "image/jpeg", 0.85));
+          const dt = new DataTransfer();
+          dt.items.add(new File([blob], "avatar.jpg", { type: "image/jpeg" }));
+          input.files = dt.files;
+        } catch (_e) {
+          // ponytail: se o crop falhar (formato esquisito tipo heic), sobe o
+          // arquivo original e o servidor responde com o erro visivel no form
+        }
+      }
       this.el.requestSubmit();
     });
   },

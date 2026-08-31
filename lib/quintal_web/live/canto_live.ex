@@ -89,7 +89,7 @@ defmodule QuintalWeb.CantoLive do
          |> allow_upload(:avatar,
            accept: ~w(image/jpeg image/png image/webp),
            max_entries: 1,
-           max_file_size: 1_000_000,
+           max_file_size: 5_000_000,
            auto_upload: true
          )
          |> assign(
@@ -410,6 +410,11 @@ defmodule QuintalWeb.CantoLive do
 
   defp normaliza_blocos(canto), do: canto
 
+  # erro de upload vira frase amiga, nunca silêncio (briefing 4.7)
+  defp erro_avatar(:too_large), do: "essa foto passa de 5MB. tenta uma menor?"
+  defp erro_avatar(:not_accepted), do: "só rola jpeg, png ou webp"
+  defp erro_avatar(_outro), do: "ih, essa foto não subiu. tenta de novo?"
+
   # no modo arrumar todos os blocos aparecem (os ocultos, esmaecidos, no
   # fim), para o dono ver o que está escondido; na visitação, só os visíveis
   defp ordem_blocos(canto, true), do: canto.blocos ++ (@blocos_todos -- canto.blocos)
@@ -516,6 +521,7 @@ defmodule QuintalWeb.CantoLive do
           <form
             :if={@arrumar}
             id="avatar"
+            phx-change="avatar"
             phx-submit="avatar"
             phx-hook="AvatarUpload"
             class="canto__avatar-arrumar"
@@ -533,6 +539,12 @@ defmodule QuintalWeb.CantoLive do
                 {if @canto.avatar, do: "trocar a foto", else: "escolher uma foto"}
               </span>
             </label>
+            <%!-- erro de upload vira frase amiga, nunca silêncio (briefing 4.7) --%>
+            <div :for={entry <- @uploads.avatar.entries}>
+              <p :for={erro <- upload_errors(@uploads.avatar, entry)} class="campo__erro">
+                {erro_avatar(erro)}
+              </p>
+            </div>
             <button
               :if={@canto.avatar}
               type="button"
