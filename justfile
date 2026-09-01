@@ -9,4 +9,4 @@ server domain="pseudofamously-unkindled-yulanda.ngrok-free.dev":
 
     sleep 2
     echo {{domain}}
-    mix compile --force && iex -S mix phx.server
+    iex -S mix phx.server

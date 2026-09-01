@@ -232,8 +232,12 @@ const Composer = {
   },
 
   updated() {
+    // re-render do server (troca de tipo, anexo) remarca o form sem a
+    // classe de expansao, que so existe no client: reexpande do estado
+    // local pra o card nao colapsar no meio do gesto
     this.cresce();
     this.conta();
+    this.expande();
   },
 
   // limite duro do tipo: o maxlength nativo barra tecla e cola alem
@@ -288,8 +292,8 @@ const Composer = {
       const faltamReal = this.limite - len;
       const margemReal = Math.min(500, this.limite * 0.1);
       let faltam = null;
-      if (faltamRef >= 0 && faltamRef <= ref * 0.2) faltam = faltamRef;
-      if (faltamReal <= margemReal) faltam = faltamReal;
+      if (faltamRef > 0 && faltamRef <= ref * 0.2) faltam = faltamRef;
+      if (faltamReal > 0 && faltamReal <= margemReal) faltam = faltamReal;
 
       if (len > this.limite) {
         // trocou pra um tipo menor com texto comprido: avisa quanto

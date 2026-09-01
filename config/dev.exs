@@ -1,5 +1,7 @@
 import Config
 
+dev_host = System.get_env("QUINTAL_PUBLIC_HOST", "localhost")
+
 # Do not include metadata nor timestamps in development logs
 config :logger, :default_formatter, format: "[$level] $message\n"
 
@@ -47,8 +49,8 @@ config :quintal, QuintalWeb.Endpoint,
 # Em dev o app responde em localhost (os hosts de produção ficam no
 # config.exs). A documentação dos lexicons fica em /lexicons no mesmo host.
 config :quintal, QuintalWeb.Router,
-  app_hosts: ["localhost", "127.0.0.1"],
-  docs_hosts: ["localhost", "127.0.0.1"]
+  app_hosts: [dev_host, "127.0.0.1"],
+  docs_hosts: [dev_host, "127.0.0.1"]
 
 # Dev-only key for encrypting sessions at rest. Prod reads
 # QUINTAL_SESSION_KEY (see runtime.exs).

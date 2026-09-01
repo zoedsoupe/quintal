@@ -73,8 +73,9 @@ defmodule QuintalWeb.Components do
   o modo foco.
 
   `pagina: true` é a página cheia (`EscreverLive`), parametrizada por
-  `modo`: `:prosa` (4 chips, toolbar com clipe, título de ensaio que
-  aparece via CSS), `:resposta` (card da prosa-mãe com fio, sem chips)
+  `modo`: `:prosa` (4 chips + ensaio, toolbar com clipe, título de ensaio que
+  aparece via CSS), `:resposta` (card da prosa-mãe com fio, os mesmos
+  chips de tipo, sem clipe)
   e `:recado` (card do canto, texto puro com limite curto). Tudo em
   fluxo de documento: top bar com voltar, contador e o pill de publicar.
   """
@@ -93,13 +94,18 @@ defmodule QuintalWeb.Components do
   attr :uploads, :any, required: true
 
   def composer(assigns) do
-    # placeholder vem de fora (resposta, recado) ou do tipo da prosa
+    # placeholder vem do tipo nos modos com chips (prosa, resposta): o
+    # validar re-renderiza e o morph resetaria o atributo pro valor
+    # fixo do server. sem chips (recado), vale o placeholder de fora
     placeholder =
-      assigns.placeholder ||
+      if assigns.modo in [:prosa, :resposta] || is_nil(assigns.placeholder) do
         case Enum.find(tipos(), fn {valor, _rotulo, _ph} -> valor == assigns.tipo end) do
           {_valor, _rotulo, placeholder} -> placeholder
           nil -> "como foi seu dia?"
         end
+      else
+        assigns.placeholder
+      end
 
     assigns = assign(assigns, :placeholder, placeholder)
 
@@ -136,7 +142,7 @@ defmodule QuintalWeb.Components do
         name="texto"
         area
         aria-label="nova prosa"
-        placeholder="como foi seu dia?"
+        placeholder={@placeholder}
         rows="1"
         maxlength="10000"
         required={@tipo != "lero"}
@@ -204,7 +210,12 @@ defmodule QuintalWeb.Components do
         </p>
       </div>
 
-      <div :if={@modo == :prosa} class="prosear__tipos" role="radiogroup" aria-label="tipo da prosa">
+      <div
+        :if={@modo in [:prosa, :resposta]}
+        class="prosear__tipos"
+        role="radiogroup"
+        aria-label="tipo da prosa"
+      >
         <label :for={{valor, rotulo, placeholder} <- tipos()}>
           <input
             type="radio"
@@ -252,10 +263,13 @@ defmodule QuintalWeb.Components do
            (CSS :has no radio), e a gravação sobe pelo upload :audio
            comum. o chip do anexo (com X pra descartar) aparece no
            bloco de anexos ali embaixo --%>
-      <.lero_gravador :if={@modo == :prosa} uploads={@uploads} />
+      <.lero_gravador :if={@modo in [:prosa, :resposta]} uploads={@uploads} />
 
       <div
-        :if={@modo == :prosa && (@uploads.imagens.entries != [] || @uploads.audio.entries != [])}
+        :if={
+          @modo in [:prosa, :resposta] &&
+            (@uploads.imagens.entries != [] || @uploads.audio.entries != [])
+        }
         class="prosear__anexos"
       >
         <.anexos uploads={@uploads} />
@@ -269,7 +283,7 @@ defmodule QuintalWeb.Components do
   # extra. o chip do anexo (com erro, se houver) vive no bloco de anexos
   attr :uploads, :any, required: true
 
-  defp lero_gravador(assigns) do
+  def lero_gravador(assigns) do
     ~H"""
     <div class="lero" id="lero" phx-hook="LeroRecorder">
       <.live_file_input upload={@uploads.audio} class="sr-only" />
@@ -287,7 +301,7 @@ defmodule QuintalWeb.Components do
   # erro de upload vira frase amiga, nunca silêncio (briefing 4.7)
   attr :uploads, :any, required: true
 
-  defp anexos(assigns) do
+  def anexos(assigns) do
     ~H"""
     <p :for={erro <- upload_errors(@uploads.imagens)} class="campo__erro">{erro_imagem(erro)}</p>
     <div :for={entry <- @uploads.imagens.entries} class="prosear__anexo">
@@ -345,13 +359,13 @@ defmodule QuintalWeb.Components do
   # tipo é metadado interno, nunca rótulo (spec 10.1): no composer vira
   # pill quieta com placeholder próprio, no card não aparece. lero é a
   # prosa falada: o texto some (CSS :has no radio) e o gravador entra
-  defp tipos do
+  def tipos do
     [
       {"nota", "nota", "como foi seu dia?"},
       {"pergunta", "pergunta", "o que tá te intrigando?"},
       {"cronica", "crônica", "conta o que você viu hoje"},
-      {"ensaio", "ensaio", "escreve sem pressa"},
-      {"lero", "lero", "fala aí..."}
+      {"lero", "lero", "fala aí..."},
+      {"ensaio", "ensaio", "escreve sem pressa"}
     ]
   end
 

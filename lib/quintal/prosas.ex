@@ -61,10 +61,18 @@ defmodule Quintal.Prosas do
   Responde uma prosa (spec 5.1, feature 4): mesmo record, mesma
   estrutura, com `reply` apontando para a raiz e para a mãe. A mãe
   precisa estar no índice para montarmos o strongRef (uri + cid).
+  `tipo` segue a mesma regra do prosear (nota, pergunta, cronica,
+  lero). Lero responde com a voz: exige `audio` como no prosear.
   """
-  @spec responder(Quintal.PDS.session(), parent :: Prosa.t(), texto :: String.t()) ::
-          {:ok, Prosa.t()} | {:error, :texto_vazio | :mae_fora_do_indice | term()}
-  def responder(session, %Prosa{uri: parent_uri}, texto) do
+  @spec responder(
+          Quintal.PDS.session(),
+          parent :: Prosa.t(),
+          texto :: String.t(),
+          tipo :: String.t() | nil,
+          audio :: map() | nil
+        ) ::
+          {:ok, Prosa.t()} | {:error, :texto_vazio | :audio_faltando | :mae_fora_do_indice | term()}
+  def responder(session, %Prosa{uri: parent_uri}, texto, tipo \\ nil, audio \\ nil) do
     with %Prosa{} = parent <- Repo.get(Prosa, parent_uri),
          root_uri = parent.reply_root || parent.uri,
          %Prosa{} = root <- if(root_uri == parent.uri, do: parent, else: Repo.get(Prosa, root_uri)) do
@@ -73,7 +81,7 @@ defmodule Quintal.Prosas do
         "parent" => %{"uri" => parent.uri, "cid" => parent.cid}
       }
 
-      criar(session, texto, nil, reply, [], nil)
+      criar(session, texto, tipo, reply, [], audio)
     else
       _sem_mae_ou_raiz -> {:error, :mae_fora_do_indice}
     end

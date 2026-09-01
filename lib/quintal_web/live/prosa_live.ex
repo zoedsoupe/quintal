@@ -21,7 +21,7 @@ defmodule QuintalWeb.ProsaLive do
   import QuintalWeb.Formatacao,
     only: [tempo_relativo: 1, prosa_path: 2, imagens_card: 1, audio_card: 1]
 
-  import QuintalWeb.ProsearForm, only: [limpa_links: 1]
+  import QuintalWeb.ProsearForm, only: [limpa_links: 1, audio_do_anexo: 1]
 
   alias Quintal.Cantos
   alias Quintal.Follows
@@ -44,12 +44,24 @@ defmodule QuintalWeb.ProsaLive do
     dids = Enum.reject([prosa && prosa.autor_did, mae && mae.autor_did | Enum.map(thread, & &1.autor_did)], &is_nil/1)
 
     {:ok,
-     assign(socket,
+     socket
+     |> allow_upload(:imagens,
+       accept: ~w(image/jpeg image/png image/webp),
+       max_entries: 4,
+       max_file_size: 2_000_000
+     )
+     |> allow_upload(:audio,
+       accept: ~w(audio/mpeg audio/mp4 audio/ogg audio/webm audio/wav),
+       max_entries: 1,
+       max_file_size: 20_000_000
+     )
+     |> assign(
        novidade: sessao && Visitas.novidade?(sessao.did),
        handle: handle,
        prosa: prosa,
        mae: mae,
        thread: thread,
+       tipo: "nota",
        nomes: Cantos.nomes(dids),
        mencoes: (sessao && Follows.mencoes(sessao.did)) || [],
        visita_deixada: visita_deixada?(prosa, sessao),
@@ -85,16 +97,40 @@ defmodule QuintalWeb.ProsaLive do
     end
   end
 
-  def handle_event("responder", %{"texto" => texto}, socket) do
+  def handle_event("validar", params, socket) do
+    # o phx-change existe pro tipo da resposta trocar no server junto
+    # com o client (CSS :has no radio): um re-render futuro remarca o
+    # radio pelo @tipo
+    tipo = params["tipo"]
+
+    socket =
+      if tipo in ~w(nota pergunta cronica lero ensaio) do
+        assign(socket, tipo: tipo)
+      else
+        socket
+      end
+
+    {:noreply, socket}
+  end
+
+  def handle_event("remover-audio", %{"ref" => ref}, socket) do
+    {:noreply, cancel_upload(socket, :audio, ref)}
+  end
+
+  def handle_event("responder", %{"texto" => texto} = params, socket) do
     {texto, tirou?} = limpa_links(texto)
 
-    case Prosas.responder(socket.assigns.sessao, socket.assigns.prosa, texto) do
-      {:ok, resposta} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, flash_resposta(tirou?))
-         |> update(:thread, &(&1 ++ [resposta]))
-         |> push_event("composer-publicado", %{})}
+    with {:ok, audio} <- audio_do_anexo(socket),
+         {:ok, resposta} <-
+           Prosas.responder(socket.assigns.sessao, socket.assigns.prosa, texto, Map.get(params, "tipo"), audio) do
+      {:noreply,
+       socket
+       |> put_flash(:info, flash_resposta(tirou?))
+       |> update(:thread, &(&1 ++ [resposta]))
+       |> push_event("composer-publicado", %{})}
+    else
+      {:error, :audio_faltando} ->
+        {:noreply, put_flash(socket, :error, "lero é prosa falada: grava um áudio antes de responder")}
 
       {:error, _reason} ->
         {:noreply, put_flash(socket, :error, "ih, algo deu errado. tenta de novo?")}
@@ -228,21 +264,45 @@ defmodule QuintalWeb.ProsaLive do
           :if={@sessao}
           id="responder"
           phx-submit="responder"
+          phx-change="validar"
           phx-hook="Composer"
           class="prosear thread__responder"
           data-rascunho={"quintal:rascunho:responder:#{@prosa.uri}"}
           data-mencoes={@mencoes != [] && JSON.encode!(@mencoes)}
         >
+          <%!-- resposta é prosa com reply: todos os tipos, inclusive
+               lero (a resposta falada, com gravador no lugar do texto) --%>
+          <div class="prosear__topo">
+            <div class="prosear__tipos" role="radiogroup" aria-label="tipo da prosa">
+              <label :for={{valor, rotulo, placeholder} <- tipos()}>
+                <input
+                  type="radio"
+                  name="tipo"
+                  value={valor}
+                  checked={valor == @tipo}
+                  data-placeholder={placeholder}
+                />
+                {rotulo}
+              </label>
+            </div>
+          </div>
+
           <.campo
             name="texto"
             area
             aria-label="responder com uma prosa"
-            placeholder="responder com uma prosa..."
+            placeholder={placeholder_tipo(@tipo)}
             rows="1"
             maxlength="10000"
-            required
+            required={@tipo != "lero"}
           />
           <.md_ferramentas />
+
+          <.lero_gravador uploads={@uploads} />
+
+          <div :if={@uploads.audio.entries != []} class="prosear__anexos">
+            <.anexos uploads={@uploads} />
+          </div>
           <div class="prosear__rodape">
             <div class="prosear__ferramentas">
               <span class="prosear__atalho" aria-hidden="true">ctrl+enter pra responder</span>
@@ -269,4 +329,13 @@ defmodule QuintalWeb.ProsaLive do
 
   defp pode_visitar?(%{did: did}, %Prosa{autor_did: autor_did}), do: did != autor_did
   defp pode_visitar?(_sessao, _prosa), do: false
+
+  # o placeholder acompanha o tipo marcado (o server re-renderiza no
+  # validar e o morph resetaria o atributo pro valor estático)
+  defp placeholder_tipo(tipo) do
+    case Enum.find(tipos(), fn {valor, _rotulo, _ph} -> valor == tipo end) do
+      {_valor, _rotulo, placeholder} -> placeholder
+      nil -> "responder com uma prosa..."
+    end
+  end
 end

@@ -212,6 +212,7 @@
   font-family: var(--fonte-leitura);
   font-size: 1.0625rem;
   line-height: 1.65;
+  overflow-wrap: break-word;
 }
 
 /* prosa longa abre em pagina propria: link textual quieto, sem pill */
@@ -514,6 +515,7 @@
 .prosa-pagina__texto {
   font-size: 1.125rem;
   line-height: 1.8;
+  overflow-wrap: break-word;
 }
 
 .prosa-pagina__imagens {

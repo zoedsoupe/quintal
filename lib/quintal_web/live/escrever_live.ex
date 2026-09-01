@@ -32,7 +32,7 @@ defmodule QuintalWeb.EscreverLive do
 
   require Logger
 
-  @tipos ~w(nota pergunta cronica ensaio lero)
+  @tipos ~w(nota pergunta cronica lero ensaio)
 
   @impl true
   def mount(params, _session, socket) do
@@ -183,7 +183,7 @@ defmodule QuintalWeb.EscreverLive do
     tipo = params["tipo"]
 
     socket =
-      if socket.assigns.modo == :prosa and tipo in @tipos do
+      if socket.assigns.modo in [:prosa, :resposta] and tipo in @tipos do
         assign(socket, tipo: tipo)
       else
         socket
@@ -239,8 +239,10 @@ defmodule QuintalWeb.EscreverLive do
     Prosas.editar(socket.assigns.sessao, socket.assigns.editando.uri, texto)
   end
 
-  defp publicar(:resposta, socket, texto, _params) do
-    Prosas.responder(socket.assigns.sessao, socket.assigns.mae, texto)
+  defp publicar(:resposta, socket, texto, params) do
+    with {:ok, audio} <- audio_do_anexo(socket) do
+      Prosas.responder(socket.assigns.sessao, socket.assigns.mae, texto, Map.get(params, "tipo"), audio)
+    end
   end
 
   defp publicar(:recado, socket, texto, _params) do
