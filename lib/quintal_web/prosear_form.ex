@@ -87,6 +87,11 @@ defmodule QuintalWeb.ProsearForm do
       {[], []} ->
         {:ok, nil}
 
+      # submit chegou com o upload ainda em voo (rede lenta, preflight
+      # atrasado): falha amiga em vez de derrubar a LiveView
+      {[], _em_progresso} ->
+        {:error, :audio_faltando}
+
       {[_entry | _], _em_progresso} ->
         [%{bin: bin, tipo: tipo}] =
           consume_uploaded_entries(socket, :audio, fn %{path: path}, entry ->

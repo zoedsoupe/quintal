@@ -174,9 +174,21 @@ defmodule QuintalWeb.EscreverLive do
   defp monta_recado(socket, _params), do: {:ok, push_navigate(socket, to: "/inicio")}
 
   @impl true
-  def handle_event("validar", _params, socket) do
+  def handle_event("validar", params, socket) do
     # o phx-change existe pras entradas de upload aparecerem; a validação
-    # de verdade (alt em toda imagem) acontece no escrever
+    # de verdade (alt em toda imagem) acontece no escrever. o tipo troca
+    # no client (CSS :has no radio), mas o assign precisa acompanhar: o
+    # próximo render (o upload do áudio do lero, por exemplo) remarca o
+    # radio pelo @tipo e derrubaria o gravador se ele ficasse pra trás
+    tipo = params["tipo"]
+
+    socket =
+      if socket.assigns.modo == :prosa and tipo in @tipos do
+        assign(socket, tipo: tipo)
+      else
+        socket
+      end
+
     {:noreply, socket}
   end
 

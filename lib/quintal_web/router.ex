@@ -14,10 +14,10 @@ defmodule QuintalWeb.Router do
     plug :put_root_layout, html: {QuintalWeb.Layouts, :root}
     plug :protect_from_forgery
 
-    plug :put_secure_browser_headers, %{
-      "content-security-policy" =>
-        "default-src 'self'; img-src 'self' https: blob:; media-src 'self' https:; frame-src https://www.youtube-nocookie.com https://embed.music.apple.com https://open.spotify.com; style-src 'self' 'unsafe-inline'; connect-src 'self' ws: wss:"
-    }
+    # plug :put_secure_browser_headers, %{
+    #   "content-security-policy" =>
+    #     "default-src 'self'; img-src 'self' https: blob:; media-src 'self' https:; frame-src https://www.youtube-nocookie.com https://embed.music.apple.com https://open.spotify.com; style-src 'self' 'unsafe-inline'; connect-src 'self' ws: wss:"
+    # }
   end
 
   pipeline :api do

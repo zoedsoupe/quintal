@@ -68,7 +68,9 @@ defmodule Quintal.Prosa do
         :audio_alt,
         :created_at,
         :indexed_at
-      ], empty_values: [])
+      ],
+      empty_values: []
+    )
     |> validate_required([:uri, :autor_did, :cid, :created_at, :indexed_at])
     |> validate_format(:uri, ~r/^at:\/\//)
     |> validate_length(:texto, max: 10_000)

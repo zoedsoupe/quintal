@@ -567,27 +567,22 @@ document.addEventListener("click", (e) => {
 // no cancel). um listener proprio aqui mostrava o dialogo duas vezes.
 
 // o player de áudio mora dentro do card clicável (ver-fio): os gestos
-// nele (play, seek) são dele, nunca navegação
-document.addEventListener(
-  "click",
-  (e) => {
-    if (e.target.closest(".prosa-card__audio")) e.stopPropagation();
-  },
-  true
-);
+// nele (play, seek) são dele, nunca navegação. o corte acontece no
+// próprio hook, em bubble no botão — um stopPropagation em capture no
+// document impediria o evento de chegar no botão
 
-// LeroRecorder: o lero e a prosa falada. um botao, tres estados:
-// parado ("fala ai...") -> gravando (cronometro, clique para) ->
-// gravado (preview toca). o blob gravado entra no fluxo comum de
-// upload do composer (this.upload("audio", ...)), sem caminho
-// paralelo; o X do chip de anexo descarta pra gravar de novo.
+// LeroRecorder: o lero e a prosa falada. um botao, dois estados:
+// parado ("fala ai...") -> gravando (cronometro, "pronto?" para). parar
+// ja proseia: o blob entra no input de arquivo do form (DataTransfer)
+// e o requestSubmit dispara o fluxo comum — o LiveView sobe o anexo e
+// espera ele terminar antes de enviar o prosear
 const LeroRecorder = {
   mounted() {
     this.botao = this.el.querySelector(".lero__botao");
     this.rotulo = this.el.querySelector(".lero__rotulo");
     this.tempo = this.el.querySelector(".lero__tempo");
-    this.preview = this.el.querySelector(".lero__preview");
     this.erro = this.el.querySelector(".lero__erro");
+    this.input = this.el.querySelector("input[type=file]");
     this.estado = "parado";
 
     if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
@@ -602,14 +597,22 @@ const LeroRecorder = {
     });
   },
 
-  updated() {
-    // o X do chip descartou o upload (ou o prosear consumiu): recomeça
-    const anexo = this.el.closest("form").querySelector(".prosear__anexo--audio");
-    if (this.estado === "gravado" && !anexo) this.reseta();
-  },
-
   destroyed() {
     clearInterval(this.cronometro);
+  },
+
+  updated() {
+    // o preflight do upload é async: o chip do anexo na tela marca que
+    // o server já conhece a entry. só aí o submit pode sair — antes
+    // disso ele chegaria com o upload em progresso e perderia o áudio.
+    // com a entry registrada o LiveView segura o submit até o upload
+    // terminar
+    if (!this.proseia) return;
+    const anexo = this.el.closest("form").querySelector(".prosear__anexo--audio");
+    if (anexo) {
+      this.proseia = false;
+      this.el.closest("form").requestSubmit();
+    }
   },
 
   async grava() {
@@ -658,34 +661,22 @@ const LeroRecorder = {
   },
 
   envia() {
+    this.tempo.hidden = true;
+    this.estado = "parado";
+    this.rotulo.textContent = "fala aí...";
+    this.el.classList.remove("lero--gravando");
+
     const tipo = (this.recorder.mimeType || "audio/webm").split(";")[0];
     const ext = { "audio/mp4": "m4a", "audio/ogg": "ogg", "audio/webm": "webm" }[tipo] || "webm";
     const blob = new Blob(this.chunks, { type: tipo });
 
-    if (blob.size === 0) {
-      this.reseta();
-      return;
-    }
+    if (blob.size === 0) return;
 
-    this.upload("audio", [new File([blob], `lero.${ext}`, { type: tipo })]);
-    this.preview.src = URL.createObjectURL(blob);
-    this.preview.hidden = false;
-    this.tempo.hidden = true;
-    this.estado = "gravado";
-    this.botao.disabled = true;
-    this.rotulo.textContent = "fala aí...";
-    this.el.classList.remove("lero--gravando");
-  },
-
-  reseta() {
-    if (this.preview.src) URL.revokeObjectURL(this.preview.src);
-    this.preview.removeAttribute("src");
-    this.preview.hidden = true;
-    this.tempo.hidden = true;
-    this.estado = "parado";
-    this.botao.disabled = false;
-    this.rotulo.textContent = "fala aí...";
-    this.el.classList.remove("lero--gravando");
+    const arquivo = new DataTransfer();
+    arquivo.items.add(new File([blob], `lero.${ext}`, { type: tipo }));
+    this.input.files = arquivo.files;
+    this.proseia = true;
+    this.input.dispatchEvent(new Event("change", { bubbles: true }));
   },
 };
 
@@ -698,7 +689,8 @@ const AudioPlayer = {
     this.audio = this.el.querySelector("audio");
     this.progresso = this.el.querySelector(".audio__progresso");
 
-    this.el.querySelector(".audio__play").addEventListener("click", () => {
+    this.el.querySelector(".audio__play").addEventListener("click", (e) => {
+      e.stopPropagation();
       if (this.audio.paused) {
         document.querySelectorAll(".audio audio").forEach((a) => a.pause());
         this.audio.play();
@@ -716,6 +708,7 @@ const AudioPlayer = {
     });
 
     this.el.querySelector(".audio__trilha").addEventListener("click", (e) => {
+      e.stopPropagation();
       if (!this.audio.duration) return;
       const rect = e.currentTarget.getBoundingClientRect();
       this.audio.currentTime = ((e.clientX - rect.left) / rect.width) * this.audio.duration;
@@ -788,7 +781,8 @@ const csrfToken = document
 // pra sempre e o servidor respondia noreply em silencio.
 const AvatarUpload = {
   mounted() {
-    const input = this.el.querySelector("input[type=file]");
+    // o live_file_input escondido vem antes no dom: mira no input do recorte
+    const input = this.el.querySelector(".canto__avatar-input");
     input.addEventListener("change", () => {
       const file = input.files && input.files[0];
       input.value = "";
@@ -869,8 +863,14 @@ const AvatarUpload = {
         .getContext("2d")
         .drawImage(img, dx * escala, dy * escala, img.width * zoom * escala, img.height * zoom * escala);
       canvas.toBlob((blob) => {
-        if (blob) this.upload("avatar", [new File([blob], "avatar.jpg", { type: "image/jpeg" })]);
-        fechar();
+        if (!blob) return fechar();
+        const leitor = new FileReader();
+        leitor.onload = () => {
+          // manda so o base64, sem o prefixo data:image/jpeg;base64,
+          this.pushEvent("avatar", { data: leitor.result.split(",")[1] });
+          fechar();
+        };
+        leitor.readAsDataURL(blob);
       }, "image/jpeg", 0.85);
     });
 

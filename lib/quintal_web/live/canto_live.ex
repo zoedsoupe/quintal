@@ -85,14 +85,7 @@ defmodule QuintalWeb.CantoLive do
         recados = Recados.listar_por_canto(dono.did, viewer_did)
 
         {:ok,
-         socket
-         |> allow_upload(:avatar,
-           accept: ~w(image/jpeg image/png image/webp),
-           max_entries: 1,
-           max_file_size: 5_000_000,
-           auto_upload: true
-         )
-         |> assign(
+         assign(socket,
            novidade: novidade,
            encontrou: true,
            page_title: "canto de #{dono.handle}",
@@ -226,27 +219,15 @@ defmodule QuintalWeb.CantoLive do
     end
   end
 
-  # a foto do canto sobe como blob pro pds e vira o `avatar` do record
-  # de configuração; autosave como o resto do modo arrumar
-  def handle_event("avatar", _params, %{assigns: %{proprio?: true}} = socket) do
-    # auto_upload dispara o change ao escolher o arquivo, antes do upload
-    # terminar, e de novo ao completar; só consome quando não há nada pendente
-    case uploaded_entries(socket, :avatar) do
-      {[_ | _], []} ->
-        arquivos =
-          consume_uploaded_entries(socket, :avatar, fn %{path: path}, entry ->
-            {:ok, %{bin: File.read!(path), tipo: entry.client_type}}
-          end)
-
-        with [%{bin: bin, tipo: tipo}] <- arquivos,
-             {:ok, resposta} <- Quintal.PDS.impl().upload_blob(socket.assigns.sessao, bin, tipo) do
-          guardar(socket, %{avatar: QuintalWeb.ProsearForm.blob_lexicon(resposta)})
-        else
-          _outro -> {:noreply, put_flash(socket, :error, "ih, a foto não subiu. tenta de novo?")}
-        end
-
-      _pendente ->
-        {:noreply, socket}
+  # a foto do canto chega recortada em base64 (AvatarUpload no cliente),
+  # sobe como blob pro pds e vira o `avatar` do record de configuração
+  def handle_event("avatar", %{"data" => b64}, %{assigns: %{proprio?: true}} = socket) do
+    with {:ok, bin} <- Base.decode64(b64),
+         true <- byte_size(bin) <= 5_000_000,
+         {:ok, resposta} <- Quintal.PDS.impl().upload_blob(socket.assigns.sessao, bin, "image/jpeg") do
+      guardar(socket, %{avatar: QuintalWeb.ProsearForm.blob_lexicon(resposta)})
+    else
+      _outro -> {:noreply, put_flash(socket, :error, "ih, a foto não subiu. tenta de novo?")}
     end
   end
 
@@ -410,11 +391,6 @@ defmodule QuintalWeb.CantoLive do
 
   defp normaliza_blocos(canto), do: canto
 
-  # erro de upload vira frase amiga, nunca silêncio (briefing 4.7)
-  defp erro_avatar(:too_large), do: "essa foto passa de 5MB. tenta uma menor?"
-  defp erro_avatar(:not_accepted), do: "só rola jpeg, png ou webp"
-  defp erro_avatar(_outro), do: "ih, essa foto não subiu. tenta de novo?"
-
   # no modo arrumar todos os blocos aparecem (os ocultos, esmaecidos, no
   # fim), para o dono ver o que está escondido; na visitação, só os visíveis
   defp ordem_blocos(canto, true), do: canto.blocos ++ (@blocos_todos -- canto.blocos)
@@ -521,7 +497,6 @@ defmodule QuintalWeb.CantoLive do
           <form
             :if={@arrumar}
             id="avatar"
-            phx-change="avatar"
             phx-hook="AvatarUpload"
             class="canto__avatar-arrumar"
           >
@@ -534,23 +509,18 @@ defmodule QuintalWeb.CantoLive do
                 </span>
               <% end %>
               <%!-- input comum de propósito: quem sobe é o AvatarUpload via
-                   this.upload depois do recorte, nunca o live_file_input --%>
+                   pushEvent depois do recorte, em base64 --%>
               <input
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
                 class="canto__avatar-input"
                 aria-label="escolher foto do canto"
+                name="avatar"
               />
               <span class="canto__avatar-dica">
                 {if @canto.avatar, do: "trocar a foto", else: "escolher uma foto"}
               </span>
             </label>
-            <%!-- erro de upload vira frase amiga, nunca silêncio (briefing 4.7) --%>
-            <div :for={entry <- @uploads.avatar.entries}>
-              <p :for={erro <- upload_errors(@uploads.avatar, entry)} class="campo__erro">
-                {erro_avatar(erro)}
-              </p>
-            </div>
             <button
               :if={@canto.avatar}
               type="button"

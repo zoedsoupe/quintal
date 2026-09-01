@@ -121,7 +121,7 @@ defmodule QuintalWeb.Components do
               type="radio"
               name="tipo"
               value={valor}
-              checked={valor == "nota"}
+              checked={valor == @tipo}
               data-placeholder={placeholder}
             />
             {rotulo}
@@ -139,10 +139,12 @@ defmodule QuintalWeb.Components do
         placeholder="como foi seu dia?"
         rows="1"
         maxlength="10000"
-        required
+        required={@tipo != "lero"}
       />
       <p class="prosear__rascunho" hidden>deixou uma prosa pela metade aqui</p>
       <.md_ferramentas />
+
+      <.lero_gravador uploads={@uploads} />
 
       <div
         :if={@uploads.imagens.entries != [] || @uploads.audio.entries != []}
@@ -182,6 +184,10 @@ defmodule QuintalWeb.Components do
         <.link navigate={@voltar} class="prosear__voltar">voltar</.link>
         <div class="prosear__barra-lado">
           <p class="prosear__contador" hidden></p>
+          <svg class="prosear__progresso" viewBox="0 0 24 24" aria-hidden="true">
+            <circle class="prosear__progresso-trilha" cx="12" cy="12" r="9" />
+            <circle class="prosear__progresso-arco" cx="12" cy="12" r="9" />
+          </svg>
           <.botao type="submit">{@rotulo}</.botao>
         </div>
       </div>
@@ -238,7 +244,7 @@ defmodule QuintalWeb.Components do
         placeholder={@placeholder}
         rows="1"
         maxlength={@maxlength}
-        required
+        required={@tipo != "lero"}
       />
       <p class="prosear__rascunho" hidden>deixou uma prosa pela metade aqui</p>
 
@@ -246,16 +252,7 @@ defmodule QuintalWeb.Components do
            (CSS :has no radio), e a gravação sobe pelo upload :audio
            comum. o chip do anexo (com X pra descartar) aparece no
            bloco de anexos ali embaixo --%>
-      <div :if={@modo == :prosa} class="lero" id="lero" phx-hook="LeroRecorder">
-        <.live_file_input upload={@uploads.audio} class="sr-only" />
-        <button type="button" class="lero__botao botao botao--fantasma">
-          <Lucideicons.mic aria-hidden="true" />
-          <span class="lero__rotulo">fala aí...</span>
-        </button>
-        <span class="lero__tempo" hidden>0:00</span>
-        <audio class="lero__preview" controls hidden></audio>
-        <p class="lero__erro campo__erro" hidden></p>
-      </div>
+      <.lero_gravador :if={@modo == :prosa} uploads={@uploads} />
 
       <div
         :if={@modo == :prosa && (@uploads.imagens.entries != [] || @uploads.audio.entries != [])}
@@ -264,6 +261,25 @@ defmodule QuintalWeb.Components do
         <.anexos uploads={@uploads} />
       </div>
     </form>
+    """
+  end
+
+  # o gravador do lero, igual no card da home e na página de escrita:
+  # parar a gravação já sobe o áudio e proseia, sem preview nem passo
+  # extra. o chip do anexo (com erro, se houver) vive no bloco de anexos
+  attr :uploads, :any, required: true
+
+  defp lero_gravador(assigns) do
+    ~H"""
+    <div class="lero" id="lero" phx-hook="LeroRecorder">
+      <.live_file_input upload={@uploads.audio} class="sr-only" />
+      <button type="button" class="lero__botao botao botao--fantasma">
+        <Lucideicons.mic aria-hidden="true" />
+        <span class="lero__rotulo">fala aí...</span>
+      </button>
+      <span class="lero__tempo" hidden>0:00</span>
+      <p class="lero__erro campo__erro" hidden></p>
+    </div>
     """
   end
 
@@ -340,7 +356,7 @@ defmodule QuintalWeb.Components do
   end
 
   # no card inline da home o ensaio não é radio: é porta pro modo foco
-  defp tipos_inline, do: Enum.take(tipos(), 3)
+  defp tipos_inline, do: for({v, r, p} <- tipos(), v != "ensaio", do: {v, r, p})
 
   @doc """
   A foto de perfil de um canto, redondinha. Quando a pessoa não
@@ -457,7 +473,9 @@ defmodule QuintalWeb.Components do
 
   def audio_player(assigns) do
     ~H"""
-    <div class="audio" id="audio-player" phx-hook="AudioPlayer">
+    <%!-- id único por prosa (o feed tem vários players na mesma página;
+         id repetido faz o hook ligar só no primeiro) --%>
+    <div class="audio" id={"audio-player-#{:erlang.phash2(@audio.src)}"} phx-hook="AudioPlayer">
       <audio preload="none" src={@audio.src} aria-label={@audio.alt}></audio>
       <button type="button" class="audio__play" aria-label="tocar ou pausar o áudio">
         <Lucideicons.play class="audio__icone-play" aria-hidden="true" />

@@ -162,6 +162,10 @@
   background: color-mix(in srgb, var(--tipo-ensaio) var(--tipo-matiz), var(--fundo-card));
 }
 
+.prosa-card[data-tipo="lero"] .prosa-card__corpo {
+  background: color-mix(in srgb, var(--tipo-lero) var(--tipo-matiz), var(--fundo-card));
+}
+
 /* cabecalho: nome do canto em peso 600, tempo em sussurro, acoes
    miudas a direita. sem avatar: a identidade da casa e o nome */
 
@@ -323,24 +327,35 @@
 .prosear:has(input[name="tipo"][value="lero"]:checked) .campo:has(textarea[name="texto"]),
 .prosear:has(input[name="tipo"][value="lero"]:checked) .prosear__titulo,
 .prosear:has(input[name="tipo"][value="lero"]:checked) .prosear__regua,
+.prosear:has(input[name="tipo"][value="lero"]:checked) .md-ferramentas,
 .prosear:has(input[name="tipo"][value="lero"]:checked) .prosear__rascunho {
   display: none;
 }
 
+.lero__botao {
+  gap: var(--espaco-2);
+  color: var(--tipo-lero);
+}
+
+.lero__botao svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+
+.lero__botao:hover {
+  border-color: var(--tipo-lero);
+  color: color-mix(in srgb, var(--tipo-lero) 92%, black);
+}
+
 .lero__tempo {
   font-variant-numeric: tabular-nums;
-  color: var(--acento);
+  color: var(--tipo-lero);
 }
 
 .lero--gravando .lero__botao {
-  border-color: var(--acento);
-  color: var(--acento);
-}
-
-.lero__preview {
-  width: 100%;
-  max-width: 20rem;
-  height: 2.25rem;
+  border-color: var(--tipo-lero);
+  color: var(--tipo-lero);
 }
 
 .prosa-card[data-tipo="lero"] .prosa-card__texto {
@@ -961,6 +976,11 @@
   border-color: var(--tipo-ensaio);
 }
 
+.prosear__tipos label:has(input[value="lero"]:checked) {
+  background: var(--tipo-lero);
+  border-color: var(--tipo-lero);
+}
+
 .prosear__tipos label:has(input:focus-visible) {
   outline: 2px solid var(--acento);
   outline-offset: 2px;
@@ -992,6 +1012,11 @@
   border-color: color-mix(in srgb, var(--tipo-cronica) 45%, transparent);
 }
 
+.prosear:has(input[value="lero"]:checked):focus-within,
+.prosear:has(input[value="lero"]:checked).prosear--expandido {
+  border-color: color-mix(in srgb, var(--tipo-lero) 45%, transparent);
+}
+
 /* placeholder em serifada italica: a pergunta do composer e um
    convite, nao uma etiqueta de formulario */
 
@@ -1011,17 +1036,18 @@
 }
 
 /* prosear rosa quando ha texto; vazio, dorme em ghost de sussurro
-   (o hook desabilita o submit) */
+   (o hook desabilita o submit). so o submit: o gravador do lero
+   tambem e .botao e fica no fantasma */
 
-.prosear:has(.prosear__tipos) .botao {
+.prosear:has(.prosear__tipos) .botao[type="submit"] {
   background: var(--acento-2);
 }
 
-.prosear:has(.prosear__tipos) .botao:hover {
+.prosear:has(.prosear__tipos) .botao[type="submit"]:hover {
   background: color-mix(in srgb, var(--acento-2) 92%, black);
 }
 
-.prosear:has(.prosear__tipos) .botao:disabled {
+.prosear:has(.prosear__tipos) .botao[type="submit"]:disabled {
   background: transparent;
   border-color: var(--sussurro);
   color: var(--meta);
@@ -1152,15 +1178,15 @@
 /* pill de publicar em rosa suave nos tres contextos; vazio, dorme em
    ghost de sussurro */
 
-.prosear--pagina .botao {
+.prosear--pagina .botao[type="submit"] {
   background: var(--acento-2);
 }
 
-.prosear--pagina .botao:hover {
+.prosear--pagina .botao[type="submit"]:hover {
   background: color-mix(in srgb, var(--acento-2) 92%, black);
 }
 
-.prosear--pagina .botao:disabled {
+.prosear--pagina .botao[type="submit"]:disabled {
   background: transparent;
   border-color: var(--sussurro);
   color: var(--meta);

@@ -51,6 +51,7 @@ defmodule QuintalWeb.HomeLive do
        handle: sessao.handle,
        novidade: Visitas.novidade?(sessao.did),
        mencoes: Follows.mencoes(sessao.did),
+       tipo: "nota",
        feed: feed,
        feed_cursor: proxima_pagina(feed),
        pais: %{},
@@ -61,19 +62,27 @@ defmodule QuintalWeb.HomeLive do
   end
 
   @impl true
-  def handle_event("validar", _params, socket) do
+  def handle_event("validar", params, socket) do
     # o form precisa de um phx-change para as entradas de upload
     # aparecerem; a validação de verdade (alt em toda imagem) acontece
-    # no prosear, antes de qualquer byte sair de casa
+    # no prosear, antes de qualquer byte sair de casa. o tipo troca no
+    # client (CSS :has no radio), mas o assign precisa acompanhar: o
+    # render do upload do áudio remarca o radio pelo @tipo e derrubaria
+    # o gravador do lero se ele ficasse pra trás
+    tipo = params["tipo"]
+
+    socket =
+      if tipo in ~w(nota pergunta cronica lero) do
+        assign(socket, tipo: tipo)
+      else
+        socket
+      end
+
     {:noreply, socket}
   end
 
   def handle_event("remover-imagem", %{"ref" => ref}, socket) do
     {:noreply, cancel_upload(socket, :imagens, ref)}
-  end
-
-  def handle_event("remover-audio", %{"ref" => ref}, socket) do
-    {:noreply, cancel_upload(socket, :audio, ref)}
   end
 
   def handle_event("prosear", %{"texto" => texto} = params, socket) do
@@ -182,7 +191,7 @@ defmodule QuintalWeb.HomeLive do
           <span class="prosear-atalho__placeholder">como foi seu dia?</span>
         </.link>
 
-        <.composer uploads={@uploads} mencoes={@mencoes} />
+        <.composer uploads={@uploads} mencoes={@mencoes} tipo={@tipo} />
 
         <section class="feed" id="feed" phx-hook="FeedNovidade">
           <.vazio
