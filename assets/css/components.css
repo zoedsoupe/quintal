@@ -475,7 +475,7 @@
 
 .prosa-pagina__meta {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: var(--espaco-2);
   margin-bottom: var(--espaco-4);
   font-size: 0.875rem;

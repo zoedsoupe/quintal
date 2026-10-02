@@ -19,7 +19,7 @@ defmodule QuintalWeb.ProsaLive do
   import Ecto.Query, only: [from: 2]
 
   import QuintalWeb.Formatacao,
-    only: [tempo_relativo: 1, prosa_path: 2, imagens_card: 1, audio_card: 1]
+    only: [tempo_relativo: 1, prosa_path: 2, imagens_card: 1, audio_card: 1, avatar_url: 2]
 
   import QuintalWeb.ProsearForm, only: [limpa_links: 1, audio_do_anexo: 1]
 
@@ -63,6 +63,7 @@ defmodule QuintalWeb.ProsaLive do
        thread: thread,
        tipo: "nota",
        nomes: Cantos.nomes(dids),
+       avatars: Cantos.avatars(dids),
        mencoes: (sessao && Follows.mencoes(sessao.did)) || [],
        visita_deixada: visita_deixada?(prosa, sessao),
        page_title: if(prosa, do: "prosa de #{handle}", else: "prosa não encontrada")
@@ -127,6 +128,8 @@ defmodule QuintalWeb.ProsaLive do
        socket
        |> put_flash(:info, flash_resposta(tirou?))
        |> update(:thread, &(&1 ++ [resposta]))
+       |> update(:nomes, &Map.merge(&1, Cantos.nomes([resposta.autor_did])))
+       |> update(:avatars, &Map.merge(&1, Cantos.avatars([resposta.autor_did])))
        |> push_event("composer-publicado", %{})}
     else
       {:error, :audio_faltando} ->
@@ -181,6 +184,7 @@ defmodule QuintalWeb.ProsaLive do
           em resposta a {Map.get(@nomes, @mae.autor_did, @mae.autor.handle)}
         </.link>
         <header class="prosa-pagina__meta">
+          <.avatar src={avatar_url(@prosa.autor, @avatars[@prosa.autor_did])} />
           <.link navigate={~p"/canto/#{@handle}"} class="prosa-pagina__autor">
             {Map.get(@nomes, @prosa.autor_did, @handle)}
           </.link>
@@ -221,6 +225,7 @@ defmodule QuintalWeb.ProsaLive do
           :for={resposta <- @thread}
           autor={Map.get(@nomes, resposta.autor_did, resposta.autor.handle)}
           canto={resposta.autor.handle}
+          avatar={avatar_url(resposta.autor, @avatars[resposta.autor_did])}
           data={tempo_relativo(resposta.created_at)}
           texto={resposta.texto}
           tipo={resposta.tipo}
