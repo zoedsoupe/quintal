@@ -88,16 +88,18 @@ defmodule QuintalWeb.EscreverLiveTest do
       |> render_submit()
   end
 
-  test "resposta: card da mãe no topo, sem chips, voltar pra thread", %{conn: conn} do
+  test "resposta: card da mãe no topo, chips de tipo, voltar pra thread", %{conn: conn} do
     prosa = prosa_do_beto()
 
     {:ok, _view, html} = live(loga_como_alice(conn), "/prosear?reply=#{prosa.uri}")
 
     assert html =~ "beto.bsky.social"
     assert html =~ "bom dia do beto"
-    assert html =~ "responder com uma prosa..."
     assert html =~ "responder"
-    refute html =~ ~s(type="radio" name="tipo")
+    # resposta é prosa com reply: todos os tipos, inclusive lero. o
+    # placeholder acompanha o tipo marcado, não um texto fixo
+    assert html =~ ~s(type="radio" name="tipo")
+    assert html =~ "como foi seu dia?"
   end
 
   test "resposta com mãe fora do índice cai na prosa nova", %{conn: conn} do
