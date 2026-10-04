@@ -577,9 +577,9 @@ document.addEventListener("click", (e) => {
 
 // LeroRecorder: o lero e a prosa falada. um botao, dois estados:
 // parado ("fala ai...") -> gravando (cronometro, "pronto?" para). parar
-// ja proseia: o blob entra no input de arquivo do form (DataTransfer)
-// e o requestSubmit dispara o fluxo comum — o LiveView sobe o anexo e
-// espera ele terminar antes de enviar o prosear
+// NAO proseia: o blob entra no input de arquivo do form (DataTransfer) e
+// o anexo aparece como os outros. quem decide se publica e o botao de
+// prosear — quem gravou 40s de lero ainda quer ouvir antes de mandar
 const LeroRecorder = {
   mounted() {
     this.botao = this.el.querySelector(".lero__botao");
@@ -603,20 +603,6 @@ const LeroRecorder = {
 
   destroyed() {
     clearInterval(this.cronometro);
-  },
-
-  updated() {
-    // o preflight do upload é async: o chip do anexo na tela marca que
-    // o server já conhece a entry. só aí o submit pode sair — antes
-    // disso ele chegaria com o upload em progresso e perderia o áudio.
-    // com a entry registrada o LiveView segura o submit até o upload
-    // terminar
-    if (!this.proseia) return;
-    const anexo = this.el.closest("form").querySelector(".prosear__anexo--audio");
-    if (anexo) {
-      this.proseia = false;
-      this.el.closest("form").requestSubmit();
-    }
   },
 
   async grava() {
@@ -679,7 +665,6 @@ const LeroRecorder = {
     const arquivo = new DataTransfer();
     arquivo.items.add(new File([blob], `lero.${ext}`, { type: tipo }));
     this.input.files = arquivo.files;
-    this.proseia = true;
     this.input.dispatchEvent(new Event("change", { bubbles: true }));
   },
 };
