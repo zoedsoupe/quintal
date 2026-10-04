@@ -40,7 +40,7 @@ defmodule Quintal.Recados do
           {:ok, Recado.t()} | {:error, :texto_vazio | :canto_desconhecido | :recado_proprio_canto | term()}
   def deixar(session, identificador, texto) when is_binary(identificador) and is_binary(texto) do
     with :ok <- texto_presente(texto),
-         {:ok, subject} <- busca_identidade(String.trim(identificador)),
+         {:ok, subject} <- Identidade.buscar(String.trim(identificador)),
          :ok <- recusa_proprio_canto(session.did, subject.did) do
       record = %{
         "subject" => subject.did,
@@ -155,16 +155,6 @@ defmodule Quintal.Recados do
 
       _fora_do_canto ->
         {:error, :recado_fora_do_canto}
-    end
-  end
-
-  defp busca_identidade(identificador) do
-    case Repo.one(
-           from i in Identidade,
-             where: i.handle == ^identificador or i.did == ^identificador
-         ) do
-      %Identidade{} = identidade -> {:ok, identidade}
-      nil -> {:error, :canto_desconhecido}
     end
   end
 

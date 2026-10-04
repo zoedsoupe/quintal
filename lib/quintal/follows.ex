@@ -38,7 +38,7 @@ defmodule Quintal.Follows do
   def seguir(session, identificador) when is_binary(identificador) do
     identificador = String.trim(identificador)
 
-    with {:ok, seguido} <- busca_identidade(identificador),
+    with {:ok, seguido} <- Identidade.buscar(identificador),
          :ok <- recusa_auto_follow(session.did, seguido.did) do
       record = %{"subject" => seguido.did, "createdAt" => DateTime.to_iso8601(DateTime.utc_now())}
 
@@ -150,16 +150,6 @@ defmodule Quintal.Follows do
   def desindexar(uri) do
     Repo.delete_all(from f in Follow, where: f.uri == ^uri)
     :ok
-  end
-
-  defp busca_identidade(identificador) do
-    case Repo.one(
-           from i in Identidade,
-             where: i.handle == ^identificador or i.did == ^identificador
-         ) do
-      %Identidade{} = identidade -> {:ok, identidade}
-      nil -> {:error, :canto_desconhecido}
-    end
   end
 
   defp recusa_auto_follow(did, did), do: {:error, :auto_follow}

@@ -10,6 +10,9 @@ defmodule Quintal.Identidade do
   use Ecto.Schema
 
   import Ecto.Changeset
+  import Ecto.Query, only: [from: 2]
+
+  alias Quintal.Repo
 
   @primary_key {:did, :string, []}
   schema "identidades" do
@@ -28,5 +31,18 @@ defmodule Quintal.Identidade do
     |> validate_required([:did, :handle, :pds_url, :atualizado_em])
     |> validate_format(:did, ~r/^did:(plc|web):/)
     |> unique_constraint(:handle)
+  end
+
+  @doc """
+  A identidade por handle ou por did, como o leitor escreveu.
+  `{:error, :canto_desconhecido}` quando não existe: nos três contextos
+  que recebem `@fulana`, identidade que não existe é a mesma recusa.
+  """
+  @spec buscar(String.t()) :: {:ok, %__MODULE__{}} | {:error, :canto_desconhecido}
+  def buscar(identificador) do
+    case Repo.one(from i in __MODULE__, where: i.handle == ^identificador or i.did == ^identificador) do
+      %__MODULE__{} = identidade -> {:ok, identidade}
+      nil -> {:error, :canto_desconhecido}
+    end
   end
 end
