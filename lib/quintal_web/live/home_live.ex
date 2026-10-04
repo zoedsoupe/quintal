@@ -64,7 +64,7 @@ defmodule QuintalWeb.HomeLive do
     tipo = params["tipo"]
 
     socket =
-      if tipo in ~w(nota pergunta cronica lero) do
+      if tipo in tipos_validos() do
         assign(socket, tipo: tipo)
       else
         socket
@@ -167,6 +167,10 @@ defmodule QuintalWeb.HomeLive do
     |> update(:nomes, &Map.merge(&1, Cantos.nomes(dids)))
     |> update(:avatars, &Map.merge(&1, Cantos.avatars(dids)))
   end
+
+  # o card inline nao tem ensaio: a lista vem da propria UI, nao de uma
+  # copia que envelhece
+  defp tipos_validos, do: for({v, _r, _p} <- tipos_inline(), do: v)
 
   @impl true
   def render(assigns) do

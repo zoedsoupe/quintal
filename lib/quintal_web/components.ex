@@ -369,8 +369,11 @@ defmodule QuintalWeb.Components do
     ]
   end
 
-  # no card inline da home o ensaio não é radio: é porta pro modo foco
-  defp tipos_inline, do: for({v, r, p} <- tipos(), v != "ensaio", do: {v, r, p})
+  @doc """
+  Os tipos do card inline da home: o ensaio não é radio, é porta pro
+  modo foco. É a lista que o server valida no `validar` do card.
+  """
+  def tipos_inline, do: for({v, r, p} <- tipos(), v != "ensaio", do: {v, r, p})
 
   @doc """
   A foto de perfil de um canto, redondinha. Quando a pessoa não

@@ -98,7 +98,7 @@ defmodule QuintalWeb.ProsaLive do
     tipo = params["tipo"]
 
     socket =
-      if tipo in ~w(nota pergunta cronica lero ensaio) do
+      if tipo in tipos_validos() do
         assign(socket, tipo: tipo)
       else
         socket
@@ -322,6 +322,8 @@ defmodule QuintalWeb.ProsaLive do
     </Layouts.app>
     """
   end
+
+  defp tipos_validos, do: for({v, _r, _p} <- tipos(), do: v)
 
   defp pode_visitar?(%{did: did}, %Prosa{autor_did: autor_did}), do: did != autor_did
   defp pode_visitar?(_sessao, _prosa), do: false

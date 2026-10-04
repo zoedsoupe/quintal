@@ -34,8 +34,6 @@ defmodule QuintalWeb.EscreverLive do
 
   require Logger
 
-  @tipos ~w(nota pergunta cronica lero ensaio)
-
   @impl true
   def mount(params, _session, socket) do
     socket =
@@ -50,7 +48,7 @@ defmodule QuintalWeb.EscreverLive do
   end
 
   defp monta_prosear(socket, params) do
-    tipo = if params["tipo"] in @tipos, do: params["tipo"], else: "nota"
+    tipo = if params["tipo"] in tipos_validos(), do: params["tipo"], else: "nota"
 
     cond do
       params["editar"] -> monta_edicao(socket, params["editar"])
@@ -176,7 +174,7 @@ defmodule QuintalWeb.EscreverLive do
     tipo = params["tipo"]
 
     socket =
-      if socket.assigns.modo in [:prosa, :resposta] and tipo in @tipos do
+      if socket.assigns.modo in [:prosa, :resposta] and tipo in tipos_validos() do
         assign(socket, tipo: tipo)
       else
         socket
@@ -240,6 +238,9 @@ defmodule QuintalWeb.EscreverLive do
   defp flash_sucesso(:edicao, _nao), do: "pronto, sua prosa tá atualizada"
   defp flash_sucesso(_modo, true), do: "pronto, sua prosa tá no quintal" <> @links_de_fora
   defp flash_sucesso(_modo, _nao), do: "pronto, sua prosa tá no quintal"
+
+  # a lista vem da propria UI de tipos, nao de uma copia que envelhece
+  defp tipos_validos, do: for({v, _r, _p} <- tipos(), do: v)
 
   @impl true
   def render(assigns) do
