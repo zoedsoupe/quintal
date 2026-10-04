@@ -246,6 +246,8 @@ defmodule QuintalWeb.EscreverLive do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} sessao={@sessao} moldura={false}>
+      <h1 class="sr-only">{@page_title}</h1>
+
       <.composer
         pagina
         modo={@modo}

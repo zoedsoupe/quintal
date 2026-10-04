@@ -176,6 +176,8 @@ defmodule QuintalWeb.ProsaLive do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} sessao={@sessao} novidade={@novidade}>
+      <h1 class="sr-only">{@page_title}</h1>
+
       <.vazio
         :if={!@prosa}
         pose={:lupa}

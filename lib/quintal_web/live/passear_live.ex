@@ -67,6 +67,8 @@ defmodule QuintalWeb.PassearLive do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} sessao={@sessao} novidade={@novidade}>
+      <h1 class="sr-only">passear</h1>
+
       <div :if={!@carta && !@esgotado} class="passear">
         <img class="passear__axo" src="/images/axo-with-glass.png" alt="" aria-hidden="true" />
         <p class="passear__linha">o axô acha um canto pra você conhecer</p>

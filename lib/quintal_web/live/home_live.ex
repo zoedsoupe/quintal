@@ -176,6 +176,8 @@ defmodule QuintalWeb.HomeLive do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} sessao={@sessao} novidade={@novidade}>
+      <h1 class="sr-only">o quintal de {@handle}</h1>
+
       <div class="home">
         <%!-- no mobile a escrita é página, nunca overlay: a linha
              colapsada é só a porta pra /prosear. no desktop o card
