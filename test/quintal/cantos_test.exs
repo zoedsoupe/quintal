@@ -39,7 +39,7 @@ defmodule Quintal.CantosTest do
     test "canto novo cai no padrão: tema papel, todos os blocos", %{session: session} do
       expect(PDSMock, :put_record, fn _session, "place.quintal.canto.config", "self", record, _opts ->
         assert record["tema"] == "papel"
-        assert record["blocos"] == ~w(bio prosas recados quem-eu-leio links)
+        assert record["blocos"] == ~w(prosas recados quem-eu-leio)
         refute Map.has_key?(record, "cor")
         assert {:ok, _, _} = DateTime.from_iso8601(record["updatedAt"])
 
@@ -83,7 +83,7 @@ defmodule Quintal.CantosTest do
           value: %{
             "tema" => "gloss",
             "cor" => "#ff6fb5",
-            "blocos" => ~w(bio prosas),
+            "blocos" => ~w(prosas),
             "updatedAt" => "2026-08-01T10:00:00Z"
           }
         })
@@ -104,9 +104,9 @@ defmodule Quintal.CantosTest do
         {:ok, %{uri: "at://did:plc:alice/place.quintal.canto.config/self", cid: "bafy"}}
       end)
 
-      assert {:ok, canto} = Cantos.arrumar(session, %{"tema" => "gloss", "blocos" => ~w(bio links)})
+      assert {:ok, canto} = Cantos.arrumar(session, %{"tema" => "gloss", "blocos" => ~w(recados)})
       assert canto.tema == "gloss"
-      assert canto.blocos == ~w(bio links)
+      assert canto.blocos == ~w(recados)
     end
 
     test "tema fora dos presets falha em casa, antes da rede", %{session: session} do
@@ -116,7 +116,7 @@ defmodule Quintal.CantosTest do
     end
 
     test "bloco desconhecido falha em casa", %{session: session} do
-      assert {:error, changeset} = Cantos.arrumar(session, %{blocos: ~w(bio mural)})
+      assert {:error, changeset} = Cantos.arrumar(session, %{blocos: ~w(prosas mural)})
       assert errors_on(changeset).blocos != []
       assert Repo.aggregate(Canto, :count) == 0
     end
@@ -175,7 +175,7 @@ defmodule Quintal.CantosTest do
     test "volta com a identidade do dono" do
       {:ok, _} =
         Cantos.indexar("did:plc:alice", %{
-          value: %{"tema" => "papel", "blocos" => ~w(bio prosas), "updatedAt" => "2026-08-01T10:00:00Z"}
+          value: %{"tema" => "papel", "blocos" => ~w(prosas), "updatedAt" => "2026-08-01T10:00:00Z"}
         })
 
       assert canto = Cantos.get("did:plc:alice")
@@ -185,7 +185,7 @@ defmodule Quintal.CantosTest do
     test "upsert idempotente: o eco do firehose é o mesmo evento" do
       value = %{
         "tema" => "madrugada",
-        "blocos" => ~w(bio prosas),
+        "blocos" => ~w(prosas),
         "links" => [%{"titulo" => "site", "url" => "https://exemplo.com"}],
         "updatedAt" => "2026-08-01T10:00:00Z"
       }
@@ -200,7 +200,7 @@ defmodule Quintal.CantosTest do
     test "re-upsert substitui a configuração" do
       {:ok, _} =
         Cantos.indexar("did:plc:alice", %{
-          value: %{"tema" => "papel", "blocos" => ~w(bio), "updatedAt" => "2026-08-01T10:00:00Z"}
+          value: %{"tema" => "papel", "blocos" => ~w(prosas), "updatedAt" => "2026-08-01T10:00:00Z"}
         })
 
       {:ok, canto} =

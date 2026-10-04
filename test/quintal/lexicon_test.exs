@@ -115,7 +115,7 @@ defmodule Quintal.LexiconTest do
     test "config válida passa" do
       config = %{
         "tema" => "gloss",
-        "blocos" => ["bio", "prosas"],
+        "blocos" => ["prosas"],
         "links" => [%{"titulo" => "blog antigo", "url" => "https://exemplo.com"}],
         "updatedAt" => "2026-08-18T12:00:00.000Z"
       }

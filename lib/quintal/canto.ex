@@ -22,7 +22,10 @@ defmodule Quintal.Canto do
   import Ecto.Changeset
 
   @temas ~w(papel madrugada gloss)
-  @blocos ~w(bio prosas recados quem-eu-leio links)
+
+  # bio e links sao campos do canto, nao blocos: nao entram na ordem de
+  # arrastar, entao nao entram aqui
+  @blocos ~w(prosas recados quem-eu-leio)
 
   @primary_key {:dono_did, :string, []}
   schema "cantos" do

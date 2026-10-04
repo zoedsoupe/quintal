@@ -153,7 +153,7 @@ defmodule Quintal.FollowsTest do
           dono_did: "did:plc:beto",
           nome: "beto",
           tema: "papel",
-          blocos: ~w(bio prosas recados quem-eu-leio links),
+          blocos: ~w(prosas recados quem-eu-leio),
           updated_at: DateTime.utc_now()
         })
       )

@@ -100,7 +100,7 @@ defmodule Quintal.PDS.ProtoRuneTest do
         ok_json(~s({"uri":"at://x","cid":"bafy-novo"}))
       end)
 
-      config = %{"tema" => "papel", "blocos" => ["bio"], "updatedAt" => "2026-08-18T12:00:00Z"}
+      config = %{"tema" => "papel", "blocos" => ["prosas"], "updatedAt" => "2026-08-18T12:00:00Z"}
 
       assert {:ok, %{cid: "bafy-novo"}} =
                PDS.put_record(session, "place.quintal.canto.config", "self", config, swap_commit: "bafy-antigo")

@@ -26,7 +26,7 @@ defmodule Quintal.Cantos do
 
   @canto_config "place.quintal.canto.config"
 
-  @blocos_padrao ~w(bio prosas recados quem-eu-leio links)
+  @blocos_padrao ~w(prosas recados quem-eu-leio)
 
   @doc "A configuração do canto de uma pessoa, com a identidade do dono. `nil` quando nunca foi indexada."
   @spec get(dono_did :: String.t()) :: Canto.t() | nil

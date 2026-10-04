@@ -153,7 +153,7 @@ defmodule Quintal.IngestaoTest do
   end
 
   test "create de canto.config arruma o canto; delete é ignorado", %{ingestao: ingestao} do
-    record = %{"tema" => "madrugada", "blocos" => ~w(bio prosas), "updatedAt" => "2026-08-02T10:00:00Z"}
+    record = %{"tema" => "madrugada", "blocos" => ~w(prosas recados), "updatedAt" => "2026-08-02T10:00:00Z"}
 
     send(ingestao, {:jetstream, commit("did:plc:beto", "place.quintal.canto.config", "self", :create, record)})
 
