@@ -135,4 +135,19 @@ defmodule QuintalWeb.ProsearForm do
       "size" => blob[:size] || blob["size"]
     }
   end
+
+  @erros %{
+    alt_faltando: "descreve a imagem pra quem não vê, aí a gente proseia",
+    audio_faltando: "lero é prosa falada: grava um áudio antes de prosear",
+    audio_so_lero: "áudio é do lero só: troca o tipo ou tira o áudio",
+    mae_fora_do_indice: "a prosa que você respondeu não tá mais aqui. recarrega e tenta de novo?"
+  }
+
+  @generico "ih, algo deu errado. tenta de novo?"
+
+  @doc """
+  A frase que a pessoa lê quando o ato de escrever falha. Mesma tabela
+  nas três superfícies: home, página de escrita e thread.
+  """
+  def erro(razao), do: Map.get(@erros, razao, @generico)
 end

@@ -21,7 +21,7 @@ defmodule QuintalWeb.ProsaLive do
   import QuintalWeb.Formatacao,
     only: [tempo_relativo: 1, prosa_path: 2, imagens_card: 1, audio_card: 1, avatar_url: 2]
 
-  import QuintalWeb.ProsearForm, only: [limpa_links: 1, audio_do_anexo: 1, permitir_anexos: 1]
+  import QuintalWeb.ProsearForm, only: [limpa_links: 1, audio_do_anexo: 1, permitir_anexos: 1, erro: 1]
 
   alias Quintal.Cantos
   alias Quintal.Follows
@@ -31,6 +31,8 @@ defmodule QuintalWeb.ProsaLive do
   alias Quintal.Repo
   alias Quintal.Visitas
   alias QuintalWeb.Markdown
+
+  require Logger
 
   @prosa "place.quintal.feed.prosa"
 
@@ -123,11 +125,9 @@ defmodule QuintalWeb.ProsaLive do
        |> update(:avatars, &Map.merge(&1, Cantos.avatars([resposta.autor_did])))
        |> push_event("composer-publicado", %{})}
     else
-      {:error, :audio_faltando} ->
-        {:noreply, put_flash(socket, :error, "lero é prosa falada: grava um áudio antes de responder")}
-
-      {:error, _reason} ->
-        {:noreply, put_flash(socket, :error, "ih, algo deu errado. tenta de novo?")}
+      {:error, reason} ->
+        Logger.warning("[#{__MODULE__}] responder falhou: #{inspect(reason)}")
+        {:noreply, put_flash(socket, :error, erro(reason))}
     end
   end
 

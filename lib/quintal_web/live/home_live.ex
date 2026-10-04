@@ -15,7 +15,7 @@ defmodule QuintalWeb.HomeLive do
     only: [tempo_relativo: 1, trecho: 1, prosa_path: 2, imagens_card: 1, audio_card: 1, avatar_url: 2]
 
   import QuintalWeb.ProsearForm,
-    only: [com_titulo: 2, imagens_dos_anexos: 2, audio_do_anexo: 1, limpa_links: 1, permitir_anexos: 1]
+    only: [com_titulo: 2, imagens_dos_anexos: 2, audio_do_anexo: 1, limpa_links: 1, permitir_anexos: 1, erro: 1]
 
   alias Quintal.Cantos
   alias Quintal.Feed
@@ -89,12 +89,9 @@ defmodule QuintalWeb.HomeLive do
        |> update(:feed, &[prosa | &1])
        |> push_event("composer-publicado", %{})}
     else
-      {:error, :alt_faltando} ->
-        {:noreply, put_flash(socket, :error, "descreve cada imagem pra quem não vê, aí a gente prosa")}
-
       {:error, reason} ->
         Logger.warning("[#{__MODULE__}] prosear falhou: #{inspect(reason)}")
-        {:noreply, put_flash(socket, :error, "ih, algo deu errado. tenta de novo?")}
+        {:noreply, put_flash(socket, :error, erro(reason))}
     end
   end
 

@@ -23,7 +23,7 @@ defmodule QuintalWeb.EscreverLive do
   import QuintalWeb.Formatacao, only: [prosa_path: 2]
 
   import QuintalWeb.ProsearForm,
-    only: [com_titulo: 2, imagens_dos_anexos: 2, audio_do_anexo: 1, limpa_links: 1, permitir_anexos: 1]
+    only: [com_titulo: 2, imagens_dos_anexos: 2, audio_do_anexo: 1, limpa_links: 1, permitir_anexos: 1, erro: 1]
 
   alias Quintal.Follows
   alias Quintal.Identidade
@@ -204,18 +204,9 @@ defmodule QuintalWeb.EscreverLive do
          |> push_event("composer-publicado", %{})
          |> push_navigate(to: socket.assigns.voltar)}
 
-      {:error, :alt_faltando} ->
-        {:noreply, put_flash(socket, :error, "descreve cada imagem pra quem não vê, aí a gente prosa")}
-
-      {:error, :audio_faltando} ->
-        {:noreply, put_flash(socket, :error, "lero é prosa falada: grava um áudio antes de prosear")}
-
-      {:error, :mae_fora_do_indice} ->
-        {:noreply, put_flash(socket, :error, "a prosa que você respondeu não tá mais aqui. recarrega e tenta de novo?")}
-
       {:error, reason} ->
         Logger.warning("[#{__MODULE__}] escrever falhou (#{socket.assigns.modo}): #{inspect(reason)}")
-        {:noreply, put_flash(socket, :error, "ih, algo deu errado. tenta de novo?")}
+        {:noreply, put_flash(socket, :error, erro(reason))}
     end
   end
 
