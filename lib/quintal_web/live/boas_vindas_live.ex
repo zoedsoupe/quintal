@@ -43,11 +43,14 @@ defmodule QuintalWeb.BoasVindasLive do
       |> Enum.reject(fn {_chave, valor} -> String.trim(valor || "") == "" end)
       |> Map.new()
 
-    if attrs != %{} do
-      Cantos.arrumar(socket.assigns.sessao, attrs)
+    with true <- attrs == %{},
+         {:ok, _canto} <- Cantos.arrumar(socket.assigns.sessao, attrs) do
+      {:noreply, assign(socket, passo: :tema)}
+    else
+      {:error, _reason} ->
+        {:noreply,
+         put_flash(socket, :error, "não consegui guardar isso. tenta de novo ou segue e a gente arruma depois")}
     end
-
-    {:noreply, assign(socket, passo: :tema)}
   end
 
   def handle_event("tema", %{"tema" => tema}, socket) do
