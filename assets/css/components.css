@@ -1275,8 +1275,8 @@
 
 .prosear--pagina .md-ferramentas .icone-botao,
 .prosear--pagina .prosear__clipe {
-  min-width: 1.75rem;
-  min-height: 2.25rem;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
 }
 
 .prosear--pagina .md-ferramentas .icone-botao svg,
@@ -1397,7 +1397,7 @@
   }
 
   .prosear--pagina .botao {
-    min-height: 2.25rem;
+    min-height: 2.75rem;
   }
 
   .prosear--pagina .prosear__voltar {
@@ -1407,7 +1407,7 @@
     z-index: 10;
     display: inline-flex;
     align-items: center;
-    min-height: 2.25rem;
+    min-height: 2.75rem;
   }
 
   .prosear--pagina .prosear__tipos {
@@ -1431,8 +1431,8 @@
 
   .prosear--pagina .md-ferramentas .icone-botao,
   .prosear--pagina .prosear__clipe {
-    min-width: 1.25rem;
-    min-height: 2.5rem;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
   }
 
   .prosear--pagina .md-ferramentas .icone-botao svg,
