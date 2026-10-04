@@ -64,21 +64,6 @@
   color: color-mix(in srgb, var(--acento) 92%, black);
 }
 
-/* destrutivo: vinho fechado, nunca vermelho vivo. a confirmacao em
-   linguagem humana mora no data-confirm de quem usa. */
-
-.botao--destrutivo {
-  background: transparent;
-  border-color: var(--sussurro);
-  color: var(--erro);
-}
-
-.botao--destrutivo:hover {
-  background: transparent;
-  border-color: var(--erro);
-  color: color-mix(in srgb, var(--erro) 92%, black);
-}
-
 /* acessibilidade: label presente mesmo quando o design esconde */
 
 .sr-only {

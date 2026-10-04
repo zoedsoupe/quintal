@@ -15,12 +15,11 @@ defmodule QuintalWeb.Components do
   alias QuintalWeb.Markdown
 
   @doc """
-  Botão do chrome. `variante` é `:primario` (default), `:fantasma`,
-  `:sutil` ou `:destrutivo` (vinho fechado, sempre com confirmação em
-  linguagem humana no `data-confirm`). Renderiza `<button>` ou, com
-  `navigate`/`href`, um link com cara de botão.
+  Botão do chrome. `variante` é `:primario` (default), `:fantasma` ou
+  `:sutil`. Renderiza `<button>` ou, com `navigate`/`href`, um link com
+  cara de botão.
   """
-  attr :variante, :atom, default: :primario, values: [:primario, :fantasma, :sutil, :destrutivo]
+  attr :variante, :atom, default: :primario, values: [:primario, :fantasma, :sutil]
   attr :rest, :global, include: ~w(type disabled navigate href phx-click phx-value-url phx-value-uri data-confirm)
   slot :inner_block, required: true
 
@@ -411,7 +410,6 @@ defmodule QuintalWeb.Components do
   attr :path, :string, default: nil
   attr :cortou, :boolean, default: false
   attr :em_resposta, :string, default: nil
-  attr :responder, :boolean, default: true
   attr :class, :string, default: nil
   attr :imagens, :list, default: []
   attr :audio, :any, default: nil
@@ -592,9 +590,7 @@ defmodule QuintalWeb.Components do
   @axo_poses %{
     sentado: "/images/axo-sitting.png",
     dormindo: "/images/axo-slepping.png",
-    acenando: "/images/axo-front-gretting.png",
-    lupa: "/images/axo-with-glass.png",
-    nadando: "/images/axo-swimming.png"
+    lupa: "/images/axo-with-glass.png"
   }
 
   @doc """
@@ -603,7 +599,7 @@ defmodule QuintalWeb.Components do
   por tela (spec 7.6).
   """
   attr :titulo, :string, required: true
-  attr :pose, :atom, default: :sentado, values: [:sentado, :dormindo, :acenando, :lupa, :nadando]
+  attr :pose, :atom, default: :sentado, values: [:sentado, :dormindo, :lupa]
   slot :inner_block
 
   def vazio(assigns) do

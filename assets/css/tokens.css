@@ -7,7 +7,6 @@
 
 :root {
   --fundo: #faf6f1;
-  --fundo-leitura: var(--fundo);
   --tinta: #2e2833;
   --acento: #7663ab;
   --acento-2: #c04075;
@@ -90,7 +89,6 @@
 
 [data-theme="gloss"] {
   --fundo: #fff5fa;
-  --fundo-leitura: #fffafd;
   --tinta: #3d2b3a;
   --acento: #dc006b;
   --acento-2: #1f7985;
