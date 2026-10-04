@@ -1316,7 +1316,7 @@
 }
 
 .prosear__titulo::placeholder {
-  color: var(--sussurro);
+  color: var(--meta);
   font-style: italic;
   font-weight: 400;
 }

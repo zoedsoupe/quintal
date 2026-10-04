@@ -9,8 +9,8 @@
   --fundo: #faf6f1;
   --fundo-leitura: var(--fundo);
   --tinta: #2e2833;
-  --acento: #8b7bb8;
-  --acento-2: #d98bab;
+  --acento: #7663ab;
+  --acento-2: #c04075;
   /* sussurro: bordas e decoracao, nao passa em AA como texto.
      meta: texto secundario, AA garantido em cima de fundo (spec 7.2) */
   --sussurro: #b5a9be;
@@ -44,7 +44,10 @@
   --tipo-pergunta: var(--acento);
   --tipo-cronica: var(--acento-2);
   --tipo-ensaio: color-mix(in srgb, var(--acento) 50%, #7c3aed);
-  --tipo-lero: color-mix(in srgb, var(--acento-2) 30%, #3e9b6f);
+  /* lero: verde de folha (prosa falada, coisa viva do quintal). verde
+     solido por preset, nao derivacao: misturado com o acento nao passa
+     AA nos quatroThemes */
+  --tipo-lero: #2e6b4c;
 
   /* quanto do acento do tipo entra no fundo do card: pitada quieta no
      claro, dose maior no escuro (6% sobre fundo quase preto some) */
@@ -66,6 +69,7 @@
     --erro: #e2a3bf;
     --fundo-card: #262031;
     --borda-card: #3a3345;
+    --tipo-lero: #4fae82;
     --tipo-matiz: 16%;
   }
 }
@@ -80,6 +84,7 @@
   --erro: #f0a8cc;
   --fundo-card: #1d1828;
   --borda-card: #332b45;
+  --tipo-lero: #4aa87c;
   --tipo-matiz: 16%;
 }
 
@@ -87,8 +92,8 @@
   --fundo: #fff5fa;
   --fundo-leitura: #fffafd;
   --tinta: #3d2b3a;
-  --acento: #ff6fb5;
-  --acento-2: #57c9d8;
+  --acento: #dc006b;
+  --acento-2: #1f7985;
   --sussurro: #e5c4d8;
   --meta: #8f5c7d;
   --erro: #c73a76;
