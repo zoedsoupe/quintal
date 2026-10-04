@@ -19,7 +19,14 @@ defmodule QuintalWeb.ProsaLive do
   import Ecto.Query, only: [from: 2]
 
   import QuintalWeb.Formatacao,
-    only: [tempo_relativo: 1, prosa_path: 2, imagens_card: 1, audio_card: 1, avatar_url: 2]
+    only: [
+      tempo_relativo: 1,
+      prosa_path: 2,
+      imagens_card: 1,
+      audio_card: 1,
+      avatar_url: 2,
+      primeira_frase: 1
+    ]
 
   import QuintalWeb.ProsearForm, only: [limpa_links: 1, audio_do_anexo: 1, permitir_anexos: 1, erro: 1]
 
@@ -61,9 +68,18 @@ defmodule QuintalWeb.ProsaLive do
        avatars: Cantos.avatars(dids),
        mencoes: (sessao && Follows.mencoes(sessao.did)) || [],
        visita_deixada: visita_deixada?(prosa, sessao),
-       page_title: if(prosa, do: "prosa de #{handle}", else: "prosa não encontrada")
+       page_title: titulo(prosa, handle)
      )}
   end
+
+  # o título da aba precisa dizer qual prosa é, não só de quem é: 400
+  # prosas com o mesmo rótulo viram 400 abas indistintas. lero não tem
+  # texto, então ele cai no rótulo do tipo.
+  defp titulo(%Prosa{texto: ""}, _handle), do: "lero"
+  defp titulo(%Prosa{texto: texto}, handle), do: "#{markdown_liso(texto)} · #{handle}"
+  defp titulo(_prosa, _handle), do: "prosa não encontrada"
+
+  defp markdown_liso(texto), do: texto |> primeira_frase() |> String.replace(~r/[*_`>\[\]#]/u, "")
 
   defp buscar_prosa(handle, rkey) do
     with %Identidade{did: did} <- Repo.one(from i in Identidade, where: i.handle == ^handle),
