@@ -52,6 +52,8 @@ defmodule QuintalWeb.ProsaLive do
        novidade: sessao && Visitas.novidade?(sessao.did),
        handle: handle,
        prosa: prosa,
+       imagens: prosa && imagens_card(prosa),
+       audio: prosa && audio_card(prosa),
        mae: mae,
        thread: thread,
        tipo: "nota",
@@ -202,12 +204,12 @@ defmodule QuintalWeb.ProsaLive do
           {Markdown.render(@prosa.texto)}
         </div>
 
-        <div :if={imagens_card(@prosa) != []} class="prosa-pagina__imagens">
-          <img :for={img <- imagens_card(@prosa)} src={img.src} alt={img.alt} loading="lazy" />
+        <div :if={@imagens != []} class="prosa-pagina__imagens">
+          <img :for={img <- @imagens} src={img.src} alt={img.alt} loading="lazy" />
         </div>
 
-        <div :if={audio_card(@prosa)} class="prosa-pagina__audio">
-          <.audio_player audio={audio_card(@prosa)} />
+        <div :if={@audio} class="prosa-pagina__audio">
+          <.audio_player audio={@audio} />
         </div>
       </article>
 
