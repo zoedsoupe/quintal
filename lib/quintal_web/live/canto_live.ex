@@ -457,6 +457,16 @@ defmodule QuintalWeb.CantoLive do
             </button>
           </div>
 
+          <%!-- o id gira a cada autosave: nó novo, animação recomeça --%>
+          <span
+            :if={@guardado_seq > 0}
+            id={"guardado-#{@guardado_seq}"}
+            class="guardado"
+            role="status"
+          >
+            guardado
+          </span>
+
           <.botao phx-click="arrumar" class="arrumar__pronto">pronto</.botao>
         </div>
 
