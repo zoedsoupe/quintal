@@ -7,11 +7,29 @@ defmodule QuintalWeb.ProsearForm do
   aqui (instagram, tiktok, shorts) saindo do texto.
   """
 
-  import Phoenix.LiveView, only: [uploaded_entries: 2, consume_uploaded_entries: 3]
+  import Phoenix.LiveView, only: [uploaded_entries: 2, consume_uploaded_entries: 3, allow_upload: 3]
 
   # links que não entram no quintal: embed fechado, tracking pesado.
   # shorts é a única porta do youtube que fica de fora
   @bloqueados ~r/https?:\/\/(?:[\w-]+\.)?(?:instagram\.com|tiktok\.com)\S*|https?:\/\/(?:[\w-]+\.)?youtube\.com\/shorts\/\S*/
+
+  @doc """
+  Abre os dois anexos do ato de escrever, com os mesmos limites em toda
+  parte: até 4 imagens de 2MB e um áudio de 20MB.
+  """
+  def permitir_anexos(socket) do
+    socket
+    |> allow_upload(:imagens,
+      accept: ~w(image/jpeg image/png image/webp),
+      max_entries: 4,
+      max_file_size: 2_000_000
+    )
+    |> allow_upload(:audio,
+      accept: ~w(audio/mpeg audio/mp4 audio/ogg audio/webm audio/wav),
+      max_entries: 1,
+      max_file_size: 20_000_000
+    )
+  end
 
   @doc """
   Tira do texto os links que o quintal não embute (instagram, tiktok,

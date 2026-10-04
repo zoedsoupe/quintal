@@ -21,7 +21,9 @@ defmodule QuintalWeb.EscreverLive do
 
   import Ecto.Query, only: [from: 2]
   import QuintalWeb.Formatacao, only: [prosa_path: 2]
-  import QuintalWeb.ProsearForm, only: [com_titulo: 2, imagens_dos_anexos: 2, audio_do_anexo: 1, limpa_links: 1]
+
+  import QuintalWeb.ProsearForm,
+    only: [com_titulo: 2, imagens_dos_anexos: 2, audio_do_anexo: 1, limpa_links: 1, permitir_anexos: 1]
 
   alias Quintal.Follows
   alias Quintal.Identidade
@@ -38,16 +40,7 @@ defmodule QuintalWeb.EscreverLive do
   def mount(params, _session, socket) do
     socket =
       socket
-      |> allow_upload(:imagens,
-        accept: ~w(image/jpeg image/png image/webp),
-        max_entries: 4,
-        max_file_size: 2_000_000
-      )
-      |> allow_upload(:audio,
-        accept: ~w(audio/mpeg audio/mp4 audio/ogg audio/webm audio/wav),
-        max_entries: 1,
-        max_file_size: 20_000_000
-      )
+      |> permitir_anexos()
       |> assign(mencoes: Follows.mencoes(socket.assigns.sessao.did))
 
     case socket.assigns.live_action do

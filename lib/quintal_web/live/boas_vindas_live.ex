@@ -48,8 +48,7 @@ defmodule QuintalWeb.BoasVindasLive do
       {:noreply, assign(socket, passo: :tema)}
     else
       {:error, _reason} ->
-        {:noreply,
-         put_flash(socket, :error, "não consegui guardar isso. tenta de novo ou segue e a gente arruma depois")}
+        {:noreply, put_flash(socket, :error, "não consegui guardar isso. tenta de novo ou segue e a gente arruma depois")}
     end
   end
 

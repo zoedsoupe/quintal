@@ -21,7 +21,7 @@ defmodule QuintalWeb.ProsaLive do
   import QuintalWeb.Formatacao,
     only: [tempo_relativo: 1, prosa_path: 2, imagens_card: 1, audio_card: 1, avatar_url: 2]
 
-  import QuintalWeb.ProsearForm, only: [limpa_links: 1, audio_do_anexo: 1]
+  import QuintalWeb.ProsearForm, only: [limpa_links: 1, audio_do_anexo: 1, permitir_anexos: 1]
 
   alias Quintal.Cantos
   alias Quintal.Follows
@@ -45,16 +45,7 @@ defmodule QuintalWeb.ProsaLive do
 
     {:ok,
      socket
-     |> allow_upload(:imagens,
-       accept: ~w(image/jpeg image/png image/webp),
-       max_entries: 4,
-       max_file_size: 2_000_000
-     )
-     |> allow_upload(:audio,
-       accept: ~w(audio/mpeg audio/mp4 audio/ogg audio/webm audio/wav),
-       max_entries: 1,
-       max_file_size: 20_000_000
-     )
+     |> permitir_anexos()
      |> assign(
        novidade: sessao && Visitas.novidade?(sessao.did),
        handle: handle,
