@@ -66,6 +66,10 @@ defmodule QuintalWeb.FaqLive do
             <strong>prosa</strong>: a unidade de escrita. vale nota de duas
             linhas e ensaio longo
           </li>
+          <li>
+            <strong>lero</strong>: a prosa falada. em vez de escrever, você
+            grava um áudio no navegador
+          </li>
           <li><strong>recado</strong>: entrada no livro de visitas de um canto</li>
           <li>
             <strong>depoimento</strong>: testemunho público sobre uma pessoa,

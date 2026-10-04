@@ -38,7 +38,8 @@ a linguagem do lugar é a arquitetura da informação. registro cotidiano, popul
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------- |
 | quintal    | a plataforma, a vizinhança inteira                                                                                                    |
 | canto      | sua home pessoal: perfil, prosas, recados, cumadis, links                                                                             |
-| prosa      | a unidade de escrita. vale nota de duas linhas e ensaio longo. tipos internos (metadado, não rótulo): nota, pergunta, crônica, ensaio |
+| prosa      | a unidade de escrita. vale nota de duas linhas e ensaio longo. tipos internos (metadado, não rótulo): nota, pergunta, crônica, ensaio, lero |
+| lero       | a prosa falada: em vez de texto, um áudio gravado no navegador. sem texto no record, o áudio é o conteúdo |
 | recado     | entrada no livro de visitas de um canto                                                                                               |
 | depoimento | testemunho público sobre uma pessoa. aparece no canto dela só depois de aceito                                                        |
 | cumadi     | um canto que você lê e recomenda publicamente; sua lista de cumadis, o "quem eu leio". no protocolo, o record `canto.blogroll`        |
