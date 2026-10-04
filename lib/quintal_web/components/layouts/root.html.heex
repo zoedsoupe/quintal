@@ -19,6 +19,10 @@
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="apple-touch-icon" href={~p"/images/icone-192.png"} />
     <.live_title default="quintal" phx-no-format>{assigns[:page_title]}</.live_title>
+    <%!-- preview de link: título e nome do lugar, sem imagem própria --%>
+    <meta property="og:site_name" content="quintal" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={assigns[:page_title] || "quintal"} />
     <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
     <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
     </script>
