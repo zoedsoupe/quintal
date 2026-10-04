@@ -42,7 +42,9 @@ defmodule QuintalWeb.Components do
   attr :label, :string, default: nil
   attr :area, :boolean, default: false
   attr :errors, :list, default: []
-  attr :rest, :global, include: ~w(type placeholder rows maxlength required autofocus aria-label autocomplete)
+
+  attr :rest, :global,
+    include: ~w(type placeholder rows maxlength required autofocus aria-label autocomplete phx-debounce)
 
   def campo(%{field: %FormField{} = field} = assigns) do
     assigns
@@ -145,6 +147,7 @@ defmodule QuintalWeb.Components do
         rows="1"
         maxlength="10000"
         required={@tipo != "lero"}
+        phx-debounce="blur"
       />
       <p class="prosear__rascunho" hidden>deixou uma prosa pela metade aqui</p>
       <.md_ferramentas />
@@ -255,6 +258,7 @@ defmodule QuintalWeb.Components do
         rows="1"
         maxlength={@maxlength}
         required={@tipo != "lero"}
+        phx-debounce="blur"
       />
       <p class="prosear__rascunho" hidden>deixou uma prosa pela metade aqui</p>
 

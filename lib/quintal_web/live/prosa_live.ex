@@ -311,6 +311,7 @@ defmodule QuintalWeb.ProsaLive do
             rows="1"
             maxlength="10000"
             required={@tipo != "lero"}
+            phx-debounce="blur"
           />
           <.md_ferramentas />
 
