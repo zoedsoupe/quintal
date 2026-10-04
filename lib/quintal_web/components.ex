@@ -417,16 +417,23 @@ defmodule QuintalWeb.Components do
 
   def prosa(assigns) do
     should_link? = !!assigns[:path]
-    role = if should_link?, do: "button", else: "article"
 
-    assigns = assign(assigns, role: role, click: (should_link? && "ver-fio") || nil)
+    assigns =
+      assign(assigns,
+        role: if(should_link?, do: "link", else: "article"),
+        tabindex: should_link? && 0,
+        click: (should_link? && "ver-fio") || nil,
+        key: (should_link? && "Enter->ver-fio") || nil
+      )
 
     ~H"""
     <article
       class={["prosa-card", @class]}
       data-tipo={@tipo}
       role={@role}
+      tabindex={@tabindex}
       phx-click={@click}
+      phx-keydown={@key}
       phx-value-prosa-path={@path || nil}
     >
       <p :if={@em_resposta} class="prosa-card__fio">

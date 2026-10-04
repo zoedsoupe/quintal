@@ -137,7 +137,7 @@
   max-width: var(--medida-leitura);
 }
 
-.prosa-card[role="button"] {
+.prosa-card[role="link"] {
   cursor: pointer;
 }
 
