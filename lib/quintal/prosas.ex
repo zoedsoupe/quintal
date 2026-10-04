@@ -16,6 +16,7 @@ defmodule Quintal.Prosas do
   """
 
   import Ecto.Query
+  import Quintal.Record, only: [campo: 2, parse_datetime: 1]
 
   alias Quintal.Prosa
   alias Quintal.Repo
@@ -394,26 +395,11 @@ defmodule Quintal.Prosas do
 
   # Record values arrive atom-keyed from the XRPC decode and
   # string-keyed from the optimistic write: accept both.
-  defp campo(map, key) when is_map(map) do
-    Map.get(map, key) || Map.get(map, Atom.to_string(key))
-  end
-
-  defp campo(_other, _key), do: nil
-
   defp strong_ref_uri(reply, papel) when is_map(reply) do
     reply |> campo(papel) |> campo(:uri)
   end
 
   defp strong_ref_uri(_reply, _papel), do: nil
-
-  defp parse_datetime(nil), do: nil
-
-  defp parse_datetime(iso) when is_binary(iso) do
-    case DateTime.from_iso8601(iso) do
-      {:ok, datetime, _offset} -> datetime
-      {:error, _reason} -> nil
-    end
-  end
 
   defp pds, do: Quintal.PDS.impl()
 end
