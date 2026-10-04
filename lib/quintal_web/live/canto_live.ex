@@ -43,10 +43,7 @@ defmodule QuintalWeb.CantoLive do
 
   require Logger
 
-  # bio e links saíram do rodízio: moram no cabeçalho, sempre visíveis.
-  # records antigos ainda podem trazê-los em blocos, o filtro trata disso.
   @blocos_todos ~w(prosas recados quem-eu-leio)
-  @blocos_default ~w(prosas recados quem-eu-leio)
   @recados_pagina 20
 
   # swatches do modo arrumar: fundo e acento de cada preset (spec 7.2)
@@ -76,7 +73,7 @@ defmodule QuintalWeb.CantoLive do
 
         canto =
           normaliza_blocos(
-            Cantos.get(dono.did) || %Canto{dono_did: dono.did, tema: "papel", blocos: @blocos_default, links: []}
+            Cantos.get(dono.did) || %Canto{dono_did: dono.did, tema: "papel", blocos: @blocos_todos, links: []}
           )
 
         seguindo = seguindo(sessao, proprio?, dono.did)
