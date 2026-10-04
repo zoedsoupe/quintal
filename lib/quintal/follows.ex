@@ -14,6 +14,7 @@ defmodule Quintal.Follows do
   """
 
   import Ecto.Query
+  import Quintal.Record, only: [campo: 2, parse_datetime: 1]
 
   alias Quintal.Cantos
   alias Quintal.Follow
@@ -163,19 +164,6 @@ defmodule Quintal.Follows do
 
   defp recusa_auto_follow(did, did), do: {:error, :auto_follow}
   defp recusa_auto_follow(_eu, _outro), do: :ok
-
-  defp campo(map, key) do
-    Map.get(map, key) || Map.get(map, Atom.to_string(key))
-  end
-
-  defp parse_datetime(nil), do: nil
-
-  defp parse_datetime(iso) when is_binary(iso) do
-    case DateTime.from_iso8601(iso) do
-      {:ok, datetime, _offset} -> datetime
-      {:error, _reason} -> nil
-    end
-  end
 
   defp pds, do: Quintal.PDS.impl()
 end

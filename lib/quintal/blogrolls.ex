@@ -10,6 +10,7 @@ defmodule Quintal.Blogrolls do
   """
 
   import Ecto.Query
+  import Quintal.Record, only: [campo: 2, parse_datetime: 1]
 
   alias Quintal.Blogroll
   alias Quintal.Identidade
@@ -97,19 +98,6 @@ defmodule Quintal.Blogrolls do
     conhecidos = Repo.all(from i in Identidade, where: i.did in ^dids, select: i.did)
 
     if length(conhecidos) == length(dids), do: :ok, else: {:error, :canto_desconhecido}
-  end
-
-  defp campo(map, key) do
-    Map.get(map, key) || Map.get(map, Atom.to_string(key))
-  end
-
-  defp parse_datetime(nil), do: nil
-
-  defp parse_datetime(iso) when is_binary(iso) do
-    case DateTime.from_iso8601(iso) do
-      {:ok, datetime, _offset} -> datetime
-      {:error, _reason} -> nil
-    end
   end
 
   defp pds, do: Quintal.PDS.impl()

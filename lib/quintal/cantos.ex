@@ -17,6 +17,8 @@ defmodule Quintal.Cantos do
   qualquer escrita: falhar cedo, falhar em casa (spec 9.4).
   """
 
+  import Quintal.Record, only: [campo: 2, parse_datetime: 1]
+
   alias Quintal.Canto
   alias Quintal.Repo
 
@@ -254,19 +256,6 @@ defmodule Quintal.Cantos do
     case Ecto.Changeset.get_field(changeset, :links) do
       [] -> record
       links -> Map.put(record, "links", Enum.map(links, &%{"titulo" => &1.titulo, "url" => &1.url}))
-    end
-  end
-
-  defp campo(map, key) do
-    Map.get(map, key) || Map.get(map, Atom.to_string(key))
-  end
-
-  defp parse_datetime(nil), do: nil
-
-  defp parse_datetime(iso) when is_binary(iso) do
-    case DateTime.from_iso8601(iso) do
-      {:ok, datetime, _offset} -> datetime
-      {:error, _reason} -> nil
     end
   end
 

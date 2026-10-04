@@ -16,6 +16,7 @@ defmodule Quintal.Depoimentos do
   """
 
   import Ecto.Query
+  import Quintal.Record, only: [campo: 2, parse_datetime: 1]
 
   alias Quintal.Depoimento
   alias Quintal.Identidade
@@ -162,19 +163,6 @@ defmodule Quintal.Depoimentos do
 
   defp recusa_proprio_canto(did, did), do: {:error, :depoimento_proprio_canto}
   defp recusa_proprio_canto(_eu, _outro), do: :ok
-
-  defp campo(map, key) do
-    Map.get(map, key) || Map.get(map, Atom.to_string(key))
-  end
-
-  defp parse_datetime(nil), do: nil
-
-  defp parse_datetime(iso) when is_binary(iso) do
-    case DateTime.from_iso8601(iso) do
-      {:ok, datetime, _offset} -> datetime
-      {:error, _reason} -> nil
-    end
-  end
 
   defp pds, do: Quintal.PDS.impl()
 end
