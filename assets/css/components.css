@@ -1783,6 +1783,14 @@ html.rolagem-descendo .nav-movel {
   border: 1px solid var(--acento);
   color: var(--tinta);
   overflow: hidden;
+  /* topo fixo: o aviso precisa aparecer onde o olho está, que no
+     composer é embaixo. no fluxo ele nasce três telas acima do dedo */
+  position: fixed;
+  top: calc(var(--espaco-3) + env(safe-area-inset-top, 0px));
+  left: 50%;
+  translate: -50% 0;
+  z-index: 45;
+  max-width: min(34rem, calc(100vw - 2 * var(--espaco-3)));
   /* some sozinho depois de 4s: aviso não é decoração permanente.
      o colapso no fim tira o elemento do fluxo, senao a caixa vazia
      segura o espaco e quebra o layout */
@@ -1807,6 +1815,8 @@ html.rolagem-descendo .nav-movel {
 .flash--erro {
   border-color: var(--erro);
   color: var(--tinta);
+  /* erro não se autodestrói: some no próximo evento, não no relógio */
+  animation: none;
 }
 
 /* boas-vindas: home deslogada (briefing 5.1). uma tela, uma acao:
