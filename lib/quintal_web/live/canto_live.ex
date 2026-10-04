@@ -45,6 +45,7 @@ defmodule QuintalWeb.CantoLive do
 
   @blocos_todos ~w(prosas recados quem-eu-leio)
   @recados_pagina 20
+  @prosas_pagina 10
 
   # swatches do modo arrumar: fundo e acento de cada preset (spec 7.2)
   @presets %{
@@ -78,7 +79,7 @@ defmodule QuintalWeb.CantoLive do
 
         seguindo = seguindo(sessao, proprio?, dono.did)
 
-        prosas = Prosas.list_por_autor(dono.did, limit: 10)
+        prosas = Prosas.list_por_autor(dono.did, limit: @prosas_pagina)
         recados = Recados.listar_por_canto(dono.did, viewer_did)
 
         {:ok,
@@ -94,6 +95,7 @@ defmodule QuintalWeb.CantoLive do
            guardado_seq: 0,
            seguindo: seguindo,
            prosas: prosas,
+           prosas_visiveis: @prosas_pagina,
            recados: recados,
            recados_visiveis: @recados_pagina,
            depoimentos: Depoimentos.aceitos(dono.did),
@@ -118,6 +120,13 @@ defmodule QuintalWeb.CantoLive do
 
   def handle_event("mais_recados", _params, socket) do
     {:noreply, update(socket, :recados_visiveis, &(&1 + @recados_pagina))}
+  end
+
+  def handle_event("mais_prosas", _params, socket) do
+    visiveis = socket.assigns.prosas_visiveis + @prosas_pagina
+
+    {:noreply,
+     assign(socket, prosas_visiveis: visiveis, prosas: Prosas.list_por_autor(socket.assigns.dono.did, limit: visiveis))}
   end
 
   def handle_event("deixar_recado", %{"texto" => texto}, socket) do
@@ -642,6 +651,9 @@ defmodule QuintalWeb.CantoLive do
                     </button>
                   </li>
                 </ul>
+                <p :if={length(@prosas) == @prosas_visiveis} class="recados__mais">
+                  <.botao variante={:sutil} phx-click="mais_prosas">ver mais prosas</.botao>
+                </p>
               <% "recados" -> %>
                 <h2 class="canto-bloco__titulo">recados</h2>
                 <div class="recados">
