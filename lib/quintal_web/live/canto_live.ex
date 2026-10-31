@@ -561,15 +561,47 @@ defmodule QuintalWeb.CantoLive do
         <header class="canto__cabeca">
           <div class="canto__titulo">
             <.avatar
+              :if={!@arrumar}
               src={avatar_url(@dono, @canto.avatar)}
               initial={@canto.nome || @dono.handle}
               class="canto__avatar"
             />
+            <div
+              :if={@arrumar}
+              id="avatar"
+              phx-hook="AvatarUpload"
+              class="canto__avatar-arrumar"
+            >
+              <label class="canto__avatar-trocar">
+                <.avatar
+                  src={avatar_url(@dono, @canto.avatar)}
+                  initial={@canto.nome || @dono.handle}
+                  class="canto__avatar"
+                />
+                <span class="canto__avatar-camera" aria-hidden="true">
+                  <Lucideicons.camera />
+                </span>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  class="canto__avatar-input"
+                  aria-label="escolher ou trocar foto do canto"
+                  name="avatar"
+                />
+              </label>
+            </div>
             <div class="canto__identidade">
               <h1 class="canto__nome">{@canto.nome || @dono.handle}</h1>
               <p :if={@canto.nome} class="canto__handle">{@dono.handle}</p>
             </div>
             <div class="canto__acoes">
+              <.botao
+                :if={@arrumar && @canto.avatar}
+                variante={:sutil}
+                phx-click="tirar_avatar"
+              >
+                tirar a foto
+              </.botao>
               <.botao
                 :if={@sessao && !@proprio? && !@seguindo}
                 variante={:fantasma}
@@ -600,43 +632,6 @@ defmodule QuintalWeb.CantoLive do
 
           <%!-- nome e bio se editam aqui mesmo, no lugar: o canto se
                arruma como é visto, nunca num painel distante --%>
-          <form
-            :if={@arrumar}
-            id="avatar"
-            phx-hook="AvatarUpload"
-            class="canto__avatar-arrumar"
-          >
-            <label class="canto__avatar-trocar">
-              <%= if url = avatar_url(@dono, @canto.avatar) do %>
-                <img src={url} alt="" class="canto__avatar" />
-              <% else %>
-                <span class="canto__avatar canto__avatar--vazio" aria-hidden="true">
-                  <Lucideicons.camera />
-                </span>
-              <% end %>
-              <%!-- input comum de propósito: quem sobe é o AvatarUpload via
-                   pushEvent depois do recorte, em base64 --%>
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                class="canto__avatar-input"
-                aria-label="escolher foto do canto"
-                name="avatar"
-              />
-              <span class="canto__avatar-dica">
-                {if @canto.avatar, do: "trocar a foto", else: "escolher uma foto"}
-              </span>
-            </label>
-            <button
-              :if={@canto.avatar}
-              type="button"
-              class="conta__link"
-              phx-click="tirar_avatar"
-            >
-              tirar a foto
-            </button>
-          </form>
-
           <form :if={@arrumar} phx-change="cabeca" phx-debounce="600" class="canto__cabeca-form">
             <.campo
               name="nome"
