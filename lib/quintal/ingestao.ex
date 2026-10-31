@@ -31,6 +31,7 @@ defmodule Quintal.Ingestao do
 
   import Ecto.Query
 
+  alias ProtoRune.Atproto.Identity.Cache, as: IdentityCache
   alias ProtoRune.Jetstream
   alias ProtoRune.Jetstream.Event
   alias Quintal.Blogroll
@@ -123,10 +124,16 @@ defmodule Quintal.Ingestao do
   defp process(%Event{type: :identity, did: did, payload: payload}) when is_binary(did) do
     case payload do
       %{"identity" => %{"handle" => handle}} when is_binary(handle) ->
+        old_handle = Repo.one(from i in Identidade, where: i.did == ^did, select: i.handle)
+
         Repo.update_all(
           from(i in Identidade, where: i.did == ^did),
           set: [handle: handle, atualizado_em: DateTime.utc_now()]
         )
+
+        if is_binary(old_handle), do: IdentityCache.invalidate_handle(old_handle)
+        IdentityCache.invalidate_handle(handle)
+        IdentityCache.invalidate_did(did)
 
       _sem_handle ->
         :ok

@@ -21,7 +21,13 @@ defmodule Quintal.Application do
     children =
       if Quintal.env() == :test,
         do: children,
-        else: children ++ [{Task, &AuthImpl.restore_all/0}, Quintal.Ingestao]
+        else:
+          children ++
+            [
+              {Task, &AuthImpl.restore_all/0},
+              {ProtoRune.Atproto.Identity.Cache, handle_ttl: to_timeout(minute: 5), did_ttl: to_timeout(minute: 5)},
+              Quintal.Ingestao
+            ]
 
     opts = [strategy: :one_for_one, name: Quintal.Supervisor]
     Supervisor.start_link(children, opts)
