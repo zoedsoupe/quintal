@@ -30,7 +30,13 @@ defmodule QuintalWeb.VisitasLive do
         resumo = Visitas.resumo(did)
         eventos = Visitas.eventos_desde_ultima(did)
         pendentes = Depoimentos.pendentes(did)
-        Visitas.marcar_lido(did)
+        if connected?(socket), do: Visitas.marcar_lido(did)
+        uris_pendentes = MapSet.new(pendentes, & &1.uri)
+
+        eventos =
+          Enum.reject(eventos, fn evento ->
+            to_string(evento.tipo) == "depoimento" and MapSet.member?(uris_pendentes, evento.ref_uri)
+          end)
 
         {:ok,
          assign(socket,
@@ -122,6 +128,7 @@ defmodule QuintalWeb.VisitasLive do
       "resposta" -> prosa_path(evento.ref_uri, evento.autor.handle)
       "mencao" -> prosa_path(evento.ref_uri, evento.autor.handle)
       "leitura" -> prosa_path(evento.ref_uri, meu_handle)
+      tipo when tipo in ["recado", "depoimento"] -> ~p"/canto/#{meu_handle}"
       _outro -> nil
     end
   end
@@ -134,7 +141,7 @@ defmodule QuintalWeb.VisitasLive do
       "mencao" -> "falou de você numa prosa"
       "leitura" -> "leu sua prosa"
       "novo_leitor" -> "começou a ler seu canto"
-      "depoimento" -> "te deixou um depoimento, quer pendurar na parede?"
+      "depoimento" -> "te deixou um depoimento"
       _outro -> "passou pelo seu canto"
     end
   end
@@ -157,12 +164,11 @@ defmodule QuintalWeb.VisitasLive do
 
           <section :if={@pendentes != []} class="visitas__pendentes">
             <div :for={depoimento <- @pendentes} class="visita-pendente">
-              <blockquote class="visita-pendente__texto">{depoimento.texto}</blockquote>
-              <p class="visita-pendente__meta">
-                <.link navigate={~p"/canto/#{depoimento.autor.handle}"}>
-                  {depoimento.autor.handle}
-                </.link>
+              <p class="visita-pendente__titulo">
+                <.link navigate={~p"/canto/#{depoimento.autor.handle}"}>{depoimento.autor.handle}</.link>
+                te deixou um depoimento, quer pendurar na parede?
               </p>
+              <blockquote class="visita-pendente__texto">{depoimento.texto}</blockquote>
               <div class="visita-pendente__acoes">
                 <.botao variante={:fantasma} phx-click="aceitar" phx-value-uri={depoimento.uri}>
                   aceitar
