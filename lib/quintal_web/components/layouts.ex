@@ -35,11 +35,15 @@ defmodule QuintalWeb.Layouts do
   attr :sessao, :any, default: nil
   attr :novidade, :boolean, default: false
   attr :moldura, :boolean, default: true
+  attr :erro_inline, :boolean, default: false
   slot :inner_block, required: true
 
   def app(assigns) do
     # a sessão é um struct opaco do proto_rune: acesso defensivo ao handle
-    assigns = assign(assigns, :handle, assigns.sessao && Map.get(assigns.sessao, :handle))
+    assigns =
+      assigns
+      |> assign(:handle, assigns.sessao && Map.get(assigns.sessao, :handle))
+      |> assign(:error_flash, Phoenix.Flash.get(assigns.flash, :error))
 
     ~H"""
     <div class="chrome">
@@ -73,8 +77,12 @@ defmodule QuintalWeb.Layouts do
       <p :if={msg = Phoenix.Flash.get(@flash, :info)} class="flash flash--info" role="status">
         {msg}
       </p>
-      <p :if={msg = Phoenix.Flash.get(@flash, :error)} class="flash flash--erro" role="alert">
-        {msg}
+      <p
+        :if={!@erro_inline && @error_flash}
+        class="flash flash--erro"
+        role="alert"
+      >
+        {@error_flash}
       </p>
 
       <main id="conteudo" class="conteudo" tabindex="-1">

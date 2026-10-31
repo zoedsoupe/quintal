@@ -13,18 +13,29 @@ defmodule QuintalWeb.LandingLive do
   use QuintalWeb, :live_view
 
   @impl true
-  def mount(_params, _session, socket) do
+  def mount(_params, session, socket) do
     if socket.assigns.sessao do
       {:ok, redirect(socket, to: ~p"/inicio")}
     else
-      {:ok, assign(socket, page_title: "quintal", novidade: false)}
+      {:ok,
+       assign(socket,
+         page_title: "quintal",
+         novidade: false,
+         convite: session["convite"]
+       )}
     end
   end
 
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} sessao={@sessao} novidade={@novidade} moldura={false}>
+    <Layouts.app
+      flash={@flash}
+      sessao={@sessao}
+      novidade={@novidade}
+      moldura={false}
+      erro_inline={true}
+    >
       <div class="boas-vindas">
         <img
           class="boas-vindas__axo"
@@ -37,19 +48,33 @@ defmodule QuintalWeb.LandingLive do
         <h1 class="boas-vindas__marca">quintal</h1>
         <p class="boas-vindas__linha">seu canto na vizinhança</p>
 
-        <%!-- alpha fechado (spec 6): o convite é a porta principal,
-             o login é caminho quieto pra quem já mora aqui --%>
-        <.link navigate={~p"/convite"} class="botao botao--primario">tenho um convite</.link>
-        <.link navigate={~p"/passear"} class="botao botao--fantasma">passear com o axô</.link>
+        <div class="boas-vindas__entradas">
+          <.link
+            :if={!@convite}
+            navigate={~p"/convite"}
+            class="botao botao--primario"
+          >
+            tenho um convite
+          </.link>
+          <.link navigate={~p"/passear"} class="botao botao--fantasma">passear com o axô</.link>
+        </div>
 
         <form action="/oauth/login" method="get" class="entrar">
           <.campo
             name="handle"
-            label="já mora aqui? entra com teu handle"
+            label={
+              if @convite,
+                do: "seu convite tá guardado. entra com teu handle atproto",
+                else: "já mora aqui? entra com teu handle"
+            }
             placeholder="alice.bsky.social"
             required
+            autofocus={!!@convite}
+            errors={if erro = Phoenix.Flash.get(@flash, :error), do: [erro], else: []}
           />
-          <.botao variante={:fantasma} type="submit">entrar com atproto</.botao>
+          <.botao variante={if @convite, do: :primario, else: :fantasma} type="submit">
+            entrar com atproto
+          </.botao>
           <.link navigate={~p"/cadastro"} class="cadastro__link">não tenho conta ainda</.link>
         </form>
 

@@ -1880,6 +1880,13 @@ html.rolagem-descendo .nav-movel {
   color: var(--meta);
 }
 
+.boas-vindas__entradas {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espaco-3);
+}
+
 /* form de entrar: campo e botao com respiro */
 
 .entrar {
@@ -1889,7 +1896,12 @@ html.rolagem-descendo .nav-movel {
   width: 100%;
   max-width: 22rem;
   margin-inline: auto;
+  margin-top: var(--espaco-4);
   text-align: left;
+}
+
+.entrar > .botao {
+  align-self: flex-start;
 }
 
 /* cadastro: micro tutorial de conta */
@@ -1922,8 +1934,20 @@ html.rolagem-descendo .nav-movel {
 }
 
 .cadastro__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
   font-size: 0.875rem;
   text-align: center;
+}
+
+.convite__voltar {
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  margin-top: var(--espaco-2);
+  font-size: 0.875rem;
 }
 
 /* rodape: links quietos de faq e conduta */

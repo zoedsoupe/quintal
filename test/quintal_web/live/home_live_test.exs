@@ -36,6 +36,16 @@ defmodule QuintalWeb.HomeLiveTest do
     assert html =~ "/convite"
   end
 
+  test "convite guardado vira a ação principal e orienta o login", %{conn: conn} do
+    conn = init_test_session(conn, %{convite: "axo-12345678"})
+    {:ok, _view, html} = live(conn, "/")
+
+    assert html =~ "seu convite tá guardado. entra com teu handle atproto"
+    assert html =~ ~s(autofocus)
+    assert html =~ ~s(class="botao botao--primario" type="submit")
+    refute html =~ "tenho um convite"
+  end
+
   test "logada: a landing vira redirect pro início", %{conn: conn} do
     assert {:error, {:redirect, %{to: "/inicio"}}} = live(loga_como_alice(conn), "/")
   end

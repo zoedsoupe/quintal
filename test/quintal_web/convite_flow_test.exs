@@ -10,6 +10,7 @@ defmodule QuintalWeb.ConviteFlowTest do
 
     assert html =~ "o quintal é pequeno de propósito. você foi convidade."
     assert html =~ "axo-front-gretting.png"
+    assert html =~ "voltar pro início"
   end
 
   test "POST /convite com código válido guarda na sessão e manda pro login", %{conn: conn} do

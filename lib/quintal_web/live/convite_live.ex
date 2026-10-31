@@ -19,7 +19,13 @@ defmodule QuintalWeb.ConviteLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} sessao={@sessao} novidade={false} moldura={false}>
+    <Layouts.app
+      flash={@flash}
+      sessao={@sessao}
+      novidade={false}
+      moldura={false}
+      erro_inline={true}
+    >
       <div class="convite">
         <img
           class="convite__axo"
@@ -40,6 +46,7 @@ defmodule QuintalWeb.ConviteLive do
             required
             autofocus
             autocomplete="off"
+            errors={if erro = Phoenix.Flash.get(@flash, :error), do: [erro], else: []}
           />
           <.botao type="submit">entrar com o convite</.botao>
         </form>
@@ -48,6 +55,8 @@ defmodule QuintalWeb.ConviteLive do
           depois do código, você entra com sua identidade atproto. sem conta ainda?
           <.link navigate={~p"/cadastro"}>criar num pds</.link>
         </p>
+
+        <.link navigate={~p"/"} class="convite__voltar">voltar pro início</.link>
       </div>
     </Layouts.app>
     """
