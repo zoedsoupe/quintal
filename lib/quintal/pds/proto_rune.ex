@@ -145,7 +145,17 @@ defmodule Quintal.PDS.ProtoRune do
     url = to_string(request)
 
     with {:ok, headers, session} <- Session.authorization_headers(session, http_method, url) do
-      Client.execute(%{request | headers: Map.merge(request.headers, headers)}, session: session)
+      Client.execute(%{request | headers: Map.merge(request.headers, headers)},
+        session: session,
+        http: http_opts()
+      )
+    end
+  end
+
+  defp http_opts do
+    case Application.get_env(:quintal, :http_client) do
+      nil -> []
+      adapter -> [adapter: adapter]
     end
   end
 end
