@@ -24,6 +24,17 @@ html {
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* scrollbar: escondida no mobile (la o indicador e overlay e some
    sozinho), fina e quieta no desktop para manter a nocao de posicao */
 

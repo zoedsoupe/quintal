@@ -310,7 +310,13 @@ defmodule QuintalWeb.Components do
   def lero_gravador(assigns) do
     ~H"""
     <div class="lero" id="lero" phx-hook="LeroRecorder">
-      <.live_file_input upload={@uploads.audio} class="sr-only" />
+      <.live_file_input
+        upload={@uploads.audio}
+        class="sr-only"
+        aria-label="arquivo de áudio do lero"
+        tabindex="-1"
+        aria-hidden="true"
+      />
       <button type="button" class="lero__botao botao botao--fantasma">
         <Lucideicons.mic aria-hidden="true" />
         <span class="lero__rotulo">fala aí...</span>

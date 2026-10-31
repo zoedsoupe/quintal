@@ -254,8 +254,8 @@
 .audio__play {
   display: grid;
   place-items: center;
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 2.75rem;
+  height: 2.75rem;
   flex-shrink: 0;
   padding: 0;
   border: 1px solid var(--sussurro);
@@ -282,10 +282,13 @@
 }
 
 .audio__trilha {
+  position: relative;
   flex: 1;
-  height: 3px;
+  height: 2.75rem;
+  padding-block: calc((2.75rem - 3px) / 2);
   border-radius: var(--raio-pill);
   background: var(--sussurro);
+  background-clip: content-box;
   cursor: pointer;
 }
 
@@ -614,8 +617,15 @@
   color: var(--meta);
 }
 
-.prosear .campo__area:focus {
+.prosear:not(.prosear--pagina) .campo__area:focus {
   outline: none;
+}
+
+.prosear--pagina .campo__area:focus-visible,
+.prosear__titulo:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--acento) 60%, transparent);
+  outline-offset: 4px;
+  border-radius: var(--raio);
 }
 
 /* prosear miudo e calmo; vazio, dorme em ghost de lavanda ate a
@@ -1313,10 +1323,6 @@
   font-weight: 400;
 }
 
-.prosear__titulo:focus {
-  outline: none;
-}
-
 .prosear--pagina:has(input[value="ensaio"]:checked) {
   gap: var(--espaco-4);
   max-width: 680px;
@@ -1805,6 +1811,8 @@ html.rolagem-descendo .nav-movel {
   margin-block: var(--espaco-3) 0;
   border-radius: var(--raio);
   border: 1px solid var(--acento);
+  background: var(--fundo-card);
+  box-shadow: 0 0.25rem 1rem rgb(0 0 0 / 0.12);
   color: var(--tinta);
   overflow: hidden;
   /* topo fixo: o aviso precisa aparecer onde o olho está, que no
@@ -2021,4 +2029,28 @@ html.rolagem-descendo .nav-movel {
 .tema-opcao__nome {
   margin-top: var(--espaco-1);
   font-size: 0.875rem;
+}
+
+@media (max-width: 47.99rem) {
+  .menu-conta__gatilho {
+    min-height: 2.75rem;
+  }
+
+  .menu-conta__lista a {
+    display: flex;
+    align-items: center;
+    min-height: 2.75rem;
+  }
+
+  .prosa-pagina__acoes {
+    align-items: center;
+  }
+
+  .prosa-pagina__acoes button,
+  .prosa-pagina__acoes a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding-inline: var(--espaco-2);
+  }
 }

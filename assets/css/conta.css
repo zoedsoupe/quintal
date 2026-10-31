@@ -74,17 +74,20 @@
 
 /* link textual quieto na borda direita da linha */
 .conta__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
   font-family: var(--fonte-chrome);
   font-size: 0.875rem;
   color: var(--meta);
   background: none;
   border: none;
-  padding: 0;
+  padding: var(--espaco-2) var(--espaco-1);
   cursor: pointer;
   text-decoration: none;
   flex-shrink: 0;
   align-self: flex-start;
-  margin-top: var(--espaco-1);
+  margin-top: 0;
 }
 
 .conta__link:hover {
