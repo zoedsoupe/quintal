@@ -884,6 +884,7 @@ topbar.config({
 
 let axoLoading = null;
 let axoAnimation = null;
+let axoLoadingTimer = null;
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 const animateAxo = () => {
@@ -900,6 +901,11 @@ const animateAxo = () => {
 };
 
 const showAxoLoading = () => {
+  if (document.querySelector(".prosa-pagina")) {
+    hideAxoLoading();
+    return;
+  }
+
   const axoSelectors = [".axo", ".passear__axo", ".convite__axo", ".boas-vindas__axo"];
   const mobileViewport = window.matchMedia("(max-width: 47.99rem)").matches;
   const axoAlreadyVisible = axoSelectors.some((selector) =>
@@ -933,6 +939,11 @@ const showAxoLoading = () => {
 };
 
 const hideAxoLoading = () => {
+  if (axoLoadingTimer) {
+    window.clearTimeout(axoLoadingTimer);
+    axoLoadingTimer = null;
+  }
+
   if (!axoLoading) return;
 
   axoLoading.hidden = true;
@@ -950,7 +961,11 @@ reducedMotion.addEventListener("change", ({ matches }) => {
 
 window.addEventListener("phx:page-loading-start", (_info) => {
   topbar.show(300);
-  showAxoLoading();
+  if (axoLoadingTimer) window.clearTimeout(axoLoadingTimer);
+  axoLoadingTimer = window.setTimeout(() => {
+    axoLoadingTimer = null;
+    showAxoLoading();
+  }, 300);
 });
 window.addEventListener("phx:page-loading-stop", (_info) => {
   topbar.hide();
