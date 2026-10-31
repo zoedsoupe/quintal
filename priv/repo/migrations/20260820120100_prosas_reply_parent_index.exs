@@ -6,6 +6,6 @@ defmodule Quintal.Repo.Migrations.ProsasReplyParentIndex do
   @disable_migration_lock true
 
   def change do
-    create index(:prosas, [:reply_parent], concurrently: true)
+    create_if_not_exists index(:prosas, [:reply_parent], concurrently: true)
   end
 end
