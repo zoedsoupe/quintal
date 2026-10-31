@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="/assets/app.css" />
     <title>quintal · entrada não autorizada</title>
     <style>
       body {
@@ -10,14 +11,14 @@
         min-height: 100vh;
         display: grid;
         place-items: center;
-        background: #faf6f1;
-        color: #2e2833;
-        font-family: system-ui, sans-serif;
+        background: var(--fundo, #faf6f1);
+        color: var(--tinta, #2e2833);
+        font-family: var(--fonte-chrome, "atkinson hyperlegible"), system-ui, sans-serif;
         text-align: center;
       }
       main { max-width: 32rem; padding: 2rem; }
       img { width: 10rem; height: auto; }
-      a { color: #8b7bb8; }
+      a { color: var(--acento, #7663ab); }
       @media (prefers-color-scheme: dark) {
         body { background: #1d1923; color: #e8e2ee; }
         a { color: #a493cc; }
@@ -26,7 +27,7 @@
   </head>
   <body>
     <main>
-      <img src="/images/axo-front-staying.png" alt="" aria-hidden="true" />
+      <img src="/images/axo-front-staying.png" alt="" aria-hidden="true" width="362" height="371" />
       <p>opa, pode entrar não. esse canto do quintal é só pra quem tem a chave.</p>
       <p><a href="/">entrar com a minha conta</a></p>
     </main>

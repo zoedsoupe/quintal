@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="/assets/app.css" />
     <title>quintal · algo deu errado</title>
     <style>
       body {
@@ -10,14 +11,14 @@
         min-height: 100vh;
         display: grid;
         place-items: center;
-        background: #faf6f1;
-        color: #2e2833;
-        font-family: system-ui, sans-serif;
+        background: var(--fundo, #faf6f1);
+        color: var(--tinta, #2e2833);
+        font-family: var(--fonte-chrome, "atkinson hyperlegible"), system-ui, sans-serif;
         text-align: center;
       }
       main { max-width: 32rem; padding: 2rem; }
       img { width: 10rem; height: auto; }
-      a { color: #8b7bb8; }
+      a { color: var(--acento, #7663ab); }
       @media (prefers-color-scheme: dark) {
         body { background: #1d1923; color: #e8e2ee; }
         a { color: #a493cc; }
@@ -26,7 +27,7 @@
   </head>
   <body>
     <main>
-      <img src="/images/axo-sitting.png" alt="" aria-hidden="true" />
+      <img src="/images/axo-sitting.png" alt="" aria-hidden="true" width="415" height="420" />
       <p>ih, algo deu errado. tenta de novo?</p>
       <p><a href="/">voltar pro quintal</a></p>
     </main>

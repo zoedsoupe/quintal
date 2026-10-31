@@ -9,34 +9,42 @@ defmodule QuintalWeb.LexiconsHTML do
 
   def index(assigns) do
     ~H"""
-    <div class="cadastro">
-      <h1>os lexicons do quintal</h1>
+    <div class="chrome">
+      <main id="conteudo" class="conteudo">
+        <div class="cadastro">
+          <h1>os lexicons do quintal</h1>
 
-      <p>
-        lexicon é o contrato de formato de um tipo de record: quais campos
-        uma prosa ou um recado têm, e o que cada campo vale. os lexicons do
-        quintal (as coleções <code>place.quintal.*</code>) são públicos,
-        então qualquer um pode construir outro lugar que lê e escreve prosas.
-      </p>
+          <p>
+            lexicon é o contrato de formato de um tipo de record: quais campos
+            uma prosa ou um recado têm, e o que cada campo vale. os lexicons do
+            quintal (as coleções <code>place.quintal.*</code>) são públicos,
+            então qualquer um pode construir outro lugar que lê e escreve prosas.
+          </p>
 
-      <p>
-        cada lexicon abaixo também existe como json cru, no endereço <code>/lexicons/&lt;nsid&gt;.json</code>, e a especificação do
-        formato está em <a href="https://atproto.com/specs/lexicon" target="_blank" rel="noopener">
+          <p>
+            cada lexicon abaixo também existe como json cru, no endereço <code>/lexicons/&lt;nsid&gt;.json</code>, e a especificação do
+            formato está em <a href="https://atproto.com/specs/lexicon" target="_blank" rel="noopener">
           atproto.com/specs/lexicon
         </a>.
-      </p>
+          </p>
 
-      <.lexicon :for={lexicon <- @lexicons} lexicon={lexicon} />
+          <.lexicon :for={lexicon <- @lexicons} lexicon={lexicon} />
+        </div>
+      </main>
     </div>
     """
   end
 
   def show(assigns) do
     ~H"""
-    <div class="cadastro">
-      <.lexicon lexicon={@lexicon} />
+    <div class="chrome">
+      <main id="conteudo" class="conteudo">
+        <div class="cadastro">
+          <.lexicon lexicon={@lexicon} />
 
-      <p><a href="/lexicons" class="botao">todos os lexicons</a></p>
+          <p><a href="/lexicons" class="botao">todos os lexicons</a></p>
+        </div>
+      </main>
     </div>
     """
   end
@@ -66,7 +74,7 @@ defmodule QuintalWeb.LexiconsHTML do
     assigns = assign(assigns, objeto: objeto, propriedades: objeto["properties"] || %{})
 
     ~H"""
-    <h3><code>#{@nome}</code> ({tipo_do_def(@def)})</h3>
+    <h3><code>{@nome}</code> ({tipo_do_def(@def)})</h3>
 
     <p :if={@def["description"]}>{@def["description"]}</p>
 

@@ -127,6 +127,10 @@ a:hover {
   color: var(--acento-2);
 }
 
+code {
+  text-transform: none;
+}
+
 ::selection {
   background: var(--acento);
   color: var(--fundo);
