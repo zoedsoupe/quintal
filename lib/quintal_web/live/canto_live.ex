@@ -48,11 +48,11 @@ defmodule QuintalWeb.CantoLive do
   @prosas_pagina 10
 
   # swatches do modo arrumar: fundo e acento de cada preset (spec 7.2)
-  @presets %{
-    "papel" => %{fundo: "#faf6f1", acento: "#7663ab"},
-    "madrugada" => %{fundo: "#14101c", acento: "#b9a7e0"},
-    "gloss" => %{fundo: "#fff5fa", acento: "#dc006b"}
-  }
+  @presets [
+    {"papel", %{fundo: "#faf6f1", acento: "#7663ab"}},
+    {"madrugada", %{fundo: "#14101c", acento: "#b9a7e0"}},
+    {"gloss", %{fundo: "#fff5fa", acento: "#dc006b"}}
+  ]
 
   @impl true
   def mount(%{"handle" => handle}, _session, socket) do
@@ -101,6 +101,7 @@ defmodule QuintalWeb.CantoLive do
            depoimentos: Depoimentos.aceitos(dono.did),
            depoimento_form: false,
            blogroll_items: blogroll_items(dono.did),
+           links_form: link_fields(canto.links),
            avatars: Cantos.avatars([dono.did | Enum.map(recados, & &1.autor_did)]),
            presets: @presets
          )}
@@ -122,6 +123,7 @@ defmodule QuintalWeb.CantoLive do
              "tema",
              "cor",
              "cabeca",
+             "links",
              "avatar",
              "tirar_avatar",
              "alternar-bloco",
@@ -252,6 +254,32 @@ defmodule QuintalWeb.CantoLive do
       {:noreply, socket}
     end
   end
+
+  def handle_event("links", %{"links" => params}, %{assigns: %{proprio?: true}} = socket) do
+    draft =
+      params
+      |> Enum.sort_by(fn {index, _link} -> index end)
+      |> Enum.map(fn {_index, link} ->
+        %{titulo: String.trim(link["titulo"] || ""), url: String.trim(link["url"] || "")}
+      end)
+
+    links = Enum.reject(draft, &(&1.titulo == "" or &1.url == ""))
+    socket = assign(socket, :links_form, link_fields(draft))
+
+    cond do
+      length(draft) > 8 ->
+        socket = assign(socket, :links_form, link_fields(Enum.take(draft, 8)))
+        {:noreply, put_flash(socket, :error, "um canto pode ter no máximo 8 links")}
+
+      links == Enum.map(socket.assigns.canto.links, &%{titulo: &1.titulo, url: &1.url}) ->
+        {:noreply, socket}
+
+      true ->
+        guardar(socket, %{links: links})
+    end
+  end
+
+  def handle_event("links", _params, socket), do: {:noreply, socket}
 
   # a foto do canto chega recortada em base64 (AvatarUpload no cliente),
   # sobe como blob pro pds e vira o `avatar` do record de configuração
@@ -416,6 +444,21 @@ defmodule QuintalWeb.CantoLive do
     end)
   end
 
+  defp link_fields(links) do
+    fields =
+      (links || [])
+      |> Enum.map(&%{titulo: Map.get(&1, :titulo, ""), url: Map.get(&1, :url, "")})
+      |> Enum.reverse()
+      |> Enum.drop_while(&(&1.titulo == "" and &1.url == ""))
+      |> Enum.reverse()
+
+    if length(fields) < 8, do: fields ++ [%{titulo: "", url: ""}], else: fields
+  end
+
+  defp preset_acento(tema) do
+    Enum.find_value(@presets, fn {nome, preset} -> if nome == tema, do: preset.acento end)
+  end
+
   # blocos que a interface conhece: records antigos podem trazer "bio"
   # de quando ela era bloco; hoje ela mora no cabeçalho
   defp normaliza_blocos(%Canto{blocos: blocos} = canto) when is_list(blocos) do
@@ -492,6 +535,15 @@ defmodule QuintalWeb.CantoLive do
               {tema}
             </button>
           </div>
+
+          <input
+            type="color"
+            name="cor"
+            class="arrumar__cor"
+            value={@canto.cor || preset_acento(@canto.tema)}
+            phx-change="cor"
+            aria-label="cor de acento"
+          />
 
           <%!-- o id gira a cada autosave: nó novo, animação recomeça --%>
           <span
@@ -606,11 +658,27 @@ defmodule QuintalWeb.CantoLive do
 
           <div :if={!@arrumar && @canto.bio} class="canto__bio">{Markdown.render(@canto.bio)}</div>
 
-          <p :if={@canto.links != []} class="canto__links">
+          <p :if={!@arrumar && @canto.links != []} class="canto__links">
             <a :for={link <- @canto.links} href={link.url} target="_blank" rel="noopener">
               {link.titulo}
             </a>
           </p>
+          <form :if={@arrumar} phx-change="links" phx-debounce="500" class="canto__links-form">
+            <div :for={{link, index} <- Enum.with_index(@links_form)} class="canto__link-form">
+              <.campo
+                name={"links[#{index}][titulo]"}
+                label="nome do link"
+                value={link.titulo}
+                maxlength="60"
+              />
+              <.campo
+                name={"links[#{index}][url]"}
+                label="endereço"
+                value={link.url}
+                placeholder="https://..."
+              />
+            </div>
+          </form>
         </header>
 
         <div
@@ -624,6 +692,7 @@ defmodule QuintalWeb.CantoLive do
             data-bloco={bloco}
             draggable={@arrumar && "true"}
           >
+            <% indice_bloco = Enum.find_index(ordem_blocos(@canto, true), &(&1 == bloco)) %>
             <div :if={@arrumar} class="canto-bloco__controles">
               <span class="canto-bloco__alca" aria-hidden="true">
                 <Lucideicons.grip_vertical />
@@ -635,6 +704,7 @@ defmodule QuintalWeb.CantoLive do
                   phx-click="mover-bloco"
                   phx-value-bloco={bloco}
                   phx-value-direcao="sobe"
+                  disabled={bloco not in @canto.blocos or indice_bloco == 0}
                   aria-label="subir bloco"
                 >
                   <Lucideicons.chevron_up aria-hidden="true" />
@@ -645,6 +715,10 @@ defmodule QuintalWeb.CantoLive do
                   phx-click="mover-bloco"
                   phx-value-bloco={bloco}
                   phx-value-direcao="desce"
+                  disabled={
+                    bloco not in @canto.blocos or
+                      indice_bloco == length(ordem_blocos(@canto, true)) - 1
+                  }
                   aria-label="descer bloco"
                 >
                   <Lucideicons.chevron_down aria-hidden="true" />
@@ -664,6 +738,7 @@ defmodule QuintalWeb.CantoLive do
 
             <%= case bloco do %>
               <% "prosas" -> %>
+                <h2 class="canto-bloco__titulo">prosas</h2>
                 <ul class="indice">
                   <li :for={prosa <- @prosas} class="indice__item">
                     <.link
@@ -689,6 +764,7 @@ defmodule QuintalWeb.CantoLive do
                     </button>
                   </li>
                 </ul>
+                <p :if={@prosas == []} class="recados__vazio">ainda não tem prosas por aqui.</p>
                 <p :if={length(@prosas) == @prosas_visiveis} class="recados__mais">
                   <.botao variante={:sutil} phx-click="mais_prosas">ver mais prosas</.botao>
                 </p>
@@ -774,9 +850,11 @@ defmodule QuintalWeb.CantoLive do
                 </div>
               <% "quem-eu-leio" -> %>
                 <h2 class="canto-bloco__titulo">cumadis que recomendo</h2>
-                <p :if={@blogroll_items == [] && !@arrumar} class="quem-leio__vazio">
-                  ainda não tem ninguém aqui. recomendar alguém é o jeito mais bonito de
-                  apresentar a vizinhança.
+                <p :if={@blogroll_items == [] && !@arrumar && @proprio?} class="quem-leio__vazio">
+                  você ainda não recomenda nenhum canto. quando quiser, arrume essa lista.
+                </p>
+                <p :if={@blogroll_items == [] && !@arrumar && !@proprio?} class="quem-leio__vazio">
+                  esse canto ainda não recomenda ninguém da vizinhança.
                 </p>
                 <ul class="quem-leio">
                   <li :for={item <- @blogroll_items}>

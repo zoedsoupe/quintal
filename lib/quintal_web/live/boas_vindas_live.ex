@@ -18,11 +18,11 @@ defmodule QuintalWeb.BoasVindasLive do
   alias Quintal.Cantos
 
   # swatches grandes do onboarding: mesma paleta do modo arrumar
-  @presets %{
-    "papel" => %{fundo: "#faf6f1", acento: "#7663ab", tinta: "#2e2833"},
-    "madrugada" => %{fundo: "#14101c", acento: "#b9a7e0", tinta: "#ece6f2"},
-    "gloss" => %{fundo: "#fff5fa", acento: "#dc006b", tinta: "#3d2b3a"}
-  }
+  @presets [
+    {"papel", %{fundo: "#faf6f1", acento: "#7663ab", tinta: "#2e2833"}},
+    {"madrugada", %{fundo: "#14101c", acento: "#b9a7e0", tinta: "#ece6f2"}},
+    {"gloss", %{fundo: "#fff5fa", acento: "#dc006b", tinta: "#3d2b3a"}}
+  ]
 
   @impl true
   def mount(_params, _session, socket) do
