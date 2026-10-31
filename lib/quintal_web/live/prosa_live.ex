@@ -46,36 +46,82 @@ defmodule QuintalWeb.ProsaLive do
   @impl true
   def mount(%{"handle" => handle, "rkey" => rkey}, _session, socket) do
     sessao = socket.assigns.sessao
-    prosa = buscar_prosa(handle, rkey)
-    canto = if prosa, do: Cantos.get(prosa.autor_did), else: canto_pelo_handle(handle)
-    canto_encontrado? = not is_nil(prosa) or not is_nil(Repo.get_by(Identidade, handle: handle))
-    thread = if prosa, do: Prosas.respostas(prosa.uri), else: []
-    mae = buscar_mae(prosa)
-
-    dids = Enum.reject([prosa && prosa.autor_did, mae && mae.autor_did | Enum.map(thread, & &1.autor_did)], &is_nil/1)
+    dados = dados_leitura(handle, rkey)
 
     {:ok,
      socket
      |> permitir_anexos()
-     |> assign(
-       novidade: sessao && Visitas.novidade?(sessao.did),
-       handle: handle,
-       canto_encontrado?: canto_encontrado?,
-       prosa: prosa,
-       imagens: prosa && imagens_card(prosa),
-       audio: prosa && audio_card(prosa),
-       mae: mae,
-       thread: thread,
-       tipo: "nota",
-       nomes: Cantos.nomes(dids),
-       avatars: Cantos.avatars(dids),
-       mencoes: (sessao && Follows.mencoes(sessao.did)) || [],
-       visita_deixada: visita_deixada?(prosa, sessao),
-       tema_canto: (canto && canto.tema) || "papel",
-       cor_canto: canto && canto.cor,
-       page_title: titulo(prosa, handle)
-     )}
+     |> assign(assigns_iniciais(sessao, handle, dados))}
   end
+
+  defp dados_leitura(handle, rkey) do
+    prosa = buscar_prosa(handle, rkey)
+    canto = canto_da_prosa(prosa, handle)
+    thread = thread_da_prosa(prosa)
+    mae = buscar_mae(prosa)
+    dids = dids_da_thread(prosa, mae, thread)
+
+    %{
+      prosa: prosa,
+      canto: canto,
+      canto_encontrado?: canto_encontrado?(prosa, handle),
+      thread: thread,
+      mae: mae,
+      dids: dids
+    }
+  end
+
+  defp canto_da_prosa(%Prosa{autor_did: did}, _handle), do: Cantos.get(did)
+  defp canto_da_prosa(nil, handle), do: canto_pelo_handle(handle)
+
+  defp canto_encontrado?(%Prosa{}, _handle), do: true
+  defp canto_encontrado?(nil, handle), do: not is_nil(Repo.get_by(Identidade, handle: handle))
+
+  defp thread_da_prosa(nil), do: []
+  defp thread_da_prosa(%Prosa{uri: uri}), do: Prosas.respostas(uri)
+
+  defp dids_da_thread(prosa, mae, thread) do
+    Enum.reject(
+      [prosa && prosa.autor_did, mae && mae.autor_did | Enum.map(thread, & &1.autor_did)],
+      &is_nil/1
+    )
+  end
+
+  defp assigns_iniciais(sessao, handle, dados) do
+    %{
+      novidade: novidade(sessao),
+      handle: handle,
+      canto_encontrado?: dados.canto_encontrado?,
+      prosa: dados.prosa,
+      imagens: imagens(dados.prosa),
+      audio: audio(dados.prosa),
+      mae: dados.mae,
+      thread: dados.thread,
+      tipo: "nota",
+      nomes: Cantos.nomes(dados.dids),
+      avatars: Cantos.avatars(dados.dids),
+      mencoes: mencoes(sessao),
+      visita_deixada: visita_deixada?(dados.prosa, sessao),
+      tema_canto: tema_canto(dados.canto),
+      cor_canto: dados.canto && dados.canto.cor,
+      page_title: titulo(dados.prosa, handle)
+    }
+  end
+
+  defp novidade(nil), do: nil
+  defp novidade(sessao), do: Visitas.novidade?(sessao.did)
+
+  defp imagens(nil), do: nil
+  defp imagens(prosa), do: imagens_card(prosa)
+
+  defp audio(nil), do: nil
+  defp audio(prosa), do: audio_card(prosa)
+
+  defp mencoes(nil), do: []
+  defp mencoes(sessao), do: Follows.mencoes(sessao.did)
+
+  defp tema_canto(nil), do: "papel"
+  defp tema_canto(canto), do: canto.tema || "papel"
 
   # o título da aba precisa dizer qual prosa é, não só de quem é: 400
   # prosas com o mesmo rótulo viram 400 abas indistintas. lero não tem
