@@ -347,8 +347,8 @@ defmodule QuintalWeb.ProsaLive do
                   {rotulo}
                 </label>
               </div>
+              <.md_ferramentas />
             </div>
-            <.md_ferramentas />
 
             <.campo
               name="texto"
@@ -360,8 +360,6 @@ defmodule QuintalWeb.ProsaLive do
               required={@tipo != "lero"}
               phx-debounce="blur"
             />
-            <.md_ferramentas />
-
             <.lero_gravador uploads={@uploads} />
 
             <div :if={@uploads.audio.entries != []} class="prosear__anexos">
