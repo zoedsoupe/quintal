@@ -43,7 +43,15 @@ defmodule Quintal.ExportarTest do
       created_at: ~U[2026-08-19 09:00:00.000000Z]
     })
 
-    assert {:ok, zip} = Exportar.zip("did:plc:alice")
+    session = %ProtoRune.Atproto.OAuth.Session{
+      did: "did:plc:alice",
+      access_token: "token-abc",
+      dpop_key: "key",
+      dpop_jwk: %{},
+      service_url: "https://pds.example"
+    }
+
+    assert {:ok, zip} = Exportar.zip(session)
     assert {:ok, entradas} = :zip.unzip(zip, [:memory])
 
     mapa = Map.new(entradas, fn {nome, binario} -> {to_string(nome), binario} end)

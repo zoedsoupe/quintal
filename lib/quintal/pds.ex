@@ -51,6 +51,10 @@ defmodule Quintal.PDS do
   @callback upload_blob(session(), data :: binary(), content_type :: String.t()) ::
               {:ok, map()} | error()
 
+  @doc "Busca um blob pelo ref do lexicon no pds da sessão."
+  @callback get_blob(session(), blob :: map()) ::
+              {:ok, %{content_type: String.t() | nil, data: binary()}} | error()
+
   @doc "The configured implementation."
   @spec impl() :: module()
   def impl, do: Application.get_env(:quintal, :pds_impl, Quintal.PDS.ProtoRune)

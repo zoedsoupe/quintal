@@ -14,8 +14,8 @@ defmodule QuintalWeb.ContaController do
   # LiveViews: cookie sozinho não exporta dados
   def exportar(conn, _params) do
     with did when is_binary(did) <- get_session(conn, :quintal_did),
-         {:ok, _sessao} <- Quintal.Auth.impl().current_session(did) do
-      {:ok, zip} = Quintal.Exportar.zip(did)
+         {:ok, sessao} <- Quintal.Auth.impl().current_session(did) do
+      {:ok, zip} = Quintal.Exportar.zip(sessao)
       data = Date.utc_today() |> Date.to_string() |> String.replace("-", "")
 
       send_download(conn, {:binary, zip}, filename: "quintal-#{data}.zip")

@@ -1,16 +1,16 @@
 defmodule Quintal.Exportar do
   @moduledoc """
   A exportação total (spec 5.1, feature 8): um zip de um clique com
-  markdown e json dos records.
+  markdown, imagens e json dos records.
 
   A fonte é o índice local, que espelha o repo da pessoa no pds dela:
   prosas viram um `.md` cada em `prosas/`, e tudo (prosas, recados,
   depoimentos, canto, blogroll, follows) também sai como json em
   `records/`, no formato do lexicon.
 
-  Imagens saem como referência de blob dentro do json das prosas; os
-  binários ficam no pds (não há leitura de blob na fronteira
-  `Quintal.PDS` ainda). Baixar os blobs entra junto com essa leitura.
+  As imagens também saem como binários em `imagens/`, buscados no pds
+  de origem pela fronteira `Quintal.PDS`. Se um blob não puder ser
+  baixado, a exportação segue sem aquele arquivo.
   """
 
   import Ecto.Query
@@ -19,21 +19,25 @@ defmodule Quintal.Exportar do
   alias Quintal.Canto
   alias Quintal.Depoimento
   alias Quintal.Follow
+  alias Quintal.PDS
   alias Quintal.Prosa
   alias Quintal.Recado
   alias Quintal.Repo
+
+  require Logger
 
   @doc """
   Monta o zip da pessoa em memória.
 
   Retorna `{:ok, binary}` pronto para `send_download/3`.
   """
-  @spec zip(did :: String.t()) :: {:ok, binary()}
-  def zip(did) do
+  @spec zip(PDS.session()) :: {:ok, binary()}
+  def zip(%{did: did} = session) do
     prosas = Repo.all(from p in Prosa, where: p.autor_did == ^did, order_by: [asc: p.created_at], preload: [:imagens])
 
     entradas =
       Enum.map(prosas, &markdown/1) ++
+        imagens(session, prosas) ++
         [
           {~c"records/prosas.json", json(Enum.map(prosas, &prosa_json/1))},
           {~c"records/recados.json", json(Enum.map(recados(did), &recado_json/1))},
@@ -46,6 +50,49 @@ defmodule Quintal.Exportar do
     {:ok, {_nome, binario}} = :zip.create(~c"quintal.zip", entradas, [:memory])
     {:ok, binario}
   end
+
+  defp imagens(session, prosas) do
+    Enum.flat_map(prosas, fn prosa ->
+      rkey = prosa.uri |> String.split("/") |> List.last()
+
+      Enum.flat_map(prosa.imagens, fn imagem ->
+        case PDS.impl().get_blob(session, imagem.blob) do
+          {:ok, %{content_type: content_type, data: data}}
+          when is_binary(data) and byte_size(data) <= 2_000_000 ->
+            extension = image_extension(content_type || blob_content_type(imagem.blob))
+            nome = "imagens/#{rkey}-#{imagem.posicao}.#{extension}"
+            [{String.to_charlist(nome), data}]
+
+          {:ok, %{data: data}} when is_binary(data) ->
+            Logger.warning("could not export image blob for #{prosa.uri} at position #{imagem.posicao}: exceeds 2MB")
+            []
+
+          {:error, reason} ->
+            Logger.warning(
+              "could not export image blob for #{prosa.uri} at position #{imagem.posicao}: #{inspect(reason)}"
+            )
+
+            []
+
+          other ->
+            Logger.warning(
+              "could not export image blob for #{prosa.uri} at position #{imagem.posicao}: #{inspect(other)}"
+            )
+
+            []
+        end
+      end)
+    end)
+  end
+
+  defp blob_content_type(blob), do: Map.get(blob, "mimeType") || Map.get(blob, :mime_type)
+
+  defp image_extension("image/jpeg"), do: "jpg"
+  defp image_extension("image/png"), do: "png"
+  defp image_extension("image/webp"), do: "webp"
+  defp image_extension("image/gif"), do: "gif"
+  defp image_extension("image/avif"), do: "avif"
+  defp image_extension(_content_type), do: "bin"
 
   defp markdown(%Prosa{} = prosa) do
     data = DateTime.to_date(prosa.created_at)

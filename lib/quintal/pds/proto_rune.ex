@@ -106,10 +106,37 @@ defmodule Quintal.PDS.ProtoRune do
     run(session, proc, "POST")
   end
 
+  @impl true
+  def get_blob(session, blob) when is_map(blob) do
+    case blob_cid(blob) do
+      cid when is_binary(cid) ->
+        query =
+          "com.atproto.sync.getBlob"
+          |> Query.new(base_url: Session.service_url(session), response: :binary)
+          |> Query.put_param(:did, session.did)
+          |> Query.put_param(:cid, cid)
+
+        case run(session, query, "GET") do
+          {:ok, %{content_type: content_type, body: data}} ->
+            {:ok, %{content_type: content_type, data: data}}
+
+          {:error, _} = error ->
+            error
+        end
+
+      _ ->
+        {:error, :invalid_blob_reference}
+    end
+  end
+
   defp procedure(session, method, body) do
     method
     |> Procedure.new(base_url: Session.service_url(session), response: :json)
     |> Map.put(:body, body)
+  end
+
+  defp blob_cid(blob) do
+    get_in(blob, ["ref", "$link"]) || get_in(blob, [:ref, :"$link"])
   end
 
   # Signs the request with the session's DPoP proof and executes it.
