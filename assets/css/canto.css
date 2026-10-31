@@ -581,6 +581,18 @@
   color: var(--meta);
 }
 
+.recados__convite a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+}
+
+.recados__vazio a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+}
+
 /* cumadis que recomendo (briefing 4.5): cantos com nota curta opcional em
    sussurro; a curadoria mora no modo arrumar. */
 

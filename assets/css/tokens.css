@@ -64,13 +64,13 @@
     --acento: #a493cc;
     --acento-2: #e2a3bf;
     --sussurro: #4a4156;
-    --meta: #9d91b2;
+    --meta: #aca1c0;
     --erro: #e2a3bf;
     --tipo-ensaio: #9d7fe8;
     --fundo-card: #262031;
     --borda-card: #3a3345;
     --tipo-lero: #4fae82;
-    --tipo-matiz: 16%;
+    --tipo-matiz: 10%;
   }
 }
 
@@ -85,7 +85,7 @@
   --fundo-card: #1d1828;
   --borda-card: #332b45;
   --tipo-lero: #4aa87c;
-  --tipo-matiz: 16%;
+  --tipo-matiz: 10%;
 }
 
 [data-theme="gloss"] {
@@ -94,7 +94,7 @@
   --acento: #dc006b;
   --acento-2: #1f7985;
   --sussurro: #e5c4d8;
-  --meta: #8f5c7d;
+  --meta: #865274;
   --erro: #c73a76;
   --fundo-card: #fffafd;
   --borda-card: #f0d8e6;

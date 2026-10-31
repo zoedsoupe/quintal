@@ -33,6 +33,14 @@ defmodule QuintalWeb.ComponentsTest do
     assert html =~ ~s(class="campo__area")
   end
 
+  test "avatar sem foto mostra a inicial em minúscula" do
+    assigns = %{}
+
+    html = rendered_to_string(~H[<.avatar initial="Quintal" />])
+
+    assert html =~ "<span>q</span>"
+  end
+
   test "vazio mostra o axô e o título" do
     assigns = %{}
 

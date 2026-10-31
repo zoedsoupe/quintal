@@ -14,6 +14,7 @@
   border: 1px solid transparent;
   border-radius: var(--raio-pill);
   font-family: var(--fonte-chrome);
+  text-transform: lowercase;
   text-decoration: none;
   cursor: pointer;
   background: var(--acento);
@@ -100,6 +101,10 @@
   background: var(--fundo);
   color: var(--tinta);
   font-family: var(--fonte-leitura);
+}
+
+.campo__input {
+  min-height: 2.75rem;
 }
 
 .campo__input:focus,
@@ -1553,6 +1558,9 @@
 }
 
 .chrome__marca {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
   font-weight: 700;
   color: var(--tinta);
   text-decoration: none;
@@ -1648,6 +1656,13 @@
 
 .chrome__nav-visitas {
   position: relative;
+}
+
+.thread__responder a,
+.vazio a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
 }
 
 /* skip link: invisível até receber foco de teclado */

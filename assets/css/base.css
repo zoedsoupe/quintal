@@ -138,6 +138,13 @@ a:hover {
   color: var(--acento-2);
 }
 
+a:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
 code {
   text-transform: none;
 }
