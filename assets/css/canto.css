@@ -424,15 +424,13 @@
   opacity: 0.55;
 }
 
-/* prosas no canto viram indice (estante, nao feed): uma linha por
-   prosa, data em sussurro com largura fixa pra alinhar, a primeira
-   frase com reticencias, chip miudo de tipo e a linha inteira como
-   link. o hover e uma surface suave na linha toda; a lixeira so existe
-   no modo arrumar, miuda no fim da linha. */
+/* prosas no canto viram indice: matiz quieta por tipo, texto com respiro,
+   data em sussurro e a primeira frase com reticencias. */
 
 .indice {
   display: flex;
   flex-direction: column;
+  gap: var(--espaco-1);
   max-width: var(--medida-leitura);
   padding: 0;
   list-style: none;
@@ -457,7 +455,8 @@
   align-items: baseline;
   gap: var(--espaco-3);
   min-width: 0;
-  padding-block: var(--espaco-2);
+  padding: var(--espaco-3);
+  border-radius: var(--raio-card);
   color: var(--tinta);
   text-decoration: none;
 }
