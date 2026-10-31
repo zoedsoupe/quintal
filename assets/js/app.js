@@ -575,10 +575,7 @@ document.addEventListener("click", (e) => {
 // data-confirm: phoenix_html ja cobre (confirma e cancela o phx-click
 // no cancel). um listener proprio aqui mostrava o dialogo duas vezes.
 
-// o player de áudio mora dentro do card clicável (ver-fio): os gestos
-// nele (play, seek) são dele, nunca navegação. o corte acontece no
-// próprio hook, em bubble no botão — um stopPropagation em capture no
-// document impediria o evento de chegar no botão
+// o player de áudio tem controles próprios dentro do card de leitura
 
 // LeroRecorder: o lero e a prosa falada. um botao, dois estados:
 // parado ("fala ai...") -> gravando (cronometro, "pronto?" para). parar

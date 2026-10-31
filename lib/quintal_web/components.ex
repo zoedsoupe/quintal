@@ -449,7 +449,7 @@ defmodule QuintalWeb.Components do
   attr :texto, :string, required: true
   attr :path, :string, default: nil
   attr :cortou, :boolean, default: false
-  attr :em_resposta, :string, default: nil
+  attr :em_resposta, :map, default: nil
   attr :class, :string, default: nil
   attr :imagens, :list, default: []
   attr :audio, :any, default: nil
@@ -458,30 +458,18 @@ defmodule QuintalWeb.Components do
   slot :acoes
 
   def prosa(assigns) do
-    should_link? = !!assigns[:path]
-
-    assigns =
-      assign(assigns,
-        role: if(should_link?, do: "link", else: "article"),
-        tabindex: should_link? && 0,
-        click: (should_link? && "ver-fio") || nil,
-        key: (should_link? && "Enter->ver-fio") || nil
-      )
-
     ~H"""
     <article
       class={["prosa-card", @class]}
       data-tipo={@tipo}
-      role={@role}
-      tabindex={@tabindex}
-      phx-click={@click}
-      phx-keydown={@key}
-      phx-value-prosa-path={@path || nil}
     >
       <p :if={@em_resposta} class="prosa-card__fio">
         em resposta a
-        <.link navigate={~p"/canto/#{@em_resposta}"} class="prosa-card__fio-autor">
-          {@em_resposta}
+        <.link
+          navigate={QuintalWeb.Formatacao.prosa_path(@em_resposta.uri, @em_resposta.handle)}
+          class="prosa-card__fio-autor"
+        >
+          {@em_resposta.nome || @em_resposta.handle}
         </.link>
       </p>
 
@@ -498,7 +486,10 @@ defmodule QuintalWeb.Components do
                 {@autor}
               </.link>
               <span :if={!@canto} class="prosa-card__autor">{@autor}</span>
-              <time class="prosa-card__tempo" datetime={@datetime}>{@data}</time>
+              <.link :if={@path} navigate={@path} class="prosa-card__tempo-link">
+                <time class="prosa-card__tempo" datetime={@datetime}>{@data}</time>
+              </.link>
+              <time :if={!@path} class="prosa-card__tempo" datetime={@datetime}>{@data}</time>
             </div>
           </div>
           <span :if={@acoes != []} class="prosa-card__acoes">{render_slot(@acoes)}</span>
@@ -516,8 +507,8 @@ defmodule QuintalWeb.Components do
           <.audio_player audio={@audio} />
         </div>
 
-        <footer :if={@path} class="prosa-card__rodape">
-          <.link :if={@cortou} navigate={@path} class="prosa-card__continua">
+        <footer :if={is_binary(@path) and @cortou} class="prosa-card__rodape">
+          <.link navigate={@path} class="prosa-card__continua">
             continuar lendo
           </.link>
         </footer>
@@ -612,6 +603,7 @@ defmodule QuintalWeb.Components do
   attr :canto, :string, default: nil
   attr :avatar, :string, default: nil
   attr :data, :string, required: true
+  attr :datetime, :string, default: nil
   slot :inner_block, required: true
 
   def recado(assigns) do
@@ -621,7 +613,7 @@ defmodule QuintalWeb.Components do
         <.avatar src={@avatar} initial={@autor} />
         <.link :if={@canto} navigate={~p"/canto/#{@canto}"}>{@autor}</.link>
         <span :if={!@canto}>{@autor}</span>
-        <time>{@data}</time>
+        <time datetime={@datetime}>{@data}</time>
       </header>
       {render_slot(@inner_block)}
     </div>

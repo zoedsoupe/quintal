@@ -115,10 +115,6 @@ defmodule QuintalWeb.HomeLive do
      |> enriquecer(pagina)}
   end
 
-  def handle_event("ver-fio", %{"prosa-path" => path}, socket) do
-    {:noreply, push_navigate(socket, to: path)}
-  end
-
   defp flash_prosear(true = _tirou),
     do: "pronto, sua prosa tá no quintal. os links de instagram, tiktok e shorts ficaram de fora, aqui eles não tocam"
 
@@ -161,10 +157,14 @@ defmodule QuintalWeb.HomeLive do
       feed |> Enum.map(& &1.reply_parent) |> Enum.reject(&is_nil/1) |> Enum.uniq()
 
     dids = feed |> Enum.map(& &1.autor_did) |> Enum.uniq()
+    pais = Prosas.pais(pais_uris)
+    dids = dids ++ Enum.map(pais, fn {_uri, pai} -> pai.did end)
+    nomes = Cantos.nomes(dids)
+    pais = Map.new(pais, fn {uri, pai} -> {uri, Map.put(pai, :nome, Map.get(nomes, pai.did, pai.handle))} end)
 
     socket
-    |> update(:pais, &Map.merge(&1, Prosas.pais(pais_uris)))
-    |> update(:nomes, &Map.merge(&1, Cantos.nomes(dids)))
+    |> update(:pais, &Map.merge(&1, pais))
+    |> update(:nomes, &Map.merge(&1, nomes))
     |> update(:avatars, &Map.merge(&1, Cantos.avatars(dids)))
   end
 
@@ -215,6 +215,7 @@ defmodule QuintalWeb.HomeLive do
               canto={handle}
               avatar={avatar_url(prosa.autor, @avatars[prosa.autor_did])}
               data={tempo_relativo(prosa.created_at)}
+              datetime={DateTime.to_iso8601(prosa.created_at)}
               texto={texto}
               tipo={prosa.tipo}
               path={prosa_path(prosa.uri, handle)}

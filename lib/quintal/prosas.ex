@@ -259,18 +259,18 @@ defmodule Quintal.Prosas do
   end
 
   @doc """
-  Os handles das prosas mãe de uma lista de uris, em lote:
-  `%{uri => handle}`. É o "em resposta a fulana" dos cards de resposta
-  no feed. Mãe fora do índice simplesmente não aparece no mapa.
+  Os autores das prosas mãe de uma lista de uris, em lote:
+  `%{uri => %{uri:, handle:, did:}}`. Mãe fora do índice simplesmente
+  não aparece no mapa.
   """
-  @spec pais(uris :: [String.t()]) :: %{String.t() => String.t()}
+  @spec pais(uris :: [String.t()]) :: %{String.t() => map()}
   def pais([]), do: %{}
 
   def pais(uris) do
     from(p in Prosa,
       join: a in assoc(p, :autor),
       where: p.uri in ^uris,
-      select: {p.uri, a.handle}
+      select: {p.uri, %{uri: p.uri, handle: a.handle, did: a.did}}
     )
     |> Repo.all()
     |> Map.new()

@@ -166,10 +166,6 @@ defmodule QuintalWeb.ProsaLive do
     end
   end
 
-  def handle_event("ver-fio", %{"prosa-path" => path}, socket) do
-    {:noreply, push_navigate(socket, to: path)}
-  end
-
   defp flash_resposta(true = _tirou),
     do: "pronto, sua prosa tá no quintal. os links de instagram, tiktok e shorts ficaram de fora, aqui eles não tocam"
 
@@ -213,7 +209,9 @@ defmodule QuintalWeb.ProsaLive do
           <.link navigate={~p"/canto/#{@handle}"} class="prosa-pagina__autor">
             {Map.get(@nomes, @prosa.autor_did, @handle)}
           </.link>
-          <time>{tempo_relativo(@prosa.created_at)}</time>
+          <time datetime={DateTime.to_iso8601(@prosa.created_at)}>
+            {tempo_relativo(@prosa.created_at)}
+          </time>
           <span :if={@sessao && @prosa.autor_did == @sessao.did} class="prosa-pagina__acoes">
             <%!-- lero não tem texto: editar e copiar não fazem sentido --%>
             <.link
@@ -263,6 +261,7 @@ defmodule QuintalWeb.ProsaLive do
           canto={resposta.autor.handle}
           avatar={avatar_url(resposta.autor, @avatars[resposta.autor_did])}
           data={tempo_relativo(resposta.created_at)}
+          datetime={DateTime.to_iso8601(resposta.created_at)}
           texto={resposta.texto}
           tipo={resposta.tipo}
           path={prosa_path(resposta.uri, resposta.autor.handle)}

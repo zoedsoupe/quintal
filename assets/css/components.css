@@ -122,10 +122,6 @@
   max-width: var(--medida-leitura);
 }
 
-.prosa-card[role="link"] {
-  cursor: pointer;
-}
-
 .prosa-card__corpo {
   padding: var(--espaco-2) var(--espaco-3);
   border: 1px solid var(--borda-card);
@@ -187,6 +183,11 @@
 .prosa-card__tempo {
   font-size: 0.8125rem;
   color: var(--meta);
+}
+
+.prosa-card__tempo-link {
+  color: inherit;
+  text-decoration: none;
 }
 
 .prosa-card__acoes {

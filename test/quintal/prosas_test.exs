@@ -567,8 +567,15 @@ defmodule Quintal.ProsasTest do
       assert ["primeira", "segunda"] == mae_uri |> Prosas.respostas() |> Enum.map(& &1.texto)
 
       resp_uri = "at://did:plc:beto/place.quintal.feed.prosa/primeira"
-      assert Prosas.pais([mae_uri]) == %{mae_uri => "did:plc:alice"}
-      assert Prosas.pais([resp_uri]) == %{resp_uri => "did:plc:beto"}
+
+      assert Prosas.pais([mae_uri]) == %{
+               mae_uri => %{uri: mae_uri, handle: "did:plc:alice", did: "did:plc:alice"}
+             }
+
+      assert Prosas.pais([resp_uri]) == %{
+               resp_uri => %{uri: resp_uri, handle: "did:plc:beto", did: "did:plc:beto"}
+             }
+
       assert Prosas.pais(["at://did:plc:ninguem/place.quintal.feed.prosa/x"]) == %{}
     end
   end

@@ -386,11 +386,6 @@ defmodule QuintalWeb.CantoLive do
   defp marca_oculto(%{uri: uri} = recado, uri, oculto), do: %{recado | oculto: oculto}
   defp marca_oculto(recado, _uri, _oculto), do: recado
 
-  # no card o tipo é metadado; no índice do canto ele vira chip miúdo,
-  # com o acento que o valor do lexicon não tem
-  defp rotulo_tipo("cronica"), do: "crônica"
-  defp rotulo_tipo(tipo), do: tipo
-
   # o follow da pessoa logada nesse canto, se existe: uma query, sem
   # carregar a vizinhança inteira pra testar uma ponta
   defp seguindo(nil, _proprio?, _dono_did), do: nil
@@ -674,12 +669,12 @@ defmodule QuintalWeb.CantoLive do
                     <.link
                       navigate={prosa_path(prosa.uri, @dono.handle)}
                       class="indice__linha"
+                      data-tipo={prosa.tipo || "nota"}
                     >
-                      <time class="indice__data">{data_curta(prosa.created_at)}</time>
+                      <time class="indice__data" datetime={DateTime.to_iso8601(prosa.created_at)}>
+                        {data_curta(prosa.created_at)}
+                      </time>
                       <span class="indice__frase">{Markdown.render_inline(primeira_frase(prosa.texto))}</span>
-                      <span :if={prosa.tipo not in [nil, "nota"]} class="indice__tipo">{rotulo_tipo(
-                        prosa.tipo
-                      )}</span>
                     </.link>
                     <button
                       :if={@arrumar}
@@ -709,6 +704,7 @@ defmodule QuintalWeb.CantoLive do
                       canto={autor_recado(recado, @sessao && Map.get(@sessao, :handle))}
                       avatar={avatar_url(recado.autor, @avatars[recado.autor_did])}
                       data={tempo_relativo(recado.created_at)}
+                      datetime={DateTime.to_iso8601(recado.created_at)}
                     >
                       {Markdown.render(recado.texto)}
                     </.recado>

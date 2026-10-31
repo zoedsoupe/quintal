@@ -424,6 +424,22 @@
   text-decoration: none;
 }
 
+.indice__linha[data-tipo="pergunta"] {
+  background: color-mix(in srgb, var(--tipo-pergunta) var(--tipo-matiz), transparent);
+}
+
+.indice__linha[data-tipo="cronica"] {
+  background: color-mix(in srgb, var(--tipo-cronica) var(--tipo-matiz), transparent);
+}
+
+.indice__linha[data-tipo="ensaio"] {
+  background: color-mix(in srgb, var(--tipo-ensaio) var(--tipo-matiz), transparent);
+}
+
+.indice__linha[data-tipo="lero"] {
+  background: color-mix(in srgb, var(--tipo-lero) var(--tipo-matiz), transparent);
+}
+
 .indice__data {
   flex: none;
   width: 8ch;
