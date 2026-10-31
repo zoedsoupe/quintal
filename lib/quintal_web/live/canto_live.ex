@@ -501,12 +501,19 @@ defmodule QuintalWeb.CantoLive do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} sessao={@sessao} novidade={@novidade}>
+      <h1 :if={!@encontrou} class="sr-only">{@page_title}</h1>
+
       <.vazio
         :if={!@encontrou}
         pose={:lupa}
         titulo="o axô procurou, procurou... e não achou esse canto"
       >
-        <.link navigate={~p"/inicio"} class="botao botao--fantasma">voltar pro início</.link>
+        <.link
+          navigate={if @sessao, do: ~p"/inicio", else: ~p"/passear"}
+          class="botao botao--fantasma"
+        >
+          {if @sessao, do: "voltar pro início", else: "passear pelo quintal"}
+        </.link>
       </.vazio>
 
       <div
@@ -734,7 +741,7 @@ defmodule QuintalWeb.CantoLive do
             <%= case bloco do %>
               <% "prosas" -> %>
                 <h2 class="canto-bloco__titulo">prosas</h2>
-                <ul class="indice">
+                <ul :if={@prosas != []} class="indice">
                   <li :for={prosa <- @prosas} class="indice__item">
                     <.link
                       navigate={prosa_path(prosa.uri, @dono.handle)}
@@ -759,7 +766,13 @@ defmodule QuintalWeb.CantoLive do
                     </button>
                   </li>
                 </ul>
-                <p :if={@prosas == []} class="recados__vazio">ainda não tem prosas por aqui.</p>
+                <p :if={@prosas == [] && @proprio?} class="recados__vazio">
+                  seu canto ainda tá sem prosas. que tal escrever a primeira?
+                  <.link navigate={~p"/prosear"}>escrever uma prosa</.link>
+                </p>
+                <p :if={@prosas == [] && !@proprio?} class="recados__vazio">
+                  ainda não tem prosas por aqui.
+                </p>
                 <p :if={length(@prosas) == @prosas_visiveis} class="recados__mais">
                   <.botao variante={:sutil} phx-click="mais_prosas">ver mais prosas</.botao>
                 </p>
@@ -851,7 +864,7 @@ defmodule QuintalWeb.CantoLive do
                 <p :if={@blogroll_items == [] && !@arrumar && !@proprio?} class="quem-leio__vazio">
                   esse canto ainda não recomenda ninguém da vizinhança.
                 </p>
-                <ul class="quem-leio">
+                <ul :if={@blogroll_items != []} class="quem-leio">
                   <li :for={item <- @blogroll_items}>
                     <.link navigate={~p"/canto/#{item.handle}"}>{item.handle}</.link>
                     <span :if={item.note} class="quem-leio__nota">{item.note}</span>
@@ -942,9 +955,12 @@ defmodule QuintalWeb.CantoLive do
               </div>
             </form>
           </div>
-          <p :if={!@sessao && !@proprio?} class="depoimento-form">
-            <.link navigate={~p"/"}>entre para prosear</.link>
-          </p>
+          <div :if={!@sessao && !@proprio?} class="depoimento-form">
+            <p :if={@depoimentos == []} class="depoimentos__vazio">
+              esse canto ainda não tem depoimentos. entra pra deixar um recado carinhoso.
+            </p>
+            <.link navigate={~p"/"}>entre para deixar um depoimento</.link>
+          </div>
         </section>
       </div>
     </Layouts.app>

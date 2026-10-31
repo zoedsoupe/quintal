@@ -72,6 +72,11 @@ defmodule QuintalWeb.Layouts do
             </nav>
           </details>
         </div>
+
+        <nav :if={!@sessao} class="chrome__nav" aria-label="navegação principal">
+          <.link navigate={~p"/passear"}>passear</.link>
+          <.link navigate={~p"/"}>entrar</.link>
+        </nav>
       </header>
 
       <p :if={msg = Phoenix.Flash.get(@flash, :info)} class="flash flash--info" role="status">

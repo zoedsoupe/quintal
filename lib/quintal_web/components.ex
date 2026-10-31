@@ -431,7 +431,7 @@ defmodule QuintalWeb.Components do
   defp avatar_initial(initial) do
     case initial |> String.trim() |> String.first() do
       nil -> "?"
-      first -> String.upcase(first)
+      first -> String.downcase(first)
     end
   end
 

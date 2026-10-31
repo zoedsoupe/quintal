@@ -48,6 +48,7 @@ defmodule QuintalWeb.ProsaLive do
     sessao = socket.assigns.sessao
     prosa = buscar_prosa(handle, rkey)
     canto = if prosa, do: Cantos.get(prosa.autor_did), else: canto_pelo_handle(handle)
+    canto_encontrado? = not is_nil(prosa) or not is_nil(Repo.get_by(Identidade, handle: handle))
     thread = if prosa, do: Prosas.respostas(prosa.uri), else: []
     mae = buscar_mae(prosa)
 
@@ -59,6 +60,7 @@ defmodule QuintalWeb.ProsaLive do
      |> assign(
        novidade: sessao && Visitas.novidade?(sessao.did),
        handle: handle,
+       canto_encontrado?: canto_encontrado?,
        prosa: prosa,
        imagens: prosa && imagens_card(prosa),
        audio: prosa && audio_card(prosa),
@@ -207,7 +209,18 @@ defmodule QuintalWeb.ProsaLive do
           pose={:lupa}
           titulo="o axô procurou, procurou... e não achou essa prosa"
         >
-          <.link navigate={~p"/inicio"} class="botao botao--fantasma">voltar pro início</.link>
+          <.link
+            navigate={
+              if @sessao,
+                do: ~p"/inicio",
+                else: if(@canto_encontrado?, do: ~p"/canto/#{@handle}", else: ~p"/passear")
+            }
+            class="botao botao--fantasma"
+          >
+            {if @sessao,
+              do: "voltar pro início",
+              else: if(@canto_encontrado?, do: "voltar pro canto", else: "passear pelo quintal")}
+          </.link>
         </.vazio>
 
         <article :if={@prosa} class="prosa-pagina">
@@ -377,7 +390,6 @@ defmodule QuintalWeb.ProsaLive do
             <.link navigate={~p"/canto/#{@handle}"}>
               mais prosas de {Map.get(@nomes, @prosa.autor_did, @handle)}
             </.link>
-            <.link :if={!@sessao} navigate={~p"/"}>entre para prosear</.link>
           </footer>
         </section>
       </div>

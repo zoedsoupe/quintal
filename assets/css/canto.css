@@ -668,6 +668,17 @@
   margin-top: var(--espaco-3);
 }
 
+.depoimento-form a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+}
+
+.depoimentos__vazio {
+  margin-bottom: var(--espaco-2);
+  color: var(--meta);
+}
+
 .depoimento-form form {
   display: flex;
   flex-direction: column;
