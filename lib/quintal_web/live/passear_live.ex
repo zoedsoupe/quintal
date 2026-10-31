@@ -70,7 +70,14 @@ defmodule QuintalWeb.PassearLive do
       <h1 class="sr-only">passear</h1>
 
       <div :if={!@carta && !@esgotado} class="passear">
-        <img class="passear__axo" src="/images/axo-with-glass.png" alt="" aria-hidden="true" />
+        <img
+          class="passear__axo"
+          src="/images/axo-with-glass.png"
+          alt=""
+          aria-hidden="true"
+          width="414"
+          height="418"
+        />
         <p class="passear__linha">o axô acha um canto pra você conhecer</p>
         <.botao phx-click="passear">passear</.botao>
 

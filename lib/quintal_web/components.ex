@@ -20,12 +20,13 @@ defmodule QuintalWeb.Components do
   cara de botão.
   """
   attr :variante, :atom, default: :primario, values: [:primario, :fantasma, :sutil]
+  attr :class, :any, default: nil
   attr :rest, :global, include: ~w(type disabled navigate href phx-click phx-value-url phx-value-uri data-confirm)
   slot :inner_block, required: true
 
   def botao(assigns) do
     ~H"""
-    <button class={"botao botao--#{@variante}"} {@rest}>
+    <button class={["botao", "botao--#{@variante}", @class]} {@rest}>
       {render_slot(@inner_block)}
     </button>
     """
@@ -385,11 +386,26 @@ defmodule QuintalWeb.Components do
   """
   attr :src, :string, default: nil
   attr :class, :string, default: nil
+  attr :initial, :string, default: nil
 
   def avatar(assigns) do
+    assigns = assign(assigns, :initial, avatar_initial(assigns.initial))
+
     ~H"""
-    <img src={@src || "/images/axo-avatar.png"} alt="" class={["avatar", @class]} />
+    <span class={["avatar", !@src && "avatar--inicial", @class]} aria-hidden="true">
+      <img :if={@src} src={@src} alt="" width="32" height="32" />
+      <span :if={!@src}>{@initial}</span>
+    </span>
     """
+  end
+
+  defp avatar_initial(nil), do: "?"
+
+  defp avatar_initial(initial) do
+    case initial |> String.trim() |> String.first() do
+      nil -> "?"
+      first -> String.upcase(first)
+    end
   end
 
   @doc """
@@ -418,6 +434,7 @@ defmodule QuintalWeb.Components do
   attr :imagens, :list, default: []
   attr :audio, :any, default: nil
   attr :tipo, :string, default: nil
+  attr :datetime, :string, default: nil
   slot :acoes
 
   def prosa(assigns) do
@@ -451,7 +468,7 @@ defmodule QuintalWeb.Components do
       <div class="prosa-card__corpo">
         <header class="prosa-card__cabeca">
           <div class="prosa-card__identidade">
-            <.avatar src={@avatar} />
+            <.avatar src={@avatar} initial={@autor} />
             <div class="prosa-card__quem">
               <.link
                 :if={@canto}
@@ -461,7 +478,7 @@ defmodule QuintalWeb.Components do
                 {@autor}
               </.link>
               <span :if={!@canto} class="prosa-card__autor">{@autor}</span>
-              <time class="prosa-card__tempo">{@data}</time>
+              <time class="prosa-card__tempo" datetime={@datetime}>{@data}</time>
             </div>
           </div>
           <span :if={@acoes != []} class="prosa-card__acoes">{render_slot(@acoes)}</span>
@@ -581,7 +598,7 @@ defmodule QuintalWeb.Components do
     ~H"""
     <div class="recado">
       <header class="recado__meta">
-        <.avatar src={@avatar} />
+        <.avatar src={@avatar} initial={@autor} />
         <.link :if={@canto} navigate={~p"/canto/#{@canto}"}>{@autor}</.link>
         <span :if={!@canto}>{@autor}</span>
         <time>{@data}</time>
@@ -596,6 +613,7 @@ defmodule QuintalWeb.Components do
     dormindo: "/images/axo-slepping.png",
     lupa: "/images/axo-with-glass.png"
   }
+  @axo_dimensions %{sentado: {415, 420}, dormindo: {490, 362}, lupa: {414, 418}}
 
   @doc """
   Estado vazio com o axô (briefing 4.8): uma pose, uma frase de
@@ -611,10 +629,18 @@ defmodule QuintalWeb.Components do
       assigns
       |> assign_new(:inner_block, fn -> [] end)
       |> assign(:axo_src, @axo_poses[assigns.pose])
+      |> assign(:axo_dimensions, @axo_dimensions[assigns.pose])
 
     ~H"""
     <div class="vazio">
-      <img class="axo" src={@axo_src} alt="" aria-hidden="true" />
+      <img
+        class="axo"
+        src={@axo_src}
+        alt=""
+        aria-hidden="true"
+        width={elem(@axo_dimensions, 0)}
+        height={elem(@axo_dimensions, 1)}
+      />
       <p>{@titulo}</p>
       {render_slot(@inner_block)}
     </div>

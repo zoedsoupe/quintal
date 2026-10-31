@@ -898,6 +898,16 @@ const animateAxo = () => {
 };
 
 const showAxoLoading = () => {
+  const axoSelectors = [".axo", ".passear__axo", ".convite__axo", ".boas-vindas__axo"];
+  const axoAlreadyVisible = axoSelectors.some((selector) =>
+    [...document.querySelectorAll(selector)].some((element) => element.getClientRects().length > 0),
+  );
+
+  if (axoAlreadyVisible) {
+    hideAxoLoading();
+    return;
+  }
+
   if (!axoLoading) {
     axoLoading = document.createElement("img");
     axoLoading.src = "/images/axo-swimming.png";

@@ -202,7 +202,10 @@ defmodule QuintalWeb.ProsaLive do
           em resposta a {Map.get(@nomes, @mae.autor_did, @mae.autor.handle)}
         </.link>
         <header class="prosa-pagina__meta">
-          <.avatar src={avatar_url(@prosa.autor, @avatars[@prosa.autor_did])} />
+          <.avatar
+            src={avatar_url(@prosa.autor, @avatars[@prosa.autor_did])}
+            initial={Map.get(@nomes, @prosa.autor_did, @handle)}
+          />
           <.link navigate={~p"/canto/#{@handle}"} class="prosa-pagina__autor">
             {Map.get(@nomes, @prosa.autor_did, @handle)}
           </.link>

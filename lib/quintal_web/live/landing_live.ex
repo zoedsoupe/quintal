@@ -26,7 +26,14 @@ defmodule QuintalWeb.LandingLive do
     ~H"""
     <Layouts.app flash={@flash} sessao={@sessao} novidade={@novidade} moldura={false}>
       <div class="boas-vindas">
-        <img class="boas-vindas__axo" src="/images/axo-front-gretting.png" alt="" aria-hidden="true" />
+        <img
+          class="boas-vindas__axo"
+          src="/images/axo-front-gretting.png"
+          alt=""
+          aria-hidden="true"
+          width="415"
+          height="421"
+        />
         <h1 class="boas-vindas__marca">quintal</h1>
         <p class="boas-vindas__linha">seu canto na vizinhança</p>
 

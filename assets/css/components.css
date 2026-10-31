@@ -1465,12 +1465,29 @@
 /* avatar: a foto redondinha do canto; sem foto, a cara do axô */
 
 .avatar {
+  display: inline-grid;
+  place-items: center;
   width: 2rem;
   height: 2rem;
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
   background: var(--fundo-card, var(--sussurro));
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+}
+
+.avatar--inicial {
+  background: color-mix(in srgb, var(--acento) 12%, var(--fundo-card));
+  color: var(--acento);
+  font-family: var(--fonte-chrome);
+  font-size: 0.875rem;
+  font-weight: 700;
 }
 
 /* estado vazio: o axo aparece aqui, uma vez por tela (spec 7.6) */

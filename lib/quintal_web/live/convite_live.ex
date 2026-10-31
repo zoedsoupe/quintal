@@ -21,7 +21,14 @@ defmodule QuintalWeb.ConviteLive do
     ~H"""
     <Layouts.app flash={@flash} sessao={@sessao} novidade={false} moldura={false}>
       <div class="convite">
-        <img class="convite__axo" src="/images/axo-front-gretting.png" alt="" aria-hidden="true" />
+        <img
+          class="convite__axo"
+          src="/images/axo-front-gretting.png"
+          alt=""
+          aria-hidden="true"
+          width="415"
+          height="421"
+        />
         <h1>o quintal é pequeno de propósito. você foi convidade.</h1>
 
         <form action="/convite" method="post" class="convite__form">

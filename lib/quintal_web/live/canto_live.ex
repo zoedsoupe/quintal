@@ -509,7 +509,11 @@ defmodule QuintalWeb.CantoLive do
 
         <header class="canto__cabeca">
           <div class="canto__titulo">
-            <.avatar src={avatar_url(@dono, @canto.avatar)} class="canto__avatar" />
+            <.avatar
+              src={avatar_url(@dono, @canto.avatar)}
+              initial={@canto.nome || @dono.handle}
+              class="canto__avatar"
+            />
             <div class="canto__identidade">
               <h1 class="canto__nome">{@canto.nome || @dono.handle}</h1>
               <p :if={@canto.nome} class="canto__handle">{@dono.handle}</p>
