@@ -30,6 +30,8 @@ defmodule QuintalWeb.LexiconsController do
       nil ->
         conn
         |> put_status(:not_found)
+        |> put_root_layout(false)
+        |> put_layout(false)
         |> put_view(html: QuintalWeb.ErrorHTML)
         |> render(:"404")
         |> halt()

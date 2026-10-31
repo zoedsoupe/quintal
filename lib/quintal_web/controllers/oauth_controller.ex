@@ -55,6 +55,8 @@ defmodule QuintalWeb.OAuthController do
       _ ->
         conn
         |> put_status(:unauthorized)
+        |> put_root_layout(false)
+        |> put_layout(false)
         |> put_view(html: QuintalWeb.ErrorHTML)
         |> render("401.html")
         |> halt()

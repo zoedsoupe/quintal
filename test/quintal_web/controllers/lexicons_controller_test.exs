@@ -36,7 +36,10 @@ defmodule QuintalWeb.LexiconsControllerTest do
       |> build_conn("http://quintal.place/lexicons/place.quintal.nao.existe")
       |> get("/lexicons/place.quintal.nao.existe")
 
-    assert html_response(conn, 404)
+    html = html_response(conn, 404)
+    assert html =~ "<h1>o axô procurou"
+    assert length(Regex.scan(~r/<html\b/, html)) == 1
+    assert length(Regex.scan(~r|/assets/app\.css|, html)) == 1
   end
 
   test "host do app não serve a documentação" do

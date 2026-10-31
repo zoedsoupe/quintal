@@ -89,6 +89,9 @@ defmodule QuintalWeb.OAuthControllerTest do
       conn = get(conn, "/oauth/callback", %{"code" => "123", "state" => "abc"})
 
       assert conn.status == 401
+      assert conn.resp_body =~ "<h1>opa, pode entrar não"
+      assert length(Regex.scan(~r/<html\b/, conn.resp_body)) == 1
+      assert length(Regex.scan(~r|/assets/app\.css|, conn.resp_body)) == 1
     end
 
     test "rejects when the exchange fails", %{conn: conn} do
