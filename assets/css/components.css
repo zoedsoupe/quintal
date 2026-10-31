@@ -1899,14 +1899,13 @@ html.rolagem-descendo .nav-movel {
   width: 100%;
   max-width: 22rem;
   margin-top: var(--espaco-4);
-  padding-top: var(--espaco-4);
-  border-top: 1px solid var(--sussurro);
-  text-align: left;
+  text-align: center;
 }
 
 .boas-vindas__login h2 {
   margin-bottom: var(--espaco-2);
   font-size: 1.25rem;
+  text-align: center;
 }
 
 /* form de entrar: campo e botao com respiro */
@@ -1917,21 +1916,30 @@ html.rolagem-descendo .nav-movel {
   gap: var(--espaco-3);
   width: 100%;
   max-width: 22rem;
+  align-items: center;
+  text-align: center;
+}
+
+.entrar .campo {
+  width: 100%;
+  text-align: center;
 }
 
 .entrar > .botao {
-  align-self: flex-start;
+  align-self: center;
 }
 
-.boas-vindas__alternativas {
+.boas-vindas__links {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: var(--espaco-3);
-  margin-top: var(--espaco-3);
+  gap: var(--espaco-1) var(--espaco-3);
+  max-width: 29rem;
+  margin-top: var(--espaco-2);
+  padding-block: var(--espaco-2);
 }
 
-.boas-vindas__alternativas a {
+.boas-vindas__links a {
   display: inline-flex;
   align-items: center;
   min-height: 2.75rem;
@@ -1966,14 +1974,6 @@ html.rolagem-descendo .nav-movel {
   flex-direction: column;
   gap: var(--espaco-2);
   padding-left: var(--espaco-4);
-}
-
-.cadastro__link {
-  display: inline-flex;
-  align-items: center;
-  min-height: 2.75rem;
-  font-size: 0.875rem;
-  text-align: center;
 }
 
 .convite__voltar {

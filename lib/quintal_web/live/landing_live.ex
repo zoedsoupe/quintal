@@ -61,19 +61,15 @@ defmodule QuintalWeb.LandingLive do
               errors={if erro = Phoenix.Flash.get(@flash, :error), do: [erro], else: []}
             />
             <.botao variante={:primario} type="submit">entrar com atproto</.botao>
-            <.link navigate={~p"/cadastro"} class="cadastro__link">não tenho conta ainda</.link>
           </form>
         </section>
 
-        <nav class="boas-vindas__alternativas" aria-label="outras formas de chegar">
+        <nav class="boas-vindas__links" aria-label="outras páginas do quintal">
           <.link :if={!@convite} navigate={~p"/convite"}>tenho um convite</.link>
+          <.link :if={@convite} navigate={~p"/cadastro"}>criar conta atproto</.link>
           <.link navigate={~p"/passear"}>passear com o axô</.link>
-        </nav>
-
-        <nav class="rodape">
           <.link navigate={~p"/faq"}>que lugar é esse?</.link>
           <.link navigate={~p"/conduta"}>regrinhas de convivência</.link>
-          <a href="https://github.com/zoedsoupe/quintal" target="_blank" rel="noopener">código aberto</a>
         </nav>
       </div>
     </Layouts.app>
