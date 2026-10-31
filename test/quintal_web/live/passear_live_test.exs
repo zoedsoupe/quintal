@@ -5,7 +5,6 @@ defmodule QuintalWeb.PassearLiveTest do
   import Phoenix.LiveViewTest
 
   alias Quintal.Auth.Mock
-  alias Quintal.Prosas
   alias Quintal.Repo
 
   setup :verify_on_exit!
@@ -48,8 +47,7 @@ defmodule QuintalWeb.PassearLiveTest do
     assert html =~ "passear"
   end
 
-  test "passear sorteia uma carta de descoberta", %{conn: conn} do
-    # a prosa sorteada é de outra pessoa: o passear nunca mostra o próprio canto
+  test "passear mostra o canto inteiro, mesmo sem prosas", %{conn: conn} do
     Repo.insert!(%Quintal.Identidade{
       did: "did:plc:clara",
       handle: "clara.bsky.social",
@@ -57,32 +55,36 @@ defmodule QuintalWeb.PassearLiveTest do
       atualizado_em: DateTime.utc_now()
     })
 
-    {:ok, _} =
-      Prosas.indexar("did:plc:clara", %{
-        uri: "at://did:plc:clara/place.quintal.feed.prosa/p1",
-        cid: "bafy",
-        value: %{text: "uma prosa para ser descoberta", created_at: "2026-08-01T10:00:00Z"}
-      })
+    Repo.insert!(%Quintal.Canto{
+      dono_did: "did:plc:clara",
+      tema: "papel",
+      blocos: ~w(prosas recados quem-eu-leio),
+      bio: "uma bio para conhecer a clara",
+      links: [%Quintal.Canto.Link{titulo: "meu site", url: "https://example.com"}],
+      updated_at: DateTime.utc_now()
+    })
 
     {:ok, view, _html} = live(conn, "/passear")
     html = view |> element("button", "passear") |> render_click()
 
-    assert html =~ "uma prosa para ser descoberta"
+    assert html =~ "uma bio para conhecer a clara"
+    assert html =~ "meu site"
     assert html =~ "clara.bsky.social"
     assert html =~ "visitar esse canto"
-    assert html =~ "de novo"
+    assert html =~ "outro canto"
+    refute html =~ "uma prosa para ser descoberta"
   end
 
-  test "passear com o índice vazio vira convite, não tela morta", %{conn: conn} do
+  test "passear sem outros cantos mostra um estado vazio público", %{conn: conn} do
     {:ok, view, _html} = live(conn, "/passear")
     html = view |> element("button", "passear") |> render_click()
 
     assert html =~ "o axô nadou o quintal inteiro e não achou ninguém por aqui ainda"
-    assert html =~ "escrever uma prosa"
-    refute html =~ "o axô acha um canto pra você conhecer"
+    assert html =~ "voltar pro quintal"
+    refute html =~ "/prosear"
   end
 
-  test "de novo não repete carta e recomeça quando o índice esgota", %{conn: conn} do
+  test "fim do passeio avisa e só repete quando a pessoa reinicia", %{conn: conn} do
     Repo.insert!(%Quintal.Identidade{
       did: "did:plc:clara",
       handle: "clara.bsky.social",
@@ -90,25 +92,16 @@ defmodule QuintalWeb.PassearLiveTest do
       atualizado_em: DateTime.utc_now()
     })
 
-    for n <- 1..2 do
-      {:ok, _} =
-        Prosas.indexar("did:plc:clara", %{
-          uri: "at://did:plc:clara/place.quintal.feed.prosa/p#{n}",
-          cid: "bafy",
-          value: %{text: "prosa #{n} da clara", created_at: "2026-08-01T10:00:00Z"}
-        })
-    end
-
     {:ok, view, _html} = live(conn, "/passear")
     primeira = view |> element("button", "passear") |> render_click()
-    segunda = view |> element("button", "de novo") |> render_click()
+    segunda = view |> element("button", "outro canto") |> render_click()
 
-    assert (primeira =~ "prosa 1 da clara" and segunda =~ "prosa 2 da clara") or
-             (primeira =~ "prosa 2 da clara" and segunda =~ "prosa 1 da clara")
+    assert primeira =~ "clara.bsky.social"
+    assert segunda =~ "você já passeou por todos os cantos de hoje"
+    assert segunda =~ "recomeçar o passeio"
 
-    # esgotou as duas: o ritual recomeça em vez de morrer no estado vazio
-    terceira = view |> element("button", "de novo") |> render_click()
-    assert terceira =~ "visitar esse canto"
+    terceira = view |> element("button", "recomeçar o passeio") |> render_click()
+    assert terceira =~ "clara.bsky.social"
   end
 
   test "ir direto leva ao canto pelo handle, com ou sem arroba", %{conn: conn} do

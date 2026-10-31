@@ -1,7 +1,7 @@
 /* passear e convite (marco m4, briefing 5.6 e 5.7) */
 
 /* passear: quase vazio de proposito. axo com a lupa, uma frase, um
-   botao grande. a carta de descoberta ocupa o mesmo centro */
+   botao grande. a descoberta apresenta um canto inteiro */
 
 .passear {
   display: flex;
@@ -37,19 +37,44 @@
   flex: 1;
 }
 
-.passeio__trecho {
-  margin: 0;
-  padding: 0;
-  border: 0;
+.passeio__canto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
   max-width: var(--medida-leitura);
-  font-family: var(--fonte-leitura);
-  font-size: 1.25rem;
-  line-height: 1.6;
-  color: var(--tinta);
+  margin: var(--espaco-5) auto;
+  text-align: left;
 }
 
-.passeio__autor {
+.passeio__cabecalho {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+}
+
+.passeio__avatar {
+  width: 4.5rem;
+  height: 4.5rem;
+}
+
+.passeio__nome {
+  font-size: 1.5rem;
+}
+
+.passeio__nome a {
+  color: var(--tinta);
+  text-decoration: none;
+}
+
+.passeio__handle,
+.passeio__bio {
   color: var(--meta);
+}
+
+.passeio__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-3);
 }
 
 .passeio__caminhos {

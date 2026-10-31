@@ -1,20 +1,18 @@
 defmodule QuintalWeb.PassearLive do
   @moduledoc """
   O passear (briefing 5.6; marco m4): quase vazio de propósito. O axô
-  com a lupa, uma frase e um botão grande. Cada toque sorteia uma carta
-  de descoberta: um trecho de prosa, o nome do canto e dois caminhos
-  quietos, "visitar esse canto" e "de novo". Uma descoberta por vez,
-  sempre: ritual, não catálogo.
+  com a lupa, uma frase e um botão grande. Cada toque descobre um canto
+  inteiro, com nome, handle, bio e links quando existem. Uma descoberta
+  por vez, sempre: ritual, não catálogo.
   """
 
   use QuintalWeb, :live_view
 
+  import QuintalWeb.Formatacao, only: [avatar_url: 2]
+
   alias Quintal.Cantos
   alias Quintal.Passear
   alias Quintal.Visitas
-  alias QuintalWeb.Markdown
-
-  @trecho 400
 
   @impl true
   def mount(_params, _session, socket) do
@@ -25,20 +23,24 @@ defmodule QuintalWeb.PassearLive do
      assign(socket,
        novidade: novidade,
        page_title: "passear",
-       carta: nil,
+       descoberta: nil,
+       canto: nil,
        nome: nil,
        vistas: [],
-       esgotado: false
+       esgotado: false,
+       sem_cantos: false
      )}
   end
 
   @impl true
   def handle_event("passear", _params, socket) do
     viewer_did = socket.assigns.sessao && socket.assigns.sessao.did
-    {carta, vistas} = sortear(viewer_did, socket.assigns.vistas)
-    nome = carta && [carta.autor_did] |> Cantos.nomes() |> Map.get(carta.autor_did)
+    sortear(socket, viewer_did, socket.assigns.vistas)
+  end
 
-    {:noreply, assign(socket, carta: carta, nome: nome, vistas: vistas, esgotado: is_nil(carta))}
+  def handle_event("recomecar", _params, socket) do
+    viewer_did = socket.assigns.sessao && socket.assigns.sessao.did
+    sortear(socket, viewer_did, [])
   end
 
   def handle_event("ir_direto", %{"handle" => handle}, socket) do
@@ -53,13 +55,27 @@ defmodule QuintalWeb.PassearLive do
     end
   end
 
-  # o "de novo" nunca repete carta; quando todas as prosas elegíveis já
-  # apareceram nesta sessão, zera as vistas e o ritual recomeça
-  defp sortear(viewer_did, vistas) do
-    case Passear.prosa_aleatoria(viewer_did, vistas) do
-      nil when vistas != [] -> sortear(viewer_did, [])
-      nil -> {nil, vistas}
-      carta -> {carta, [carta.uri | vistas]}
+  defp sortear(socket, viewer_did, vistas) do
+    case Passear.canto_aleatorio(viewer_did, vistas) do
+      nil when vistas != [] ->
+        {:noreply, assign(socket, descoberta: nil, canto: nil, esgotado: true, sem_cantos: false)}
+
+      nil ->
+        {:noreply, assign(socket, descoberta: nil, canto: nil, esgotado: false, sem_cantos: true)}
+
+      descoberta ->
+        canto = Cantos.get(descoberta.did) || %Quintal.Canto{}
+        nome = [descoberta.did] |> Cantos.nomes() |> Map.get(descoberta.did)
+
+        {:noreply,
+         assign(socket,
+           descoberta: descoberta,
+           canto: canto,
+           nome: nome,
+           vistas: [descoberta.did | vistas],
+           esgotado: false,
+           sem_cantos: false
+         )}
     end
   end
 
@@ -69,7 +85,7 @@ defmodule QuintalWeb.PassearLive do
     <Layouts.app flash={@flash} sessao={@sessao} novidade={@novidade}>
       <h1 class="sr-only">passear</h1>
 
-      <div :if={!@carta && !@esgotado} class="passear">
+      <div :if={!@descoberta && !@esgotado && !@sem_cantos} class="passear">
         <img
           class="passear__axo"
           src="/images/axo-with-glass.png"
@@ -93,42 +109,54 @@ defmodule QuintalWeb.PassearLive do
       </div>
 
       <.vazio
-        :if={@esgotado}
+        :if={@sem_cantos}
         pose={:lupa}
         titulo="o axô nadou o quintal inteiro e não achou ninguém por aqui ainda"
       >
-        <.link navigate={~p"/prosear"} class="botao botao--primario">escrever uma prosa</.link>
+        <.link navigate={~p"/"} class="botao botao--fantasma">voltar pro quintal</.link>
       </.vazio>
 
-      <div :if={@carta} class="passear passeio">
-        <blockquote class="passeio__trecho">
-          {Markdown.render(trecho(@carta.texto))}
-        </blockquote>
-        <p class="passeio__autor">
-          do canto de
-          <.link navigate={~p"/canto/#{@carta.autor.handle}"}>
-            {@nome || @carta.autor.handle}
-          </.link>
-        </p>
+      <.vazio
+        :if={@esgotado}
+        pose={:lupa}
+        titulo="você já passeou por todos os cantos de hoje"
+      >
+        <.botao variante={:fantasma} phx-click="recomecar">recomeçar o passeio</.botao>
+      </.vazio>
+
+      <article :if={@descoberta} class="passeio passeio__canto">
+        <header class="passeio__cabecalho">
+          <.avatar
+            src={avatar_url(@descoberta, @canto.avatar)}
+            initial={@canto.nome || @descoberta.handle}
+            class="passeio__avatar"
+          />
+          <div>
+            <h2 class="passeio__nome">
+              <.link navigate={~p"/canto/#{@descoberta.handle}"}>
+                {@canto.nome || @nome || @descoberta.handle}
+              </.link>
+            </h2>
+            <p class="passeio__handle">{@descoberta.handle}</p>
+          </div>
+        </header>
+
+        <p :if={@canto.bio} class="passeio__bio">{@canto.bio}</p>
+
+        <nav :if={@canto.links != []} class="passeio__links" aria-label="links do canto">
+          <a :for={link <- @canto.links} href={link.url} target="_blank" rel="noopener">
+            {link.titulo}
+          </a>
+        </nav>
 
         <div class="passeio__caminhos">
-          <.link navigate={~p"/canto/#{@carta.autor.handle}"} class="botao botao--primario">
+          <.link navigate={~p"/canto/#{@descoberta.handle}"} class="botao botao--primario">
             visitar esse canto
           </.link>
-          <.botao variante={:fantasma} phx-click="passear">de novo</.botao>
+          <.botao variante={:fantasma} phx-click="passear">outro canto</.botao>
         </div>
-      </div>
+      </article>
     </Layouts.app>
     """
-  end
-
-  # trecho quieto de no máximo ~400 grafemes, cortado em grafeema e não
-  # em byte, para não mutilar emoji nem acento na carta
-  defp trecho(texto) do
-    if texto |> String.graphemes() |> length() > @trecho do
-      texto |> String.graphemes() |> Enum.take(@trecho) |> IO.iodata_to_binary() |> Kernel.<>("...")
-    else
-      texto
-    end
   end
 end
