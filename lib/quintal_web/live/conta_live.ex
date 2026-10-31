@@ -14,6 +14,7 @@ defmodule QuintalWeb.ContaLive do
   alias Quintal.Convites
   alias Quintal.Identidade
   alias Quintal.Repo
+  alias Quintal.Visitas
 
   @impl true
   def mount(_params, _session, socket) do
@@ -23,7 +24,7 @@ defmodule QuintalWeb.ContaLive do
     {:ok,
      assign(socket,
        page_title: "conta",
-       novidade: false,
+       novidade: Visitas.novidade?(did),
        identidade: identidade,
        versao: :quintal |> Application.spec(:vsn) |> to_string(),
        fundadora?: Convites.fundadora?(did),
@@ -124,10 +125,8 @@ defmodule QuintalWeb.ContaLive do
         <section class="conta__secao" aria-labelledby="conta-sobre">
           <h2 id="conta-sobre" class="conta__titulo">sobre o quintal</h2>
           <div class="conta__card conta__card--lista">
-            <%!-- href, não navigate: essas páginas moram no live_session
-                 público, navegar cruzando sessões derruba o socket --%>
-            <a href="/faq" class="conta__item">dúvidas</a>
-            <a href="/conduta" class="conta__item">convivência</a>
+            <.link navigate={~p"/faq"} class="conta__item">que lugar é esse?</.link>
+            <.link navigate={~p"/conduta"} class="conta__item">regrinhas de convivência</.link>
             <a
               href="https://github.com/zoedsoupe/quintal"
               target="_blank"

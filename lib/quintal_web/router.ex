@@ -31,7 +31,7 @@ defmodule QuintalWeb.Router do
   scope "/", QuintalWeb, host: @app_hosts do
     pipe_through :browser
 
-    live_session :default, on_mount: [QuintalWeb.SessaoHook] do
+    live_session :quintal, on_mount: [{QuintalWeb.SessaoHook, :unificado}] do
       live "/", LandingLive
       live "/cadastro", CadastroLive
       live "/convite", ConviteLive
@@ -40,28 +40,24 @@ defmodule QuintalWeb.Router do
       live "/passear", PassearLive
       live "/canto/:handle/prosa/:rkey", ProsaLive
       live "/canto/:handle", CantoLive
+
+      scope "/" do
+        pipe_through :portaria
+
+        live "/inicio", HomeLive
+        live "/boas-vindas", BoasVindasLive
+        live "/prosear", EscreverLive, :prosear
+        live "/recadar", EscreverLive, :recado
+        live "/visitas", VisitasLive
+        live "/conta", ContaLive
+        get "/conta/exportar", ContaController, :exportar
+      end
     end
 
     get "/oauth/login", OAuthController, :login
     post "/oauth/logout", OAuthController, :logout
     get "/oauth/callback", OAuthController, :callback
     post "/convite", ConviteController, :create
-  end
-
-  scope "/", QuintalWeb, host: @app_hosts do
-    pipe_through [:browser, :portaria]
-
-    # escrita e páginas pessoais: só com sessão
-    live_session :privado, on_mount: [{QuintalWeb.SessaoHook, :privado}] do
-      live "/inicio", HomeLive
-      live "/boas-vindas", BoasVindasLive
-      live "/prosear", EscreverLive, :prosear
-      live "/recadar", EscreverLive, :recado
-      live "/visitas", VisitasLive
-      live "/conta", ContaLive
-    end
-
-    get "/conta/exportar", ContaController, :exportar
   end
 
   scope "/", QuintalWeb, host: @app_hosts do

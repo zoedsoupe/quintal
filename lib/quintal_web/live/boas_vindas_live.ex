@@ -27,10 +27,12 @@ defmodule QuintalWeb.BoasVindasLive do
   @impl true
   def mount(_params, _session, socket) do
     canto = Cantos.get(socket.assigns.sessao.did)
+    novidade = Quintal.Visitas.novidade?(socket.assigns.sessao.did)
 
     {:ok,
      assign(socket,
        page_title: "boas vindas",
+       novidade: novidade,
        passo: :canto,
        tema: (canto && canto.tema) || "papel"
      )}
@@ -74,7 +76,7 @@ defmodule QuintalWeb.BoasVindasLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} sessao={@sessao} novidade={false}>
+    <Layouts.app flash={@flash} sessao={@sessao} novidade={@novidade}>
       <div :if={@passo == :canto} class="boas-vindas-onboarding">
         <h1>seu canto</h1>
         <p class="boas-vindas-onboarding__linha">

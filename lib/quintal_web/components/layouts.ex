@@ -49,7 +49,7 @@ defmodule QuintalWeb.Layouts do
         <.link navigate={if @sessao, do: ~p"/inicio", else: ~p"/"} class="chrome__marca">quintal</.link>
 
         <div :if={@sessao} class="chrome__lado">
-          <nav class="chrome__nav">
+          <nav class="chrome__nav" aria-label="navegação principal">
             <.link navigate={~p"/inicio"}>início</.link>
             <.link navigate={~p"/passear"}>passear</.link>
             <.link navigate={~p"/visitas"} class="chrome__nav-visitas">

@@ -21,7 +21,7 @@ defmodule QuintalWeb.FaqLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} sessao={@sessao} novidade={@novidade} moldura={false}>
+    <Layouts.app flash={@flash} sessao={@sessao} novidade={@novidade} moldura={@sessao != nil}>
       <div class="cadastro">
         <h1>que lugar é esse?</h1>
 

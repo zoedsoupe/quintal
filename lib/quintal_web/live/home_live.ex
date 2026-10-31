@@ -247,10 +247,6 @@ defmodule QuintalWeb.HomeLive do
             você viu tudo do seu quintal por hoje. vai tomar um café.
           </p>
         </section>
-
-        <nav class="rodape">
-          <.link href="/oauth/logout" method="post">sair</.link>
-        </nav>
       </div>
     </Layouts.app>
     """
