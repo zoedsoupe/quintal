@@ -901,11 +901,12 @@ const animateAxo = () => {
 
 const showAxoLoading = () => {
   const axoSelectors = [".axo", ".passear__axo", ".convite__axo", ".boas-vindas__axo"];
+  const mobileViewport = window.matchMedia("(max-width: 47.99rem)").matches;
   const axoAlreadyVisible = axoSelectors.some((selector) =>
     [...document.querySelectorAll(selector)].some((element) => element.getClientRects().length > 0),
   );
 
-  if (axoAlreadyVisible) {
+  if (mobileViewport || axoAlreadyVisible) {
     hideAxoLoading();
     return;
   }
