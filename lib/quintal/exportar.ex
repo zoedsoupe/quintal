@@ -52,37 +52,36 @@ defmodule Quintal.Exportar do
   end
 
   defp imagens(session, prosas) do
-    Enum.flat_map(prosas, fn prosa ->
-      rkey = prosa.uri |> String.split("/") |> List.last()
+    Enum.flat_map(prosas, &imagens_da_prosa(session, &1))
+  end
 
-      Enum.flat_map(prosa.imagens, fn imagem ->
-        case PDS.impl().get_blob(session, imagem.blob) do
-          {:ok, %{content_type: content_type, data: data}}
-          when is_binary(data) and byte_size(data) <= 2_000_000 ->
-            extension = image_extension(content_type || blob_content_type(imagem.blob))
-            nome = "imagens/#{rkey}-#{imagem.posicao}.#{extension}"
-            [{String.to_charlist(nome), data}]
+  defp imagens_da_prosa(session, prosa) do
+    rkey = prosa.uri |> String.split("/") |> List.last()
 
-          {:ok, %{data: data}} when is_binary(data) ->
-            Logger.warning("could not export image blob for #{prosa.uri} at position #{imagem.posicao}: exceeds 2MB")
-            []
+    Enum.flat_map(prosa.imagens, &imagem_exportada(session, prosa, rkey, &1))
+  end
 
-          {:error, reason} ->
-            Logger.warning(
-              "could not export image blob for #{prosa.uri} at position #{imagem.posicao}: #{inspect(reason)}"
-            )
+  defp imagem_exportada(session, prosa, rkey, imagem) do
+    case PDS.impl().get_blob(session, imagem.blob) do
+      {:ok, %{content_type: content_type, data: data}} when is_binary(data) and byte_size(data) <= 2_000_000 ->
+        extension = image_extension(content_type || blob_content_type(imagem.blob))
+        nome = "imagens/#{rkey}-#{imagem.posicao}.#{extension}"
+        [{String.to_charlist(nome), data}]
 
-            []
+      {:ok, %{data: data}} when is_binary(data) ->
+        Logger.warning("could not export image blob for #{prosa.uri} at position #{imagem.posicao}: exceeds 2MB")
+        []
 
-          other ->
-            Logger.warning(
-              "could not export image blob for #{prosa.uri} at position #{imagem.posicao}: #{inspect(other)}"
-            )
+      {:error, reason} ->
+        Logger.warning("could not export image blob for #{prosa.uri} at position #{imagem.posicao}: #{inspect(reason)}")
 
-            []
-        end
-      end)
-    end)
+        []
+
+      other ->
+        Logger.warning("could not export image blob for #{prosa.uri} at position #{imagem.posicao}: #{inspect(other)}")
+
+        []
+    end
   end
 
   defp blob_content_type(blob), do: Map.get(blob, "mimeType") || Map.get(blob, :mime_type)
