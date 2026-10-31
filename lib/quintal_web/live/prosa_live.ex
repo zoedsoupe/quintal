@@ -47,6 +47,7 @@ defmodule QuintalWeb.ProsaLive do
   def mount(%{"handle" => handle, "rkey" => rkey}, _session, socket) do
     sessao = socket.assigns.sessao
     prosa = buscar_prosa(handle, rkey)
+    canto = if prosa, do: Cantos.get(prosa.autor_did), else: canto_pelo_handle(handle)
     thread = if prosa, do: Prosas.respostas(prosa.uri), else: []
     mae = buscar_mae(prosa)
 
@@ -68,6 +69,8 @@ defmodule QuintalWeb.ProsaLive do
        avatars: Cantos.avatars(dids),
        mencoes: (sessao && Follows.mencoes(sessao.did)) || [],
        visita_deixada: visita_deixada?(prosa, sessao),
+       tema_canto: (canto && canto.tema) || "papel",
+       cor_canto: canto && canto.cor,
        page_title: titulo(prosa, handle)
      )}
   end
@@ -87,6 +90,13 @@ defmodule QuintalWeb.ProsaLive do
       Repo.preload(prosa, [:autor, :imagens])
     else
       _nao_achou -> nil
+    end
+  end
+
+  defp canto_pelo_handle(handle) do
+    case Repo.one(from i in Identidade, where: i.handle == ^handle, select: i.did) do
+      nil -> nil
+      did -> Cantos.get(did)
     end
   end
 
@@ -185,186 +195,194 @@ defmodule QuintalWeb.ProsaLive do
     <Layouts.app flash={@flash} sessao={@sessao} novidade={@novidade}>
       <h1 class="sr-only">{@page_title}</h1>
 
-      <.vazio
-        :if={!@prosa}
-        pose={:lupa}
-        titulo="o axô procurou, procurou... e não achou essa prosa"
+      <div
+        class="canto-tema"
+        data-theme={if @tema_canto != "papel", do: @tema_canto}
+        style={@cor_canto && "--acento: #{@cor_canto}"}
+        phx-hook="TemaCanto"
+        id="canto-tema"
       >
-        <.link navigate={~p"/inicio"} class="botao botao--fantasma">voltar pro início</.link>
-      </.vazio>
-
-      <article :if={@prosa} class="prosa-pagina">
-        <.link
-          :if={@mae}
-          navigate={prosa_path(@mae.uri, @mae.autor.handle)}
-          class="prosa-pagina__mae"
+        <.vazio
+          :if={!@prosa}
+          pose={:lupa}
+          titulo="o axô procurou, procurou... e não achou essa prosa"
         >
-          em resposta a {Map.get(@nomes, @mae.autor_did, @mae.autor.handle)}
-        </.link>
-        <header class="prosa-pagina__meta">
-          <.avatar
-            src={avatar_url(@prosa.autor, @avatars[@prosa.autor_did])}
-            initial={Map.get(@nomes, @prosa.autor_did, @handle)}
-          />
-          <.link navigate={~p"/canto/#{@handle}"} class="prosa-pagina__autor">
-            {Map.get(@nomes, @prosa.autor_did, @handle)}
-          </.link>
-          <time datetime={DateTime.to_iso8601(@prosa.created_at)}>
-            {tempo_relativo(@prosa.created_at)}
-          </time>
-          <span :if={@sessao && @prosa.autor_did == @sessao.did} class="prosa-pagina__acoes">
-            <%!-- lero não tem texto: editar e copiar não fazem sentido --%>
-            <.link
-              :if={@prosa.tipo != "lero"}
-              navigate={"/prosear?editar=#{URI.encode_www_form(@prosa.uri)}"}
-            >
-              editar
-            </.link>
-            <button
-              :if={@prosa.tipo != "lero"}
-              type="button"
-              phx-click={JS.dispatch("quintal:copiar", detail: %{texto: @prosa.texto})}
-            >
-              copiar
-            </button>
-          </span>
-        </header>
+          <.link navigate={~p"/inicio"} class="botao botao--fantasma">voltar pro início</.link>
+        </.vazio>
 
-        <div class="prosa-pagina__texto">
-          {Markdown.render(@prosa.texto)}
-        </div>
-
-        <div :if={@imagens != []} class="prosa-pagina__imagens">
-          <img :for={img <- @imagens} src={img.src} alt={img.alt} loading="lazy" />
-        </div>
-
-        <div :if={@audio} class="prosa-pagina__audio">
-          <.audio_player audio={@audio} />
-        </div>
-
-        <footer class="prosa-pagina__rodape">
-          <span :if={@visita_deixada} class="rodape__visita">visita deixada</span>
-          <.botao
-            :if={pode_visitar?(@sessao, @prosa) && !@visita_deixada}
-            variante={:sutil}
-            phx-click="deixar_visita"
+        <article :if={@prosa} class="prosa-pagina">
+          <.link
+            :if={@mae}
+            navigate={prosa_path(@mae.uri, @mae.autor.handle)}
+            class="prosa-pagina__mae"
           >
-            li até aqui
-          </.botao>
-        </footer>
-      </article>
-
-      <section :if={@prosa} class="thread" aria-label="respostas">
-        <.prosa
-          :for={resposta <- @thread}
-          autor={Map.get(@nomes, resposta.autor_did, resposta.autor.handle)}
-          canto={resposta.autor.handle}
-          avatar={avatar_url(resposta.autor, @avatars[resposta.autor_did])}
-          data={tempo_relativo(resposta.created_at)}
-          datetime={DateTime.to_iso8601(resposta.created_at)}
-          texto={resposta.texto}
-          tipo={resposta.tipo}
-          path={prosa_path(resposta.uri, resposta.autor.handle)}
-          imagens={imagens_card(resposta)}
-          audio={audio_card(resposta)}
-        >
-          <:acoes :if={@sessao && resposta.autor_did == @sessao.did}>
-            <.link
-              :if={resposta.tipo != "lero"}
-              navigate={"/prosear?editar=#{URI.encode_www_form(resposta.uri)}"}
-              class="icone-botao"
-              aria-label="editar prosa"
-            >
-              <Lucideicons.pencil aria-hidden="true" />
-            </.link>
-            <button
-              type="button"
-              class="icone-botao"
-              phx-click="apagar"
-              phx-value-uri={resposta.uri}
-              data-confirm="apagar essa prosa? ela sai do seu pds também."
-              aria-label="apagar prosa"
-            >
-              <Lucideicons.trash_2 aria-hidden="true" />
-            </button>
-          </:acoes>
-        </.prosa>
-
-        <%!-- no mobile a resposta é página (/prosear?reply=), com a
-             mãe à vista; no desktop o form inline cresce no fluxo --%>
-        <.link
-          :if={@sessao}
-          navigate={"/prosear?reply=#{URI.encode_www_form(@prosa.uri)}"}
-          class="prosear-atalho thread__responder"
-        >
-          <span class="prosear-atalho__placeholder">responder com uma prosa...</span>
-        </.link>
-        <p :if={!@sessao} class="thread__responder">
-          <.link navigate={~p"/"}>entre para responder</.link>
-        </p>
-
-        <form
-          :if={@sessao}
-          id="responder"
-          phx-submit="responder"
-          phx-change="validar"
-          phx-hook="Composer"
-          class="prosear thread__responder"
-          data-modo="resposta"
-          data-tipo={@tipo}
-          data-rascunho={"quintal:rascunho:responder:#{@prosa.uri}"}
-          data-mencoes={@mencoes != [] && JSON.encode!(@mencoes)}
-        >
-          <%!-- resposta é prosa com reply: todos os tipos, inclusive
-               lero (a resposta falada, com gravador no lugar do texto) --%>
-          <div class="prosear__topo">
-            <div class="prosear__tipos" role="radiogroup" aria-label="tipo da prosa">
-              <label :for={{valor, rotulo, placeholder} <- tipos_inline()}>
-                <input
-                  type="radio"
-                  name="tipo"
-                  value={valor}
-                  checked={valor == @tipo}
-                  data-placeholder={placeholder}
-                />
-                {rotulo}
-              </label>
-            </div>
-          </div>
-          <.md_ferramentas />
-
-          <.campo
-            name="texto"
-            area
-            aria-label="responder com uma prosa"
-            placeholder={placeholder_tipo(@tipo)}
-            rows="1"
-            maxlength="10000"
-            required={@tipo != "lero"}
-            phx-debounce="blur"
-          />
-          <.md_ferramentas />
-
-          <.lero_gravador uploads={@uploads} />
-
-          <div :if={@uploads.audio.entries != []} class="prosear__anexos">
-            <.anexos uploads={@uploads} />
-          </div>
-          <div class="prosear__rodape">
-            <div class="prosear__ferramentas">
-              <span class="prosear__atalho" aria-hidden="true">ctrl+enter pra responder</span>
-              <.botao type="submit">responder</.botao>
-            </div>
-          </div>
-        </form>
-
-        <footer class="rodape">
-          <.link navigate={~p"/canto/#{@handle}"}>
-            mais prosas de {Map.get(@nomes, @prosa.autor_did, @handle)}
+            em resposta a {Map.get(@nomes, @mae.autor_did, @mae.autor.handle)}
           </.link>
-          <.link :if={!@sessao} navigate={~p"/"}>entre para prosear</.link>
-        </footer>
-      </section>
+          <header class="prosa-pagina__meta">
+            <.avatar
+              src={avatar_url(@prosa.autor, @avatars[@prosa.autor_did])}
+              initial={Map.get(@nomes, @prosa.autor_did, @handle)}
+            />
+            <.link navigate={~p"/canto/#{@handle}"} class="prosa-pagina__autor">
+              {Map.get(@nomes, @prosa.autor_did, @handle)}
+            </.link>
+            <time datetime={DateTime.to_iso8601(@prosa.created_at)}>
+              {tempo_relativo(@prosa.created_at)}
+            </time>
+            <span :if={@sessao && @prosa.autor_did == @sessao.did} class="prosa-pagina__acoes">
+              <%!-- lero não tem texto: editar e copiar não fazem sentido --%>
+              <.link
+                :if={@prosa.tipo != "lero"}
+                navigate={"/prosear?editar=#{URI.encode_www_form(@prosa.uri)}"}
+              >
+                editar
+              </.link>
+              <button
+                :if={@prosa.tipo != "lero"}
+                type="button"
+                phx-click={JS.dispatch("quintal:copiar", detail: %{texto: @prosa.texto})}
+              >
+                copiar
+              </button>
+            </span>
+          </header>
+
+          <div class="prosa-pagina__texto">
+            {Markdown.render(@prosa.texto)}
+          </div>
+
+          <div :if={@imagens != []} class="prosa-pagina__imagens">
+            <img :for={img <- @imagens} src={img.src} alt={img.alt} loading="lazy" />
+          </div>
+
+          <div :if={@audio} class="prosa-pagina__audio">
+            <.audio_player audio={@audio} />
+          </div>
+
+          <footer class="prosa-pagina__rodape">
+            <span :if={@visita_deixada} class="rodape__visita">visita deixada</span>
+            <.botao
+              :if={pode_visitar?(@sessao, @prosa) && !@visita_deixada}
+              variante={:sutil}
+              phx-click="deixar_visita"
+            >
+              li até aqui
+            </.botao>
+          </footer>
+        </article>
+
+        <section :if={@prosa} class="thread" aria-label="respostas">
+          <.prosa
+            :for={resposta <- @thread}
+            autor={Map.get(@nomes, resposta.autor_did, resposta.autor.handle)}
+            canto={resposta.autor.handle}
+            avatar={avatar_url(resposta.autor, @avatars[resposta.autor_did])}
+            data={tempo_relativo(resposta.created_at)}
+            datetime={DateTime.to_iso8601(resposta.created_at)}
+            texto={resposta.texto}
+            tipo={resposta.tipo}
+            path={prosa_path(resposta.uri, resposta.autor.handle)}
+            imagens={imagens_card(resposta)}
+            audio={audio_card(resposta)}
+          >
+            <:acoes :if={@sessao && resposta.autor_did == @sessao.did}>
+              <.link
+                :if={resposta.tipo != "lero"}
+                navigate={"/prosear?editar=#{URI.encode_www_form(resposta.uri)}"}
+                class="icone-botao"
+                aria-label="editar prosa"
+              >
+                <Lucideicons.pencil aria-hidden="true" />
+              </.link>
+              <button
+                type="button"
+                class="icone-botao"
+                phx-click="apagar"
+                phx-value-uri={resposta.uri}
+                data-confirm="apagar essa prosa? ela sai do seu pds também."
+                aria-label="apagar prosa"
+              >
+                <Lucideicons.trash_2 aria-hidden="true" />
+              </button>
+            </:acoes>
+          </.prosa>
+
+          <%!-- no mobile a resposta é página (/prosear?reply=), com a
+             mãe à vista; no desktop o form inline cresce no fluxo --%>
+          <.link
+            :if={@sessao}
+            navigate={"/prosear?reply=#{URI.encode_www_form(@prosa.uri)}"}
+            class="prosear-atalho thread__responder"
+          >
+            <span class="prosear-atalho__placeholder">responder com uma prosa...</span>
+          </.link>
+          <p :if={!@sessao} class="thread__responder">
+            <.link navigate={~p"/"}>entre para responder</.link>
+          </p>
+
+          <form
+            :if={@sessao}
+            id="responder"
+            phx-submit="responder"
+            phx-change="validar"
+            phx-hook="Composer"
+            class="prosear thread__responder"
+            data-modo="resposta"
+            data-tipo={@tipo}
+            data-rascunho={"quintal:rascunho:responder:#{@prosa.uri}"}
+            data-mencoes={@mencoes != [] && JSON.encode!(@mencoes)}
+          >
+            <%!-- resposta é prosa com reply: todos os tipos, inclusive
+               lero (a resposta falada, com gravador no lugar do texto) --%>
+            <div class="prosear__topo">
+              <div class="prosear__tipos" role="radiogroup" aria-label="tipo da prosa">
+                <label :for={{valor, rotulo, placeholder} <- tipos_inline()}>
+                  <input
+                    type="radio"
+                    name="tipo"
+                    value={valor}
+                    checked={valor == @tipo}
+                    data-placeholder={placeholder}
+                  />
+                  {rotulo}
+                </label>
+              </div>
+            </div>
+            <.md_ferramentas />
+
+            <.campo
+              name="texto"
+              area
+              aria-label="responder com uma prosa"
+              placeholder={placeholder_tipo(@tipo)}
+              rows="1"
+              maxlength="10000"
+              required={@tipo != "lero"}
+              phx-debounce="blur"
+            />
+            <.md_ferramentas />
+
+            <.lero_gravador uploads={@uploads} />
+
+            <div :if={@uploads.audio.entries != []} class="prosear__anexos">
+              <.anexos uploads={@uploads} />
+            </div>
+            <div class="prosear__rodape">
+              <div class="prosear__ferramentas">
+                <span class="prosear__atalho" aria-hidden="true">ctrl+enter pra responder</span>
+                <.botao type="submit">responder</.botao>
+              </div>
+            </div>
+          </form>
+
+          <footer class="rodape">
+            <.link navigate={~p"/canto/#{@handle}"}>
+              mais prosas de {Map.get(@nomes, @prosa.autor_did, @handle)}
+            </.link>
+            <.link :if={!@sessao} navigate={~p"/"}>entre para prosear</.link>
+          </footer>
+        </section>
+      </div>
     </Layouts.app>
     """
   end

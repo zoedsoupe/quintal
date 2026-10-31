@@ -21,7 +21,7 @@ defmodule QuintalWeb.TemaPlug do
   def call(conn, _opts) do
     canto =
       case conn.path_info do
-        ["canto", handle] -> canto_pelo_handle(handle)
+        ["canto", handle | _resto] -> canto_pelo_handle(handle)
         _ -> conn |> get_session("quintal_did") |> canto_do_dono()
       end
 
