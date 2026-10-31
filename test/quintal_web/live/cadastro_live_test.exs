@@ -13,10 +13,12 @@ defmodule QuintalWeb.CadastroLiveTest do
     assert html =~ "class=\"chrome__topo\""
   end
 
-  test "home aponta para o cadastro", %{conn: conn} do
-    {:ok, _view, html} = live(conn, "/")
+  test "home leva ao convite e a página de convite aponta para o cadastro", %{conn: conn} do
+    {:ok, _view, home} = live(conn, "/")
+    {:ok, _view, convite} = live(conn, "/convite")
 
-    assert html =~ "/cadastro"
-    assert html =~ "não tenho conta ainda"
+    assert home =~ ~s(href="/convite")
+    refute home =~ ~s(href="/cadastro")
+    assert convite =~ ~s(href="/cadastro")
   end
 end
