@@ -89,35 +89,51 @@ defmodule Quintal.Prosas do
   end
 
   defp criar(session, texto, tipo, reply, imagens, audio) when is_binary(texto) do
-    cond do
-      audio && tipo != "lero" ->
-        {:error, :audio_so_lero}
-
-      tipo == "lero" && is_nil(audio) ->
-        {:error, :audio_faltando}
-
-      tipo != "lero" && String.trim(texto) == "" ->
-        {:error, :texto_vazio}
-
-      true ->
-        texto = if tipo == "lero", do: "", else: texto
-        record = %{"text" => texto, "createdAt" => DateTime.to_iso8601(DateTime.utc_now())}
-        record = if tipo in @tipos, do: Map.put(record, "tipo", tipo), else: record
-        record = if reply, do: Map.put(record, "reply", reply), else: record
-        record = if imagens == [], do: record, else: Map.put(record, "images", imagens)
-        record = if audio, do: Map.put(record, "audio", audio), else: record
-
-        record =
-          case RichText.facets(texto) do
-            [] -> record
-            facets -> Map.put(record, "facets", facets)
-          end
-
-        with {:ok, %{uri: uri, cid: cid}} <- pds().create_record(session, @prosa, record) do
-          indexar(session.did, %{uri: uri, cid: cid, value: record})
-        end
+    with :ok <- validar_audio(tipo, audio),
+         :ok <- validar_texto(texto, tipo) do
+      publicar(session, texto, tipo, reply, imagens, audio)
     end
   end
+
+  defp validar_audio(tipo, audio) do
+    cond do
+      audio && tipo != "lero" -> {:error, :audio_so_lero}
+      tipo == "lero" && is_nil(audio) -> {:error, :audio_faltando}
+      true -> :ok
+    end
+  end
+
+  defp validar_texto(_texto, "lero"), do: :ok
+
+  defp validar_texto(texto, _tipo) do
+    if String.trim(texto) == "", do: {:error, :texto_vazio}, else: :ok
+  end
+
+  defp publicar(session, texto, tipo, reply, imagens, audio) do
+    record = record_novo(texto, tipo, reply, imagens, audio)
+
+    with {:ok, %{uri: uri, cid: cid}} <- pds().create_record(session, @prosa, record) do
+      indexar(session.did, %{uri: uri, cid: cid, value: record})
+    end
+  end
+
+  defp record_novo(texto, tipo, reply, imagens, audio) do
+    texto = if tipo == "lero", do: "", else: texto
+
+    %{"text" => texto, "createdAt" => DateTime.to_iso8601(DateTime.utc_now())}
+    |> put_quando(tipo in @tipos, "tipo", tipo)
+    |> put_quando(reply, "reply", reply)
+    |> put_quando(imagens != [], "images", imagens)
+    |> put_quando(audio, "audio", audio)
+    |> put_facets(RichText.facets(texto))
+  end
+
+  defp put_quando(record, condicao, chave, valor) do
+    if condicao, do: Map.put(record, chave, valor), else: record
+  end
+
+  defp put_facets(record, []), do: record
+  defp put_facets(record, facets), do: Map.put(record, "facets", facets)
 
   @doc """
   Salva o texto novo de uma prosa própria: `put_record` no mesmo rkey
