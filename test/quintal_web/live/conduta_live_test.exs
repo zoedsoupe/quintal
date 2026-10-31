@@ -10,6 +10,8 @@ defmodule QuintalWeb.CondutaLiveTest do
     assert html =~ "o que não cabe aqui"
     assert html =~ "moderação"
     assert html =~ "denunciar"
+    assert html =~ "/canto/zoedsoupe.zeetech.io"
+    assert html =~ "mailto:zoey.spessanha@zeetech.io"
   end
 
   test "nomeia a transfobia explicitamente", %{conn: conn} do

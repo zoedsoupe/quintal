@@ -23,7 +23,7 @@ defmodule QuintalWeb.CondutaLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} sessao={@sessao} novidade={@novidade} moldura={@sessao != nil}>
+    <Layouts.app flash={@flash} sessao={@sessao} novidade={@novidade} moldura={true}>
       <div class="cadastro">
         <h1>regrinhas de convivência</h1>
 
@@ -98,12 +98,13 @@ defmodule QuintalWeb.CondutaLive do
         <h2>denunciar</h2>
 
         <p>
-          viu algo que machuca o quintal? me conta: deixa um recado no canto
-          do quintal ou manda um email. cada denúncia é lida por uma pessoa,
-          com calma, sem robô e sem resposta automática.
+          viu algo que machuca o quintal? me conta: deixa um recado no
+          <.link navigate={~p"/canto/zoedsoupe.zeetech.io"}>canto da administração</.link>
+          ou manda um email para <a href="mailto:zoey.spessanha@zeetech.io">zoey.spessanha@zeetech.io</a>.
+          cada denúncia é lida por uma pessoa, com calma, sem robô e sem resposta automática.
         </p>
 
-        <.link navigate={~p"/"} class="botao">voltar</.link>
+        <.link navigate={~p"/"} class="botao botao--fantasma">voltar</.link>
       </div>
     </Layouts.app>
     """

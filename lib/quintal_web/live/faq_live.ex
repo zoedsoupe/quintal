@@ -21,7 +21,7 @@ defmodule QuintalWeb.FaqLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} sessao={@sessao} novidade={@novidade} moldura={@sessao != nil}>
+    <Layouts.app flash={@flash} sessao={@sessao} novidade={@novidade} moldura={true}>
       <div class="cadastro">
         <h1>que lugar é esse?</h1>
 
@@ -30,7 +30,7 @@ defmodule QuintalWeb.FaqLive do
           que aparecem por aqui. se ficar faltando alguma coisa, me pergunta.
         </p>
 
-        <h2>o que é o quintal?</h2>
+        <h2 id="o-que-e-o-quintal">o que é o quintal?</h2>
 
         <p>
           o quintal é um lugarzinho de blogs pessoais que eu construí pra mim
@@ -46,7 +46,7 @@ defmodule QuintalWeb.FaqLive do
           sem empresa por trás: quem mora aqui também ajuda a cuidar.
         </p>
 
-        <h2>quem é o axô?</h2>
+        <h2 id="quem-e-o-axo">quem é o axô?</h2>
 
         <p>
           o axô é um axolote, o mascote do quintal. axolotes regeneram partes
@@ -55,7 +55,7 @@ defmodule QuintalWeb.FaqLive do
           porque é o axô quem descobre cantos novos pra você passear.
         </p>
 
-        <h2>as palavras da vizinhança</h2>
+        <h2 id="palavras-da-vizinhanca">as palavras da vizinhança</h2>
 
         <ul class="cadastro__passos">
           <li>
@@ -93,7 +93,7 @@ defmodule QuintalWeb.FaqLive do
           </li>
         </ul>
 
-        <h2>as palavras técnicas</h2>
+        <h2 id="palavras-tecnicas">as palavras técnicas</h2>
 
         <p>
           o quintal roda em cima de um protocolo aberto chamado atproto, o mesmo
@@ -101,7 +101,7 @@ defmodule QuintalWeb.FaqLive do
           mais larga pra mais miúda, cada uma encaixando na anterior.
         </p>
 
-        <h3>o que é atproto?</h3>
+        <h3 id="atproto">o que é atproto?</h3>
 
         <p>
           um protocolo: um conjunto público de regras que diz como identidades,
@@ -111,7 +111,7 @@ defmodule QuintalWeb.FaqLive do
           falam a mesma língua nos dois.
         </p>
 
-        <h3>o que é um pds?</h3>
+        <h3 id="pds">o que é um pds?</h3>
 
         <p>
           personal data server: o servidor onde sua conta e seus dados moram.
@@ -123,7 +123,7 @@ defmodule QuintalWeb.FaqLive do
           </a>
         </p>
 
-        <h3>o que é um record?</h3>
+        <h3 id="record">o que é um record?</h3>
 
         <p>
           a unidade de dado. cada prosa, recado ou configuração do seu canto é
@@ -133,7 +133,7 @@ defmodule QuintalWeb.FaqLive do
           records é o seu repositório, o "repo".
         </p>
 
-        <h3>o que é um lexicon?</h3>
+        <h3 id="lexicon">o que é um lexicon?</h3>
 
         <p>
           o contrato de formato de um tipo de record. diz quais campos uma
@@ -144,7 +144,7 @@ defmodule QuintalWeb.FaqLive do
           prosas, não só eu.
         </p>
 
-        <h3>o que são handle e did?</h3>
+        <h3 id="handle-e-did">o que são handle e did?</h3>
 
         <p>
           handle é o nome legível da conta (<code>voce.bsky.social</code>),
@@ -153,7 +153,7 @@ defmodule QuintalWeb.FaqLive do
           continua sendo você quando muda de nome ou de pds.
         </p>
 
-        <h3>o que é o quintal, tecnicamente?</h3>
+        <h3 id="quintal-tecnico">o que é o quintal, tecnicamente?</h3>
 
         <p>
           um appview: um aplicativo que lê os records dos pds das pessoas e
@@ -163,7 +163,7 @@ defmodule QuintalWeb.FaqLive do
           appview ler.
         </p>
 
-        <h3>o que é oauth, e por que o quintal não pede senha?</h3>
+        <h3 id="oauth">o que é oauth, e por que o quintal não pede senha?</h3>
 
         <p>
           oauth é o jeito de autorizar um aplicativo sem entregar sua senha.
@@ -173,7 +173,7 @@ defmodule QuintalWeb.FaqLive do
           records, como os do bluesky, a gente nunca recebe acesso.
         </p>
 
-        <h3>posso ir embora?</h3>
+        <h3 id="ir-embora">posso ir embora?</h3>
 
         <p>
           a hora que quiser, e nada fica refém. seus dados já são seus por
@@ -181,7 +181,7 @@ defmodule QuintalWeb.FaqLive do
           livre vem do protocolo, não de promessa minha.
         </p>
 
-        <h3>quero o detalhe técnico</h3>
+        <h3 id="detalhe-tecnico">quero o detalhe técnico</h3>
 
         <p>
           a especificação do protocolo está em <a
@@ -192,13 +192,13 @@ defmodule QuintalWeb.FaqLive do
           os guias em
           <a href="https://atproto.com/guides/overview" target="_blank" rel="noopener">atproto.com/guides</a>
           e os lexicons do quintal são públicos em <a
-            href="https://quintal.place/lexicons/place.quintal.feed.prosa"
+            href="https://quintal.place/lexicons"
             target="_blank"
             rel="noopener"
           >quintal.place/lexicons</a>.
         </p>
 
-        <.link navigate={~p"/"} class="botao">voltar</.link>
+        <.link navigate={~p"/"} class="botao botao--fantasma">voltar</.link>
       </div>
     </Layouts.app>
     """

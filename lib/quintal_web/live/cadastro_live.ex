@@ -16,13 +16,13 @@ defmodule QuintalWeb.CadastroLive do
     sessao = socket.assigns.sessao
     novidade = if sessao, do: Quintal.Visitas.novidade?(sessao.did), else: false
 
-    {:ok, assign(socket, novidade: novidade)}
+    {:ok, assign(socket, novidade: novidade, page_title: "criar conta")}
   end
 
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} sessao={@sessao} novidade={@novidade} moldura={false}>
+    <Layouts.app flash={@flash} sessao={@sessao} novidade={@novidade} moldura={true}>
       <div class="cadastro">
         <h1>criar conta</h1>
 
@@ -77,7 +77,7 @@ defmodule QuintalWeb.CadastroLive do
           depois é só entrar com seu handle normalmente.
         </p>
 
-        <.link navigate={~p"/"} class="botao">voltar e entrar</.link>
+        <.link navigate={~p"/"} class="botao botao--fantasma">voltar e entrar</.link>
 
         <nav class="rodape">
           <.link navigate={~p"/faq"}>que lugar é esse?</.link>

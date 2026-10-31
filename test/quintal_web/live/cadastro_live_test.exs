@@ -10,6 +10,7 @@ defmodule QuintalWeb.CadastroLiveTest do
     assert html =~ "bsky.social"
     assert html =~ "atproto.com/guides/self-hosting"
     assert html =~ "voltar e entrar"
+    assert html =~ "class=\"chrome__topo\""
   end
 
   test "home aponta para o cadastro", %{conn: conn} do

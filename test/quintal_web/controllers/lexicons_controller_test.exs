@@ -26,6 +26,8 @@ defmodule QuintalWeb.LexiconsControllerTest do
     assert html =~ "chave tid"
     assert html =~ "replyRef"
     assert html =~ "todos os lexicons"
+    assert html =~ "<h1><code>place.quintal.feed.prosa</code></h1>"
+    refute html =~ "página própria"
   end
 
   test "GET /lexicons/:nsid desconhecido responde 404" do

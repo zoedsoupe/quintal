@@ -12,6 +12,7 @@ defmodule QuintalWeb.LexiconsHTML do
     <div class="chrome">
       <main id="conteudo" class="conteudo">
         <div class="cadastro">
+          <.cabecalho />
           <h1>os lexicons do quintal</h1>
 
           <p>
@@ -40,7 +41,8 @@ defmodule QuintalWeb.LexiconsHTML do
     <div class="chrome">
       <main id="conteudo" class="conteudo">
         <div class="cadastro">
-          <.lexicon lexicon={@lexicon} />
+          <.cabecalho />
+          <.lexicon lexicon={@lexicon} propria={true} />
 
           <p><a href="/lexicons" class="botao">todos os lexicons</a></p>
         </div>
@@ -49,16 +51,28 @@ defmodule QuintalWeb.LexiconsHTML do
     """
   end
 
+  defp cabecalho(assigns) do
+    ~H"""
+    <header class="chrome__topo">
+      <a href="https://quintal.blog.br/" class="chrome__marca">quintal</a>
+      <a href="https://quintal.blog.br/">voltar pro quintal</a>
+    </header>
+    """
+  end
+
   attr :lexicon, :map, required: true
+  attr :propria, :boolean, default: false
 
   defp lexicon(assigns) do
     ~H"""
     <section id={@lexicon["id"]}>
-      <h2><code>{@lexicon["id"]}</code></h2>
+      <h1 :if={@propria}><code>{@lexicon["id"]}</code></h1>
+      <h2 :if={!@propria}><code>{@lexicon["id"]}</code></h2>
 
       <p>
-        <a href={"/lexicons/#{@lexicon["id"]}"}>página própria</a>
-        · <a href={"/lexicons/#{@lexicon["id"]}.json"}>json cru</a>
+        <a :if={!@propria} href={"/lexicons/#{@lexicon["id"]}"}>página própria</a>
+        <span :if={!@propria}>· </span>
+        <a href={"/lexicons/#{@lexicon["id"]}.json"}>json cru</a>
       </p>
 
       <.definicao :for={{nome, def_} <- defs(@lexicon)} nome={nome} def={def_} />

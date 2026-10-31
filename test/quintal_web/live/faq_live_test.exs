@@ -39,4 +39,13 @@ defmodule QuintalWeb.FaqLiveTest do
     assert html =~ "atproto.com/guides"
     assert html =~ "quintal.place/lexicons"
   end
+
+  test "perguntas têm âncoras estáveis e o link aponta para o índice de lexicons", %{conn: conn} do
+    {:ok, _view, html} = live(conn, "/faq")
+
+    assert html =~ ~s(id="atproto")
+    assert html =~ ~s(id="detalhe-tecnico")
+    assert html =~ ~s(href="https://quintal.place/lexicons")
+    assert html =~ ~s(class="chrome__topo")
+  end
 end
