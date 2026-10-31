@@ -692,7 +692,7 @@ defmodule QuintalWeb.CantoLive do
             data-bloco={bloco}
             draggable={@arrumar && "true"}
           >
-            <% indice_bloco = Enum.find_index(ordem_blocos(@canto, true), &(&1 == bloco)) %>
+            <% indice_bloco = Enum.find_index(@canto.blocos, &(&1 == bloco)) %>
             <div :if={@arrumar} class="canto-bloco__controles">
               <span class="canto-bloco__alca" aria-hidden="true">
                 <Lucideicons.grip_vertical />
@@ -717,7 +717,7 @@ defmodule QuintalWeb.CantoLive do
                   phx-value-direcao="desce"
                   disabled={
                     bloco not in @canto.blocos or
-                      indice_bloco == length(ordem_blocos(@canto, true)) - 1
+                      indice_bloco == length(@canto.blocos) - 1
                   }
                   aria-label="descer bloco"
                 >

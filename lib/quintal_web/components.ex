@@ -300,6 +300,7 @@ defmodule QuintalWeb.Components do
 
   defp rotulo_campo(:resposta), do: "sua resposta"
   defp rotulo_campo(:recado), do: "texto do recado"
+  defp rotulo_campo(:depoimento), do: "texto do depoimento"
   defp rotulo_campo(_modo), do: "texto da prosa"
 
   # o gravador do lero, igual no card da home e na página de escrita:
