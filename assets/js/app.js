@@ -879,8 +879,70 @@ topbar.config({
   barColors: { 0: "#8b7bb8" },
   shadowColor: "rgba(0, 0, 0, .15)",
 });
-window.addEventListener("phx:page-loading-start", (_info) => topbar.show(300));
-window.addEventListener("phx:page-loading-stop", (_info) => topbar.hide());
+
+let axoLoading = null;
+let axoAnimation = null;
+const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+const animateAxo = () => {
+  if (!axoLoading || reducedMotion.matches || axoAnimation) return;
+
+  axoAnimation = axoLoading.animate(
+    [
+      { transform: "translateY(0) rotate(-2deg)" },
+      { transform: "translateY(-5px) rotate(2deg)" },
+      { transform: "translateY(0) rotate(-2deg)" },
+    ],
+    { duration: 1800, iterations: Infinity, easing: "ease-in-out" },
+  );
+};
+
+const showAxoLoading = () => {
+  if (!axoLoading) {
+    axoLoading = document.createElement("img");
+    axoLoading.src = "/images/axo-swimming.png";
+    axoLoading.alt = "";
+    axoLoading.setAttribute("aria-hidden", "true");
+    axoLoading.width = 80;
+    axoLoading.height = 62;
+    axoLoading.style.position = "fixed";
+    axoLoading.style.right = "1rem";
+    axoLoading.style.bottom = "1rem";
+    axoLoading.style.zIndex = "100000";
+    axoLoading.style.pointerEvents = "none";
+    axoLoading.style.objectFit = "contain";
+    document.body.appendChild(axoLoading);
+  }
+
+  axoLoading.hidden = false;
+  animateAxo();
+  if (axoAnimation) axoAnimation.play();
+};
+
+const hideAxoLoading = () => {
+  if (!axoLoading) return;
+
+  axoLoading.hidden = true;
+  if (axoAnimation) axoAnimation.pause();
+};
+
+reducedMotion.addEventListener("change", ({ matches }) => {
+  if (matches && axoAnimation) {
+    axoAnimation.cancel();
+    axoAnimation = null;
+  } else if (axoLoading && !axoLoading.hidden) {
+    animateAxo();
+  }
+});
+
+window.addEventListener("phx:page-loading-start", (_info) => {
+  topbar.show(300);
+  showAxoLoading();
+});
+window.addEventListener("phx:page-loading-stop", (_info) => {
+  topbar.hide();
+  hideAxoLoading();
+});
 
 // connect if there are any LiveViews on the page
 liveSocket.connect();
