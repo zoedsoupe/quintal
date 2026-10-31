@@ -1,8 +1,7 @@
 defmodule QuintalWeb.LandingLive do
   @moduledoc """
-  A porta de entrada do quintal (briefing 5.1): uma tela, uma ação.
-  Logo, nome em fraunces, uma linha de apresentação e entrar com
-  atproto.
+  A porta de entrada do quintal: login como caminho principal, convite
+  como alternativa para quem está chegando e passeio para visitantes.
 
   Só existe deslogada: com sessão, a porta vira redirect para o
   `/inicio`, onde moram o composer e o feed (briefing 5.2). O redirect
@@ -48,35 +47,28 @@ defmodule QuintalWeb.LandingLive do
         <h1 class="boas-vindas__marca">quintal</h1>
         <p class="boas-vindas__linha">seu canto na vizinhança</p>
 
-        <div class="boas-vindas__entradas">
-          <.link
-            :if={!@convite}
-            navigate={~p"/convite"}
-            class="botao botao--primario"
-          >
-            tenho um convite
-          </.link>
-          <.link navigate={~p"/passear"} class="botao botao--fantasma">passear com o axô</.link>
-        </div>
+        <section class="boas-vindas__login" aria-labelledby="boas-vindas-login">
+          <h2 id="boas-vindas-login">
+            {if @convite, do: "seu convite tá guardado", else: "já mora no quintal?"}
+          </h2>
+          <form action="/oauth/login" method="get" class="entrar">
+            <.campo
+              name="handle"
+              label="seu handle atproto"
+              placeholder="alice.bsky.social"
+              required
+              autofocus={!!@convite}
+              errors={if erro = Phoenix.Flash.get(@flash, :error), do: [erro], else: []}
+            />
+            <.botao variante={:primario} type="submit">entrar com atproto</.botao>
+            <.link navigate={~p"/cadastro"} class="cadastro__link">não tenho conta ainda</.link>
+          </form>
+        </section>
 
-        <form action="/oauth/login" method="get" class="entrar">
-          <.campo
-            name="handle"
-            label={
-              if @convite,
-                do: "seu convite tá guardado. entra com teu handle atproto",
-                else: "já mora aqui? entra com teu handle"
-            }
-            placeholder="alice.bsky.social"
-            required
-            autofocus={!!@convite}
-            errors={if erro = Phoenix.Flash.get(@flash, :error), do: [erro], else: []}
-          />
-          <.botao variante={if @convite, do: :primario, else: :fantasma} type="submit">
-            entrar com atproto
-          </.botao>
-          <.link navigate={~p"/cadastro"} class="cadastro__link">não tenho conta ainda</.link>
-        </form>
+        <nav class="boas-vindas__alternativas" aria-label="outras formas de chegar">
+          <.link :if={!@convite} navigate={~p"/convite"}>tenho um convite</.link>
+          <.link navigate={~p"/passear"}>passear com o axô</.link>
+        </nav>
 
         <nav class="rodape">
           <.link navigate={~p"/faq"}>que lugar é esse?</.link>

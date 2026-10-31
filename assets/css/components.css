@@ -1866,8 +1866,8 @@ html.rolagem-descendo .nav-movel {
   animation: none;
 }
 
-/* boas-vindas: home deslogada (briefing 5.1). uma tela, uma acao:
-   logo, nome em fraunces, uma linha, entrar com atproto */
+/* entrada deslogada: login em primeiro plano; convite e passeio são
+   caminhos secundários em texto, sem competir com o submit. */
 
 .boas-vindas {
   display: flex;
@@ -1895,11 +1895,18 @@ html.rolagem-descendo .nav-movel {
   color: var(--meta);
 }
 
-.boas-vindas__entradas {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--espaco-3);
+.boas-vindas__login {
+  width: 100%;
+  max-width: 22rem;
+  margin-top: var(--espaco-4);
+  padding-top: var(--espaco-4);
+  border-top: 1px solid var(--sussurro);
+  text-align: left;
+}
+
+.boas-vindas__login h2 {
+  margin-bottom: var(--espaco-2);
+  font-size: 1.25rem;
 }
 
 /* form de entrar: campo e botao com respiro */
@@ -1910,13 +1917,26 @@ html.rolagem-descendo .nav-movel {
   gap: var(--espaco-3);
   width: 100%;
   max-width: 22rem;
-  margin-inline: auto;
-  margin-top: var(--espaco-4);
-  text-align: left;
 }
 
 .entrar > .botao {
   align-self: flex-start;
+}
+
+.boas-vindas__alternativas {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--espaco-3);
+  margin-top: var(--espaco-3);
+}
+
+.boas-vindas__alternativas a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  color: var(--meta);
+  font-size: 0.875rem;
 }
 
 /* cadastro: micro tutorial de conta */

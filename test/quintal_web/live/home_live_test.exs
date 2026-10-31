@@ -25,22 +25,28 @@ defmodule QuintalWeb.HomeLiveTest do
     init_test_session(conn, %{quintal_did: "did:plc:alice"})
   end
 
-  test "deslogada: boas-vindas do spec, uma tela e uma ação", %{conn: conn} do
+  test "deslogada: login em primeiro plano e alternativas quietas", %{conn: conn} do
     {:ok, _view, html} = live(conn, "/")
 
     assert html =~ "seu canto na vizinhança"
+    assert html =~ "já mora no quintal?"
     assert html =~ ~s(action="/oauth/login")
     assert html =~ ~s(name="handle")
     assert html =~ "entrar com atproto"
     assert html =~ "tenho um convite"
-    assert html =~ "/convite"
+    assert html =~ "passear com o axô"
+    assert html =~ ~s(class="boas-vindas__alternativas")
+
+    assert :binary.match(html, "entrar com atproto") <
+             :binary.match(html, "tenho um convite")
   end
 
   test "convite guardado vira a ação principal e orienta o login", %{conn: conn} do
     conn = init_test_session(conn, %{convite: "axo-12345678"})
     {:ok, _view, html} = live(conn, "/")
 
-    assert html =~ "seu convite tá guardado. entra com teu handle atproto"
+    assert html =~ "seu convite tá guardado"
+    assert html =~ "seu handle atproto"
     assert html =~ ~s(autofocus)
     assert html =~ ~s(class="botao botao--primario" type="submit")
     refute html =~ "tenho um convite"
