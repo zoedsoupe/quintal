@@ -50,7 +50,6 @@ defmodule QuintalWeb.Layouts do
 
         <div :if={@sessao} class="chrome__lado">
           <nav class="chrome__nav" aria-label="navegação principal">
-            <.link navigate={~p"/inicio"}>início</.link>
             <.link navigate={~p"/passear"}>passear</.link>
             <.link navigate={~p"/visitas"} class="chrome__nav-visitas">
               visitas <span :if={@novidade} class="nav-movel__ponto"></span>
