@@ -31,6 +31,18 @@ defmodule QuintalWeb.ContaLiveTest do
     end)
 
     conn = init_test_session(build_conn(), %{quintal_did: "did:plc:alice"})
+
+    # alice já criou o canto: gerar/1 só libera depois disso (spec 6.1)
+    %Quintal.Canto{}
+    |> Quintal.Canto.changeset(%{
+      dono_did: "did:plc:alice",
+      tema: "papel",
+      blocos: ["prosas", "recados", "quem-eu-leio"],
+      links: [],
+      updated_at: DateTime.utc_now()
+    })
+    |> Repo.insert!()
+
     {:ok, conn: conn}
   end
 

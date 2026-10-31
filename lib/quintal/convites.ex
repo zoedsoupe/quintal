@@ -4,8 +4,9 @@ defmodule Quintal.Convites do
 
   Todo convite é um código único: um código, uma entrada, um uso. Cada
   pessoa convidada pode gerar até 5 códigos (`cota/0`), e só depois de
-  ter o próprio canto (o bootstrap do login cria o canto.config antes).
-  A portaria (`"admin"`) gera códigos avulsos sem cota, pelo mix task
+  ter criado o próprio canto: sem uma linha de `cantos` para ela (o que
+  acontece ao passar pelo onboarding), a cota não é liberada. A portaria
+  (`"admin"`) gera códigos avulsos sem cota, pelo mix task
   `mix quintal.convite`.
 
   O contador é derivado (spec 6.2): convites restantes = 5 menos os já
@@ -15,6 +16,7 @@ defmodule Quintal.Convites do
 
   import Ecto.Query
 
+  alias Quintal.Cantos
   alias Quintal.Convite
   alias Quintal.Repo
 
@@ -37,18 +39,23 @@ defmodule Quintal.Convites do
   @doc """
   Gera um código novo para `criado_por` (did ou `"admin"`).
 
-  Pessoa comum respeita a cota de 5 criados; `"admin"` e fundadoras são sempre livres.
+  Pessoa comum só gera depois de ter criado o próprio canto (spec 6.1) e
+  respeitando a cota de 5 criados; `"admin"` e fundadoras são sempre livres.
   """
-  @spec gerar(criado_por :: String.t()) :: {:ok, Convite.t()} | {:error, :cota_esgotada | Ecto.Changeset.t()}
+  @spec gerar(criado_por :: String.t()) ::
+          {:ok, Convite.t()} | {:error, :sem_canto | :cota_esgotada | Ecto.Changeset.t()}
   def gerar(@admin), do: inserir(@admin)
 
   def gerar(criado_por) do
-    if fundadora?(criado_por) or restantes(criado_por) > 0 do
-      inserir(criado_por)
-    else
-      {:error, :cota_esgotada}
+    cond do
+      fundadora?(criado_por) -> inserir(criado_por)
+      not tem_canto?(criado_por) -> {:error, :sem_canto}
+      restantes(criado_por) > 0 -> inserir(criado_por)
+      true -> {:error, :cota_esgotada}
     end
   end
+
+  defp tem_canto?(did), do: not is_nil(Cantos.get(did))
 
   @doc "Os convites ainda disponíveis na cota da pessoa (5 menos os criados)."
   @spec restantes(criado_por :: String.t()) :: non_neg_integer()

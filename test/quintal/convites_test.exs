@@ -14,8 +14,26 @@ defmodule Quintal.ConvitesTest do
     })
   end
 
+  # gerar/1 só libera a cota depois de a pessoa ter criado o próprio canto
+  # (spec 6.1): uma linha de `cantos` para ela (que depende da identidade)
+  defp canto(did) do
+    identidade(did)
+
+    %Quintal.Canto{}
+    |> Quintal.Canto.changeset(%{
+      dono_did: did,
+      tema: "papel",
+      blocos: ["prosas", "recados", "quem-eu-leio"],
+      links: [],
+      updated_at: DateTime.utc_now()
+    })
+    |> Repo.insert!()
+  end
+
   describe "gerar/1" do
     test "gera código no formato axo-xxxxxxxx" do
+      canto("did:plc:alice")
+
       assert {:ok, convite} = Convites.gerar("did:plc:alice")
       assert convite.codigo =~ ~r/^axo-[a-z2-9]{8}$/
       assert convite.criado_por == "did:plc:alice"
@@ -30,6 +48,7 @@ defmodule Quintal.ConvitesTest do
 
     test "cota esgota depois de 5 códigos criados, usados ou não" do
       did = "did:plc:alice"
+      canto(did)
 
       for _ <- 1..5 do
         assert {:ok, _} = Convites.gerar(did)
@@ -40,6 +59,7 @@ defmodule Quintal.ConvitesTest do
 
     test "revogar libera a vaga na cota" do
       did = "did:plc:alice"
+      canto(did)
 
       for _ <- 1..5 do
         assert {:ok, _} = Convites.gerar(did)
@@ -74,6 +94,7 @@ defmodule Quintal.ConvitesTest do
     end
 
     test "desconta os criados, usados ou não" do
+      canto("did:plc:alice")
       {:ok, _} = Convites.gerar("did:plc:alice")
       {:ok, usado} = Convites.gerar("did:plc:alice")
       :ok = Convites.usar(usado.codigo, "did:plc:beto")

@@ -41,6 +41,9 @@ defmodule QuintalWeb.ContaLive do
          |> update(:convites, &[convite | &1])
          |> assign(convites_restantes: Convites.restantes(socket.assigns.sessao.did))}
 
+      {:error, :sem_canto} ->
+        {:noreply, put_flash(socket, :error, "primeiro arruma teu canto; depois você convida gente")}
+
       {:error, :cota_esgotada} ->
         {:noreply, put_flash(socket, :error, "sua cota de convites acabou por enquanto")}
 
