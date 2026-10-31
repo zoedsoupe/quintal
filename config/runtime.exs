@@ -18,6 +18,14 @@ end
 config :quintal, QuintalWeb.Endpoint, http: [port: String.to_integer(System.get_env("PORT", "4000"))]
 
 if config_env() == :dev do
+  # Sessão de dev pra navegar as telas logadas sem oauth, par do seed
+  # (priv/repo/seeds.exs):
+  #   QUINTAL_DEV_DID=did:plc:devlinda mix phx.server
+  if did = System.get_env("QUINTAL_DEV_DID") do
+    config :quintal, :auth_impl, Quintal.Auth.Dev
+    config :quintal, :dev_identidade, did
+  end
+
   # Host público para testar o fluxo OAuth real em dev (ngrok etc):
   # QUINTAL_PUBLIC_HOST=abc123.ngrok-free.app iex -S mix phx.server
   if host = System.get_env("QUINTAL_PUBLIC_HOST") do
@@ -43,17 +51,17 @@ if config_env() == :dev do
       redirect_uri: redirect_uri
   end
 
-  # Reload browser tabs when matching files change.
   config :quintal, QuintalWeb.Endpoint,
+    # Reload browser tabs when matching files change.
     live_reload: [
       web_console_logger: true,
       patterns: [
-        # Static assets, except user uploads
         ~r"priv/static/(?!uploads/).*\.(js|css|png|jpeg|jpg|gif|svg)$"E,
-        # Gettext translations
+        # Static assets, except user uploads
         ~r"priv/gettext/.*\.po$"E,
-        # Router, Controllers, LiveViews and LiveComponents
+        # Gettext translations
         ~r"lib/quintal_web/router\.ex$"E,
+        # Router, Controllers, LiveViews and LiveComponents
         ~r"lib/quintal_web/(controllers|live|components)/.*\.(ex|heex)$"E
       ]
     ]
@@ -82,7 +90,6 @@ if config_env() == :prod do
       """
 
   host = System.get_env("PHX_HOST") || "example.com"
-
   # Key that encrypts OAuth sessions at rest (tokens + DPoP private key).
   # Any strong secret works: it is hashed to the 32 bytes AES-256 needs.
   session_key =

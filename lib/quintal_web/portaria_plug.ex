@@ -16,18 +16,22 @@ defmodule QuintalWeb.PortariaPlug do
 
   @impl true
   def call(conn, _opts) do
-    case get_session(conn, :quintal_did) do
-      nil ->
-        conn
-        |> put_status(:unauthorized)
-        |> put_root_layout(false)
-        |> put_layout(false)
-        |> put_view(html: QuintalWeb.ErrorHTML)
-        |> render(:"401")
-        |> halt()
-
-      _did ->
-        conn
+    if autenticado?(conn) do
+      conn
+    else
+      conn
+      |> put_status(:unauthorized)
+      |> put_root_layout(false)
+      |> put_layout(false)
+      |> put_view(html: QuintalWeb.ErrorHTML)
+      |> render(:"401")
+      |> halt()
     end
+  end
+
+  # em dev com uma identidade fixa (revisão, debug) a portaria deixa
+  # passar; o SessaoHook resolve a sessão sintética do Quintal.Auth.Dev
+  defp autenticado?(conn) do
+    get_session(conn, :quintal_did) != nil or Application.get_env(:quintal, :dev_identidade) != nil
   end
 end

@@ -37,7 +37,9 @@ defmodule QuintalWeb.SessaoHook do
   end
 
   defp sessao(session) do
-    with did when is_binary(did) <- session["quintal_did"],
+    did = session["quintal_did"] || Application.get_env(:quintal, :dev_identidade)
+
+    with did when is_binary(did) <- did,
          {:ok, sessao} <- Quintal.Auth.impl().current_session(did) do
       sessao
     else
