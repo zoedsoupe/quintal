@@ -5,7 +5,7 @@ defmodule QuintalWeb.HomeLive do
   fim declarado. Sem contadores, sem ranqueamento: a vizinhança é sua
   e de mais ninguém.
 
-  Só existe logada, atrás da portaria no live_session `:privado`.
+  Só existe logada, atrás da portaria no live_session `:quintal`.
   Deslogada, a porta de entrada é o `LandingLive` em `/`.
   """
 

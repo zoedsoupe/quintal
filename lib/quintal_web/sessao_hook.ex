@@ -1,7 +1,7 @@
 defmodule QuintalWeb.SessaoHook do
   @moduledoc """
   Resolve a sessão atproto a partir da sessão http (`session["quintal_did"]`)
-  e deixa em `@sessao` para todas as LiveViews do `live_session :default`.
+  e deixa em `@sessao` para todas as LiveViews do `live_session :quintal`.
 
   `nil` quando a pessoa está deslogada. O struct da sessão vem do
   `Quintal.Auth.impl().current_session/1`, com refresh proativo por
