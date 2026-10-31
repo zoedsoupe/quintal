@@ -38,6 +38,7 @@ defmodule QuintalWeb.FaqLiveTest do
     assert html =~ "atproto.com/specs"
     assert html =~ "atproto.com/guides"
     assert html =~ "quintal.place/lexicons"
+    assert html =~ "https://github.com/zoedsoupe/quintal"
   end
 
   test "perguntas têm âncoras estáveis e o link aponta para o índice de lexicons", %{conn: conn} do

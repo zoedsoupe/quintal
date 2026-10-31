@@ -44,6 +44,11 @@ defmodule QuintalWeb.FaqLive do
         <p>
           é um projeto comunitário e de código aberto, mantido por <strong>mim</strong>,
           sem empresa por trás: quem mora aqui também ajuda a cuidar.
+          o código-fonte está no <a
+            href="https://github.com/zoedsoupe/quintal"
+            target="_blank"
+            rel="noopener"
+          >repositório do GitHub</a>.
         </p>
 
         <h2 id="quem-e-o-axo">quem é o axô?</h2>
