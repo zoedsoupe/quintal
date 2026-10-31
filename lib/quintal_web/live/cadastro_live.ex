@@ -32,6 +32,13 @@ defmodule QuintalWeb.CadastroLive do
           conversa com ele. quem já tem conta no bluesky já tem tudo pronto.
         </p>
 
+        <section class="cadastro__pledge">
+          <p>
+            aqui a gente escreve com a mão. o quintal é um compromisso com a escrita humana: sem detecção
+            de ia, sem policiamento, só a promessa de que o que você lê foi escrito por alguém.
+          </p>
+        </section>
+
         <p>
           não sabe o que é isso? sem problema: a página
           <.link navigate={~p"/faq"}>que lugar é esse?</.link>
