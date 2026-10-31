@@ -155,7 +155,11 @@ defmodule QuintalWeb.ProsaLive do
   def handle_event("apagar", %{"uri" => uri}, socket) do
     case Prosas.apagar(socket.assigns.sessao, uri) do
       :ok ->
-        {:noreply, update(socket, :thread, &Enum.reject(&1, fn prosa -> prosa.uri == uri end))}
+        if uri == socket.assigns.prosa.uri do
+          {:noreply, push_navigate(socket, to: ~p"/canto/#{socket.assigns.handle}")}
+        else
+          {:noreply, update(socket, :thread, &Enum.reject(&1, fn prosa -> prosa.uri == uri end))}
+        end
 
       {:error, _reason} ->
         {:noreply, put_flash(socket, :error, "ih, algo deu errado. tenta de novo?")}
@@ -239,6 +243,17 @@ defmodule QuintalWeb.ProsaLive do
         <div :if={@audio} class="prosa-pagina__audio">
           <.audio_player audio={@audio} />
         </div>
+
+        <footer class="prosa-pagina__rodape">
+          <span :if={@visita_deixada} class="rodape__visita">visita deixada</span>
+          <.botao
+            :if={pode_visitar?(@sessao, @prosa) && !@visita_deixada}
+            variante={:sutil}
+            phx-click="deixar_visita"
+          >
+            li até aqui
+          </.botao>
+        </footer>
       </article>
 
       <section :if={@prosa} class="thread" aria-label="respostas">
@@ -296,6 +311,8 @@ defmodule QuintalWeb.ProsaLive do
           phx-change="validar"
           phx-hook="Composer"
           class="prosear thread__responder"
+          data-modo="resposta"
+          data-tipo={@tipo}
           data-rascunho={"quintal:rascunho:responder:#{@prosa.uri}"}
           data-mencoes={@mencoes != [] && JSON.encode!(@mencoes)}
         >
@@ -303,7 +320,7 @@ defmodule QuintalWeb.ProsaLive do
                lero (a resposta falada, com gravador no lugar do texto) --%>
           <div class="prosear__topo">
             <div class="prosear__tipos" role="radiogroup" aria-label="tipo da prosa">
-              <label :for={{valor, rotulo, placeholder} <- tipos()}>
+              <label :for={{valor, rotulo, placeholder} <- tipos_inline()}>
                 <input
                   type="radio"
                   name="tipo"
@@ -315,6 +332,7 @@ defmodule QuintalWeb.ProsaLive do
               </label>
             </div>
           </div>
+          <.md_ferramentas />
 
           <.campo
             name="texto"
@@ -341,18 +359,12 @@ defmodule QuintalWeb.ProsaLive do
           </div>
         </form>
 
-        <nav class="rodape">
-          <.link navigate={~p"/canto/#{@handle}"}>mais prosas de {@handle}</.link>
-          <span :if={@visita_deixada} class="rodape__visita">visita deixada</span>
-          <.botao
-            :if={pode_visitar?(@sessao, @prosa) && !@visita_deixada}
-            variante={:sutil}
-            phx-click="deixar_visita"
-          >
-            li até aqui
-          </.botao>
+        <footer class="rodape">
+          <.link navigate={~p"/canto/#{@handle}"}>
+            mais prosas de {Map.get(@nomes, @prosa.autor_did, @handle)}
+          </.link>
           <.link :if={!@sessao} navigate={~p"/"}>entre para prosear</.link>
-        </nav>
+        </footer>
       </section>
     </Layouts.app>
     """
@@ -367,6 +379,7 @@ defmodule QuintalWeb.ProsaLive do
   # validar e o morph resetaria o atributo pro valor estático)
   defp placeholder_tipo(tipo) do
     case Enum.find(tipos(), fn {valor, _rotulo, _ph} -> valor == tipo end) do
+      {"nota", _rotulo, _placeholder} -> "responder com uma prosa..."
       {_valor, _rotulo, placeholder} -> placeholder
       nil -> "responder com uma prosa..."
     end

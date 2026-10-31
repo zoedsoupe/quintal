@@ -82,7 +82,11 @@ defmodule QuintalWeb.Components do
   fluxo de documento: top bar com voltar, contador e o pill de publicar.
   """
   attr :pagina, :boolean, default: false
-  attr :modo, :atom, default: :prosa, values: [:prosa, :resposta, :recado]
+
+  attr :modo, :atom,
+    default: :prosa,
+    values: [:prosa, :resposta, :recado, :edicao, :depoimento]
+
   attr :tipo, :string, default: "nota"
   attr :mae, :any, default: nil
   attr :canto, :any, default: nil
@@ -101,9 +105,9 @@ defmodule QuintalWeb.Components do
     # fixo do server. sem chips (recado), vale o placeholder de fora
     placeholder =
       if assigns.modo in [:prosa, :resposta] || is_nil(assigns.placeholder) do
-        case Enum.find(tipos(), fn {valor, _rotulo, _ph} -> valor == assigns.tipo end) do
-          {_valor, _rotulo, placeholder} -> placeholder
-          nil -> "como foi seu dia?"
+        case {assigns.modo, assigns.tipo} do
+          {:resposta, "nota"} -> assigns.placeholder || "responder com uma prosa..."
+          _ -> placeholder_tipo(assigns.tipo)
         end
       else
         assigns.placeholder
@@ -119,6 +123,8 @@ defmodule QuintalWeb.Components do
       phx-change="validar"
       phx-hook="Composer"
       class="prosear"
+      data-modo={@modo}
+      data-tipo={@tipo}
       data-rascunho="quintal:rascunho"
       data-mencoes={@mencoes != [] && JSON.encode!(@mencoes)}
     >
@@ -138,6 +144,7 @@ defmodule QuintalWeb.Components do
                pill leva pra página de escrita --%>
           <.link navigate={~p"/prosear?tipo=ensaio"} class="prosear__tipo-link">ensaio</.link>
         </div>
+        <.md_ferramentas />
       </div>
 
       <.campo
@@ -151,8 +158,6 @@ defmodule QuintalWeb.Components do
         phx-debounce="blur"
       />
       <p class="prosear__rascunho" hidden>deixou uma prosa pela metade aqui</p>
-      <.md_ferramentas />
-
       <.lero_gravador uploads={@uploads} />
 
       <div
@@ -186,6 +191,8 @@ defmodule QuintalWeb.Components do
       phx-change="validar"
       phx-hook="Composer"
       class="prosear prosear--pagina"
+      data-modo={@modo}
+      data-tipo={@tipo}
       data-rascunho={@rascunho}
       data-mencoes={@mencoes != [] && JSON.encode!(@mencoes)}
     >
@@ -209,7 +216,9 @@ defmodule QuintalWeb.Components do
       <div :if={@canto} class="prosear__canto">
         <p class="prosear__canto-nome">{@canto}</p>
         <p class="prosear__canto-linha">
-          livro de visitas aberto: aparece na hora, o dono pode ocultar depois
+          {if @modo == :depoimento,
+            do: "só aparece se o dono do canto aceitar",
+            else: "livro de visitas aberto: aparece na hora, o dono pode ocultar depois"}
         </p>
       </div>
 
@@ -254,7 +263,7 @@ defmodule QuintalWeb.Components do
         name="texto"
         area
         value={@texto_inicial}
-        aria-label={@rotulo}
+        aria-label={rotulo_campo(@modo)}
         placeholder={@placeholder}
         rows="1"
         maxlength={@maxlength}
@@ -281,6 +290,17 @@ defmodule QuintalWeb.Components do
     </form>
     """
   end
+
+  defp placeholder_tipo(tipo) do
+    case Enum.find(tipos(), fn {valor, _rotulo, _placeholder} -> valor == tipo end) do
+      {_valor, _rotulo, placeholder} -> placeholder
+      nil -> "como foi seu dia?"
+    end
+  end
+
+  defp rotulo_campo(:resposta), do: "sua resposta"
+  defp rotulo_campo(:recado), do: "texto do recado"
+  defp rotulo_campo(_modo), do: "texto da prosa"
 
   # o gravador do lero, igual no card da home e na página de escrita:
   # parar a gravação já sobe o áudio e proseia, sem preview nem passo

@@ -25,6 +25,7 @@ defmodule QuintalWeb.EscreverLive do
   import QuintalWeb.ProsearForm,
     only: [com_titulo: 2, imagens_dos_anexos: 2, audio_do_anexo: 1, limpa_links: 1, permitir_anexos: 1, erro: 1]
 
+  alias Quintal.Depoimentos
   alias Quintal.Follows
   alias Quintal.Identidade
   alias Quintal.Prosa
@@ -53,7 +54,31 @@ defmodule QuintalWeb.EscreverLive do
     cond do
       params["editar"] -> monta_edicao(socket, params["editar"])
       params["reply"] -> monta_resposta(socket, params["reply"], tipo)
+      params["depoimento"] -> monta_depoimento(socket, params["depoimento"])
       true -> monta_nova(socket, tipo)
+    end
+  end
+
+  defp monta_depoimento(socket, handle) do
+    case Repo.one(from i in Identidade, where: i.handle == ^handle) do
+      %Identidade{did: did} when did != socket.assigns.sessao.did ->
+        {:ok,
+         assign(socket,
+           modo: :depoimento,
+           tipo: "nota",
+           mae: nil,
+           canto: handle,
+           texto_inicial: nil,
+           voltar: "/canto/#{handle}",
+           placeholder: "escreve aqui teu depoimento...",
+           maxlength: 1_000,
+           rotulo: "enviar depoimento",
+           rascunho: "quintal:rascunho:depoimento:#{did}",
+           page_title: "depoimento pra #{handle}"
+         )}
+
+      _desconhecido_ou_proprio ->
+        {:ok, push_navigate(socket, to: "/inicio")}
     end
   end
 
@@ -121,7 +146,7 @@ defmodule QuintalWeb.EscreverLive do
            texto_inicial: prosa.texto,
            voltar: prosa_path(prosa.uri, prosa.autor.handle),
            placeholder: nil,
-           maxlength: 10_000,
+           maxlength: limite_tipo(prosa.tipo || "nota"),
            rotulo: "salvar",
            rascunho: "quintal:rascunho:editar:#{prosa.uri}",
            page_title: "editar prosa"
@@ -231,9 +256,19 @@ defmodule QuintalWeb.EscreverLive do
     Recados.deixar(socket.assigns.sessao, socket.assigns.canto, texto)
   end
 
+  defp publicar(:depoimento, socket, texto, _params) do
+    Depoimentos.deixar(socket.assigns.sessao, socket.assigns.canto, texto)
+  end
+
+  defp limite_tipo("nota"), do: 280
+  defp limite_tipo("pergunta"), do: 280
+  defp limite_tipo("cronica"), do: 2_000
+  defp limite_tipo(_tipo), do: 10_000
+
   @links_de_fora ". os links de instagram, tiktok e shorts ficaram de fora, aqui eles não tocam"
 
   defp flash_sucesso(:recado, _tirou), do: "pronto, seu recado tá no livro de visitas"
+  defp flash_sucesso(:depoimento, _tirou), do: "pronto, seu depoimento espera o aceite do canto"
   defp flash_sucesso(:edicao, true), do: "pronto, sua prosa tá atualizada" <> @links_de_fora
   defp flash_sucesso(:edicao, _nao), do: "pronto, sua prosa tá atualizada"
   defp flash_sucesso(_modo, true), do: "pronto, sua prosa tá no quintal" <> @links_de_fora

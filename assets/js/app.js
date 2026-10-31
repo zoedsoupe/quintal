@@ -117,6 +117,8 @@ const Composer = {
     this.aviso = this.el.querySelector(".prosear__rascunho");
     this.titulo = this.el.querySelector("input[name=titulo]");
     this.chave = this.el.dataset.rascunho;
+    this.modo = this.el.dataset.modo;
+    this.tipoAtual = this.el.dataset.tipo || "nota";
     this.limite = Number(this.campo.getAttribute("maxlength")) || 10000;
 
     ligaMd(this.el, this.campo);
@@ -127,6 +129,7 @@ const Composer = {
     // segurar o submit com o required
     const marcado = this.el.querySelector("input[name=tipo]:checked");
     if (marcado) {
+      this.tipoAtual = marcado.value;
       this.campo.placeholder = marcado.dataset.placeholder;
       this.campo.required = marcado.value !== "lero";
       this.aplicaLimite(marcado.value);
@@ -134,6 +137,7 @@ const Composer = {
 
     this.el.querySelectorAll("input[name=tipo]").forEach((radio) => {
       radio.addEventListener("change", () => {
+        this.tipoAtual = radio.value;
         this.campo.placeholder = radio.dataset.placeholder;
         this.campo.required = radio.value !== "lero";
         this.aplicaLimite(radio.value);
@@ -244,6 +248,7 @@ const Composer = {
   // dele. texto ja escrito maior que o tipo novo fica, mas nao publica
   // (expande desabilita o botao e o contador avisa quanto cortar)
   aplicaLimite(tipo) {
+    this.tipoAtual = tipo;
     this.limite = REF_TIPO[tipo] || 10000;
     this.campo.maxLength = this.limite;
   },
@@ -281,8 +286,8 @@ const Composer = {
       .trim()
       .split(/\s+/)
       .filter(Boolean).length;
-    const tipo = this.el.querySelector("input[name=tipo]:checked")?.value;
-    const ref = REF_TIPO[tipo] || REF_TIPO.nota;
+    const tipo = this.el.querySelector("input[name=tipo]:checked")?.value || this.tipoAtual;
+    const ref = this.modo === "depoimento" ? this.limite : REF_TIPO[tipo] || REF_TIPO.nota;
 
     if (this.contador) {
       // acorda nos ultimos 20% da referencia do tipo, ou na reta final
@@ -303,8 +308,8 @@ const Composer = {
       } else if (faltam != null) {
         this.contador.hidden = false;
         this.contador.textContent = `tá chegando no limite, faltam ${faltam}`;
-      } else if (this.limite <= 500) {
-        // campo curto (recado): o limite fica a vista o tempo todo
+      } else if (this.modo === "recado") {
+        // recado: limite curto e explícito, como pede a spec
         this.contador.hidden = false;
         this.contador.textContent = `${len}/${this.limite}`;
       } else if (palavras > 0) {

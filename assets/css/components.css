@@ -1248,14 +1248,20 @@
 .prosear__regua {
   display: flex;
   align-items: center;
+  min-width: 0;
   gap: var(--espaco-1);
 }
 
 .prosear__regua .md-ferramentas {
   flex: 1;
+  min-width: 0;
   flex-wrap: nowrap;
   margin-top: 0;
-  overflow-x: visible;
+  overflow-x: auto;
+}
+
+.prosear__regua .prosear__clipe {
+  flex: none;
 }
 
 .prosear--pagina .md-ferramentas .icone-botao,
@@ -1396,12 +1402,15 @@
   }
 
   .prosear--pagina .prosear__tipos {
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     gap: var(--espaco-2);
   }
 
   .prosear--pagina .prosear__tipos label {
-    padding: 0.375rem 0.875rem;
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding: var(--espaco-2) 0.875rem;
     font-size: 0.8125rem;
     line-height: 1.25rem;
   }
@@ -1437,6 +1446,18 @@
 
   .prosear--pagina .prosear__titulo {
     font-size: 1.625rem;
+  }
+}
+
+.prosear:not(:focus-within):not(.prosear--expandido) .md-ferramentas,
+.prosear:not(:focus-within):not(.prosear--expandido) .prosear__ajuda {
+  display: none;
+}
+
+@media (max-width: 47.99rem) {
+  .depoimento-form > .botao,
+  .depoimento-form__composer {
+    display: none;
   }
 }
 

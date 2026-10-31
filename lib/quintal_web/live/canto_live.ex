@@ -205,6 +205,10 @@ defmodule QuintalWeb.CantoLive do
     {:noreply, assign(socket, depoimento_form: true)}
   end
 
+  def handle_event("cancelar_depoimento", _params, socket) do
+    {:noreply, assign(socket, depoimento_form: false)}
+  end
+
   def handle_event("deixar_depoimento", %{"texto" => texto}, socket) do
     case Depoimentos.deixar(socket.assigns.sessao, socket.assigns.dono.handle, texto) do
       {:ok, _depoimento} ->
@@ -829,11 +833,21 @@ defmodule QuintalWeb.CantoLive do
             <.botao :if={!@depoimento_form} variante={:sutil} phx-click="abrir_depoimento">
               deixar um depoimento
             </.botao>
+            <.link
+              navigate={~p"/prosear?depoimento=#{@dono.handle}"}
+              class="prosear-atalho depoimento-form__atalho"
+            >
+              <span class="prosear-atalho__placeholder">deixar um depoimento...</span>
+            </.link>
             <form
               :if={@depoimento_form}
               id="depoimento"
               phx-submit="deixar_depoimento"
-              phx-hook="MdToolbar"
+              phx-hook="Composer"
+              class="prosear depoimento-form__composer"
+              data-modo="depoimento"
+              data-tipo="nota"
+              data-rascunho={"quintal:rascunho:depoimento:#{@dono.did}"}
             >
               <div class="campo">
                 <label class="campo__label" for="depoimento-texto">seu depoimento</label>
@@ -843,13 +857,20 @@ defmodule QuintalWeb.CantoLive do
                   class="campo__area"
                   rows="3"
                   maxlength="1000"
+                  aria-label="texto do depoimento"
                   required
                   placeholder="escreve aqui teu depoimento..."
                 ></textarea>
               </div>
-              <p class="prosear__ajuda">só aparece se o dono do canto aceitar.</p>
               <.md_ferramentas />
-              <.botao variante={:fantasma} type="submit">enviar depoimento</.botao>
+              <p class="prosear__ajuda">só aparece se o dono do canto aceitar.</p>
+              <p class="prosear__contador" hidden></p>
+              <div class="prosear__ferramentas">
+                <.botao variante={:sutil} type="button" phx-click="cancelar_depoimento">
+                  cancelar
+                </.botao>
+                <.botao variante={:fantasma} type="submit">enviar depoimento</.botao>
+              </div>
             </form>
           </div>
           <p :if={!@sessao && !@proprio?} class="depoimento-form">
