@@ -57,7 +57,7 @@ defmodule QuintalWeb.VisitasLive do
         {:noreply,
          socket
          |> put_flash(:info, "depoimento pendurado na parede do seu canto")
-         |> update(:pendentes, &Enum.reject(&1, fn d -> d.uri == uri end))}
+         |> atualizar_pendentes(uri)}
 
       {:error, _reason} ->
         {:noreply, put_flash(socket, :error, "ih, algo deu errado. tenta de novo?")}
@@ -67,11 +67,20 @@ defmodule QuintalWeb.VisitasLive do
   def handle_event("deixar_quieto", %{"uri" => uri}, socket) do
     case Depoimentos.deixar_quieto(socket.assigns.sessao, uri) do
       {:ok, _depoimento} ->
-        {:noreply, update(socket, :pendentes, &Enum.reject(&1, fn d -> d.uri == uri end))}
+        {:noreply, atualizar_pendentes(socket, uri)}
 
       {:error, _reason} ->
         {:noreply, put_flash(socket, :error, "ih, algo deu errado. tenta de novo?")}
     end
+  end
+
+  defp atualizar_pendentes(socket, uri) do
+    pendentes = Enum.reject(socket.assigns.pendentes, &(&1.uri == uri))
+
+    assign(socket,
+      pendentes: pendentes,
+      vazia: zerado?(socket.assigns.resumo) && pendentes == []
+    )
   end
 
   defp zerado?(resumo) do
@@ -157,7 +166,9 @@ defmodule QuintalWeb.VisitasLive do
           :if={@vazia}
           pose={:dormindo}
           titulo="ninguém passou por aqui desde sua última visita. aproveita o silêncio."
-        />
+        >
+          <.link navigate={~p"/passear"} class="botao botao--fantasma">passear com o axô</.link>
+        </.vazio>
 
         <div :if={!@vazia}>
           <p :if={linha_resumo(@resumo) != ""} class="visitas__resumo">{linha_resumo(@resumo)}</p>
