@@ -25,8 +25,8 @@ defmodule Quintal.Auth.ProtoRune do
   alias ProtoRune.Atproto.OAuth
   alias ProtoRune.Atproto.OAuth.Client
   alias ProtoRune.Atproto.OAuth.Session
-  alias ProtoRune.SessionManager
   alias ProtoRune.Security.Crypto
+  alias ProtoRune.SessionManager
   alias Quintal.Auth.SessionRegistry
   alias Quintal.Auth.TokenStore
 

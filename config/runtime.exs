@@ -28,6 +28,19 @@ if config_env() == :dev do
     config :quintal, QuintalWeb.Endpoint,
       url: [host: host],
       check_origin: ["https://#{host}", "http://localhost:4000"]
+  else
+    scope =
+      :quintal
+      |> Application.fetch_env!(ProtoRune)
+      |> Keyword.fetch!(:scope)
+
+    redirect_uri = "http://127.0.0.1:4000/oauth/callback"
+
+    config :quintal, ProtoRune,
+      client_id:
+        "http://localhost?" <>
+          URI.encode_query(%{"redirect_uri" => redirect_uri, "scope" => scope}),
+      redirect_uri: redirect_uri
   end
 
   # Reload browser tabs when matching files change.

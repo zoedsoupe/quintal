@@ -20,10 +20,6 @@ config :phoenix_live_view,
   # Enable helpful, but potentially expensive runtime checks
   enable_expensive_runtime_checks: true
 
-config :quintal, Quintal.Auth.ProtoRune,
-  client_id: "http://localhost:4000/oauth/client-metadata.json",
-  redirect_uri: "http://localhost:4000/oauth/callback"
-
 # Configure your database
 config :quintal, Quintal.Repo,
   username: "postgres",

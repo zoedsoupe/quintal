@@ -138,7 +138,7 @@ defmodule Quintal.PDS.ProtoRuneTest do
   describe "erros do pds" do
     test "status de erro vira {:error, _}", %{session: session} do
       expect(HTTPMock, :request, fn :get, _url, _opts ->
-        {:ok, %Req.Response{status: 400, body: ~s({"error":"RecordNotFound","message":"x"}), headers: %{}}}
+        {:ok, %{status: 400, body: ~s({"error":"RecordNotFound","message":"x"}), headers: %{}}}
       end)
 
       assert {:error, _} =
