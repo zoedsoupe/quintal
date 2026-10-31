@@ -33,6 +33,7 @@ defmodule QuintalWeb.LandingLive do
         <%!-- alpha fechado (spec 6): o convite é a porta principal,
              o login é caminho quieto pra quem já mora aqui --%>
         <.link navigate={~p"/convite"} class="botao botao--primario">tenho um convite</.link>
+        <.link navigate={~p"/passear"} class="botao botao--fantasma">passear com o axô</.link>
 
         <form action="/oauth/login" method="get" class="entrar">
           <.campo

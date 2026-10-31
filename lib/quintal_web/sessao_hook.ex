@@ -8,8 +8,8 @@ defmodule QuintalWeb.SessaoHook do
   trás (spec 8.2): a interface nunca pensa em token.
 
   A variante `:privado` cobre o caso da sessão expirar no meio da
-  navegação (a pipeline `:portaria` já responde 401 em toda requisição
-  http sem sessão): manda a pessoa de volta para a home.
+  navegação: manda a pessoa de volta para a home. A pipeline `:portaria`
+  também protege as requisições http das rotas privadas.
   """
 
   import Phoenix.Component, only: [assign: 3]

@@ -34,10 +34,10 @@ defmodule QuintalWeb.PassearLiveTest do
     {:ok, conn: conn}
   end
 
-  test "portaria fecha o passear para quem não entrou" do
-    conn = get(build_conn(), "/passear")
+  test "passear abre para quem ainda não entrou" do
+    {:ok, _view, html} = live(build_conn(), "/passear")
 
-    assert html_response(conn, 401) =~ "opa, pode entrar não"
+    assert html =~ "o axô acha um canto pra você conhecer"
   end
 
   test "abre quase vazia, com o axô de lupa e o botão passear", %{conn: conn} do

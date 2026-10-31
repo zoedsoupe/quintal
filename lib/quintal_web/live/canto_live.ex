@@ -49,9 +49,9 @@ defmodule QuintalWeb.CantoLive do
 
   # swatches do modo arrumar: fundo e acento de cada preset (spec 7.2)
   @presets %{
-    "papel" => %{fundo: "#faf6f1", acento: "#8b7bb8"},
+    "papel" => %{fundo: "#faf6f1", acento: "#7663ab"},
     "madrugada" => %{fundo: "#14101c", acento: "#b9a7e0"},
-    "gloss" => %{fundo: "#fff5fa", acento: "#ff6fb5"}
+    "gloss" => %{fundo: "#fff5fa", acento: "#dc006b"}
   }
 
   @impl true
@@ -106,6 +106,30 @@ defmodule QuintalWeb.CantoLive do
          )}
     end
   end
+
+  @impl true
+  def handle_event(event, _params, %{assigns: %{sessao: nil}} = socket)
+      when event in [
+             "apagar_prosa",
+             "deixar_recado",
+             "ocultar_recado",
+             "mostrar_recado",
+             "seguir",
+             "deixar_de_seguir",
+             "abrir_depoimento",
+             "deixar_depoimento",
+             "arrumar",
+             "tema",
+             "cor",
+             "cabeca",
+             "avatar",
+             "tirar_avatar",
+             "alternar-bloco",
+             "mover-bloco",
+             "reordenar",
+             "blogroll_remove",
+             "blogroll_add"
+           ], do: exigir_sessao(socket)
 
   @impl true
   def handle_event("apagar_prosa", %{"uri" => uri}, socket) do
@@ -335,6 +359,10 @@ defmodule QuintalWeb.CantoLive do
     end
   end
 
+  defp exigir_sessao(socket) do
+    {:noreply, socket |> put_flash(:info, "entre para prosear") |> redirect(to: "/")}
+  end
+
   defp atualizar_blogroll(socket, items) do
     payload = Enum.map(items, &%{did: &1.did, note: &1.note})
 
@@ -494,6 +522,13 @@ defmodule QuintalWeb.CantoLive do
               >
                 seguir esse canto
               </.botao>
+              <.link
+                :if={!@sessao && !@proprio?}
+                navigate={~p"/"}
+                class="conta__link"
+              >
+                entre para seguir
+              </.link>
               <.botao
                 :if={@sessao && !@proprio? && @seguindo}
                 variante={:sutil}
@@ -730,7 +765,7 @@ defmodule QuintalWeb.CantoLive do
                     </div>
                   </form>
                   <p :if={!@sessao} class="recados__convite">
-                    <.link href={~p"/"}>entra com atproto</.link> pra deixar um recado
+                    <.link navigate={~p"/"}>entre para deixar um recado</.link>
                   </p>
                 </div>
               <% "quem-eu-leio" -> %>
@@ -772,7 +807,7 @@ defmodule QuintalWeb.CantoLive do
 
         <%!-- depoimentos não são bloco: não entram no rodízio nem somem
              com ele. parede própria no fim do canto --%>
-        <section :if={@depoimentos != [] || (@sessao && !@proprio?)} class="canto-bloco">
+        <section :if={@depoimentos != [] || !@proprio?} class="canto-bloco">
           <h2 class="canto-bloco__titulo">depoimentos</h2>
 
           <div :if={@depoimentos != []} class="depoimentos">
@@ -813,6 +848,9 @@ defmodule QuintalWeb.CantoLive do
               <.botao variante={:fantasma} type="submit">enviar depoimento</.botao>
             </form>
           </div>
+          <p :if={!@sessao && !@proprio?} class="depoimento-form">
+            <.link navigate={~p"/"}>entre para prosear</.link>
+          </p>
         </section>
       </div>
     </Layouts.app>

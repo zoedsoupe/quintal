@@ -97,6 +97,9 @@ defmodule QuintalWeb.ProsaLive do
   defp buscar_mae(_prosa), do: nil
 
   @impl true
+  def handle_event(event, _params, %{assigns: %{sessao: nil}} = socket)
+      when event in ["deixar_visita", "remover-audio", "responder", "apagar"], do: exigir_sessao(socket)
+
   def handle_event("deixar_visita", _params, socket) do
     %{prosa: prosa, sessao: sessao} = socket.assigns
 
@@ -171,6 +174,10 @@ defmodule QuintalWeb.ProsaLive do
   # nunca rastreamos leitura: a visita nasce do gesto do leitor
   defp visita_deixada?(%Prosa{uri: uri}, %{did: did}), do: Visitas.leitura_marcada?(uri, did)
   defp visita_deixada?(_prosa, _sessao), do: false
+
+  defp exigir_sessao(socket) do
+    {:noreply, socket |> put_flash(:info, "entre para prosear") |> redirect(to: "/")}
+  end
 
   @impl true
   def render(assigns) do
@@ -275,6 +282,9 @@ defmodule QuintalWeb.ProsaLive do
         >
           <span class="prosear-atalho__placeholder">responder com uma prosa...</span>
         </.link>
+        <p :if={!@sessao} class="thread__responder">
+          <.link navigate={~p"/"}>entre para responder</.link>
+        </p>
 
         <form
           :if={@sessao}
@@ -338,6 +348,7 @@ defmodule QuintalWeb.ProsaLive do
           >
             li até aqui
           </.botao>
+          <.link :if={!@sessao} navigate={~p"/"}>entre para prosear</.link>
         </nav>
       </section>
     </Layouts.app>
