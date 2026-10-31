@@ -19,9 +19,9 @@ defmodule QuintalWeb.BoasVindasLive do
 
   # swatches grandes do onboarding: mesma paleta do modo arrumar
   @presets %{
-    "papel" => %{fundo: "#faf6f1", acento: "#8b7bb8", tinta: "#2e2833"},
+    "papel" => %{fundo: "#faf6f1", acento: "#7663ab", tinta: "#2e2833"},
     "madrugada" => %{fundo: "#14101c", acento: "#b9a7e0", tinta: "#ece6f2"},
-    "gloss" => %{fundo: "#fff5fa", acento: "#ff6fb5", tinta: "#3d2b3a"}
+    "gloss" => %{fundo: "#fff5fa", acento: "#dc006b", tinta: "#3d2b3a"}
   }
 
   @impl true
@@ -43,10 +43,10 @@ defmodule QuintalWeb.BoasVindasLive do
       |> Enum.reject(fn {_chave, valor} -> String.trim(valor || "") == "" end)
       |> Map.new()
 
-    with true <- attrs == %{},
-         {:ok, _canto} <- Cantos.arrumar(socket.assigns.sessao, attrs) do
-      {:noreply, assign(socket, passo: :tema)}
-    else
+    case Cantos.arrumar(socket.assigns.sessao, attrs) do
+      {:ok, _canto} ->
+        {:noreply, assign(socket, passo: :tema)}
+
       {:error, _reason} ->
         {:noreply, put_flash(socket, :error, "não consegui guardar isso. tenta de novo ou segue e a gente arruma depois")}
     end
