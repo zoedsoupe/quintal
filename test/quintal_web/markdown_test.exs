@@ -31,7 +31,7 @@ defmodule QuintalWeb.MarkdownTest do
       assert Markdown.render(nil) == {:safe, ""}
     end
 
-    test "marker aberto pelo corte do trecho é completado (streaming)" do
+    test "marker aberto pelo corte do trecho é completado (auto_close)" do
       assert html("**bold sem fechar") =~ "<strong>bold sem fechar</strong>"
     end
   end

@@ -11,14 +11,15 @@ defmodule QuintalWeb.Markdown do
   @doc """
   HTML seguro (`{:safe, html}`) da fonte markdown.
 
-  Modo streaming do comrak: um trecho cortado no meio de um marker
-  (`**bo…` no resumo do feed) renderiza com a construção completada,
-  nunca com asteriscos literais vazando.
+  `auto_close` do comrak (sucessor do antigo `:streaming`, hoje
+  deprecado): um trecho cortado no meio de um marker (`**bo…` no resumo
+  do feed) renderiza com a construção completada, nunca com asteriscos
+  literais vazando.
   """
   @spec render(texto :: String.t() | nil) :: {:safe, String.t()}
   def render(texto) when is_binary(texto) do
     html =
-      [streaming: true, extension: [strikethrough: true, autolink: true]]
+      [auto_close: true, extension: [strikethrough: true, autolink: true]]
       |> MDEx.new()
       |> MDEx.Document.put_markdown(texto)
       |> MDEx.to_html!()
@@ -65,10 +66,23 @@ defmodule QuintalWeb.Markdown do
   # fim do trecho) vira `mdex:incomplete-link` no src/href: a imagem
   # quebrada dispara a CSP e o link não leva a lugar nenhum. A imagem
   # vira o próprio alt e a âncora vira texto puro.
+  #
+  # Mas o auto_close trata QUALQUER URL nua no fim como "ainda sendo
+  # digitada": um autolink completo vira placeholder com o rótulo igual
+  # à própria URL. Esse é o único placeholder que não vira texto: ali a
+  # URL é o link, então devolvemos a âncora de verdade (senão os embeds
+  # e o linkify perdem o `<a>`).
+  @autolink_incompleto ~r/<a href="mdex:incomplete-link">(https?:\/\/[^<\s]+)<\/a>/
+
   defp limpa_incompletos(html) do
     html
     |> String.replace(~r/<img src="mdex:incomplete-link" alt="([^"]*)" \/>/, "\\1")
+    |> reaproveita_autolink()
     |> String.replace(~r/<a href="mdex:incomplete-link">(.*?)<\/a>/s, "\\1")
+  end
+
+  defp reaproveita_autolink(html) do
+    Regex.replace(@autolink_incompleto, html, fn _todo, url -> ~s(<a href="#{url}">#{url}</a>) end)
   end
 
   defp ajusta_links(html) do
