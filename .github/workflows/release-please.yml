@@ -1,18 +1,32 @@
+name: Release
+
 on:
   workflow_dispatch:
+    inputs:
+      ref:
+        description: Source ref to build (for example main or v1.0.0)
+        default: main
+        required: true
+        type: string
+      tag:
+        description: Image tag to publish (for example v1.0.0)
+        default: v1.0.0
+        required: true
+        type: string
   push:
-    branches:
-      - main
+    branches: [main]
 
 permissions:
   contents: write
   pull-requests: write
 
-name: Release Please
-
 jobs:
   release-please:
+    name: Release Please
     runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
       - uses: googleapis/release-please-action@v4
         id: release
@@ -20,3 +34,47 @@ jobs:
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
           config-file: .github/release-please-config.json
           manifest-file: .github/.release-please-manifest.json
+
+  # Chain the image build to Release Please: tags created with the default
+  # GITHUB_TOKEN do not trigger a separate tags workflow. The manual tag input
+  # also lets us publish an image for a release created before this job existed.
+  image:
+    name: Build and push to GHCR
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true' || (github.event_name == 'workflow_dispatch' && inputs.tag != '')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || needs.release-please.outputs.tag_name }}
+
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=match,pattern=v(.*),group=1,value=${{ inputs.tag || needs.release-please.outputs.tag_name }}
+            type=match,pattern=v(\d+\.\d+),group=1,value=${{ inputs.tag || needs.release-please.outputs.tag_name }}
+            type=raw,value=latest
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
