@@ -1,0 +1,19 @@
+services:
+  quintal:
+    image: ghcr.io/zoedsoupe/quintal:latest
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      PHX_HOST: quintal.blog.br
+      PORT: "8080"
+      DATABASE_PATH: /data/quintal.db
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:?SECRET_KEY_BASE must be set}
+      QUINTAL_SESSION_KEY: ${QUINTAL_SESSION_KEY:?QUINTAL_SESSION_KEY must be set}
+    volumes:
+      - quintal-data:/data
+
+volumes:
+  # Keep this Docker volume on local host storage, never NFS or SMB.
+  quintal-data:
+    driver: local

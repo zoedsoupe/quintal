@@ -1,5 +1,5 @@
 defmodule QuintalWeb.LexiconsControllerTest do
-  use QuintalWeb.ConnCase, async: true
+  use QuintalWeb.ConnCase, async: false
 
   test "GET /lexicons lista todos os lexicons" do
     html =

@@ -1,5 +1,5 @@
 defmodule QuintalWeb.ErrorHTMLTest do
-  use QuintalWeb.ConnCase, async: true
+  use QuintalWeb.ConnCase, async: false
 
   # Bring render_to_string/4 for testing custom views
   import Phoenix.Template, only: [render_to_string: 4]

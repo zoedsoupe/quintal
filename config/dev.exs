@@ -22,13 +22,10 @@ config :phoenix_live_view,
 
 # Configure your database
 config :quintal, Quintal.Repo,
-  username: "postgres",
-  password: "postgres",
-  hostname: "localhost",
-  database: "quintal_dev",
+  database: Path.expand("../quintal_dev.db", __DIR__),
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
-  pool_size: 10
+  pool_size: 5
 
 config :quintal, QuintalWeb.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.

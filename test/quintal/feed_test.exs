@@ -1,5 +1,5 @@
 defmodule Quintal.FeedTest do
-  use Quintal.DataCase, async: true
+  use Quintal.DataCase, async: false
 
   alias Quintal.Feed
   alias Quintal.Follows

@@ -1,5 +1,5 @@
 defmodule Quintal.ExportarTest do
-  use Quintal.DataCase, async: true
+  use Quintal.DataCase, async: false
 
   alias Quintal.Exportar
   alias Quintal.Identidade

@@ -89,7 +89,9 @@ ENV LANGUAGE=en_US:en
 ENV LC_ALL=en_US.UTF-8
 
 WORKDIR "/app"
-RUN chown nobody /app
+RUN chown nobody /app \
+  && mkdir -p /data \
+  && chown nobody /data
 
 # set runner ENV
 ENV MIX_ENV="prod"
@@ -104,4 +106,4 @@ USER nobody
 # above and adding an entrypoint. See https://github.com/krallin/tini for details
 # ENTRYPOINT ["/tini", "--"]
 
-CMD ["/app/bin/server"]
+CMD ["/app/bin/entrypoint"]

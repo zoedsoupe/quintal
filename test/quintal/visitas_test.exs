@@ -1,5 +1,5 @@
 defmodule Quintal.VisitasTest do
-  use Quintal.DataCase, async: true
+  use Quintal.DataCase, async: false
 
   alias Quintal.Repo
   alias Quintal.VisitaEvento

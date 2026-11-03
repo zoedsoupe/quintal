@@ -5,7 +5,7 @@ defmodule Quintal.Ingestao do
   Assina `ProtoRune.Jetstream` filtrando as coleções `place.quintal.*`
   no servidor (ao contrário do firehose cru, só o que é do quintal
   chega aqui), mais os eventos de identidade, e mantém o índice
-  postgres em sincronia:
+  índice local em sincronia:
 
     * create/update de prosa, follow, recado e depoimento viram upsert
       idempotente por uri: a escrita otimista e o eco do stream são o

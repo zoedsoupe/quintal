@@ -1,5 +1,5 @@
 defmodule QuintalWeb.PassearLiveTest do
-  use QuintalWeb.ConnCase, async: true
+  use QuintalWeb.ConnCase, async: false
 
   import Mox
   import Phoenix.LiveViewTest

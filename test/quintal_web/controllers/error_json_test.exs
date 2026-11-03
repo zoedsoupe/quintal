@@ -1,5 +1,5 @@
 defmodule QuintalWeb.ErrorJSONTest do
-  use QuintalWeb.ConnCase, async: true
+  use QuintalWeb.ConnCase, async: false
 
   test "renders 404" do
     assert QuintalWeb.ErrorJSON.render("404.json", %{}) == %{errors: %{detail: "Not Found"}}

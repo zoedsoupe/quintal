@@ -1,5 +1,5 @@
 defmodule Quintal.ProsasTest do
-  use Quintal.DataCase, async: true
+  use Quintal.DataCase, async: false
 
   import Mox
 

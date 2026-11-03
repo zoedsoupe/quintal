@@ -1,5 +1,5 @@
 defmodule Quintal.Auth.TokenStoreTest do
-  use Quintal.DataCase, async: true
+  use Quintal.DataCase, async: false
 
   alias ProtoRune.Security.Crypto
   alias Quintal.Auth.TokenStore

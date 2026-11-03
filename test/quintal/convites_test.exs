@@ -1,5 +1,5 @@
 defmodule Quintal.ConvitesTest do
-  use Quintal.DataCase, async: true
+  use Quintal.DataCase, async: false
 
   alias Quintal.Convites
   alias Quintal.Identidade

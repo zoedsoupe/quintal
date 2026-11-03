@@ -1,5 +1,5 @@
 defmodule QuintalWeb.OAuthControllerTest do
-  use QuintalWeb.ConnCase, async: true
+  use QuintalWeb.ConnCase, async: false
 
   import Mox
 
@@ -111,7 +111,7 @@ defmodule QuintalWeb.OAuthControllerTest do
 end
 
 defmodule QuintalWeb.OAuthLoginTest do
-  use QuintalWeb.ConnCase, async: true
+  use QuintalWeb.ConnCase, async: false
 
   import Mox
 

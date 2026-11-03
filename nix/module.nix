@@ -22,10 +22,7 @@ let
   imagePinned = imageHasDigest || imageHasTag;
 
   userSpec = "${toString cfg.uid}:${toString cfg.gid}";
-  requiredMounts = cfg.requiredMounts ++ [
-    cfg.dataDir
-    cfg.backupDir
-  ];
+  requiredMounts = cfg.requiredMounts ++ [ cfg.dataDir ];
 
   storagePreStart = concatStringsSep "\n" (
     map (path: ''
@@ -50,20 +47,14 @@ let
       -e HOME=/data \
       -e PHX_HOST=${escapeShellArg cfg.hostname} \
       -e PORT=${toString cfg.port} \
+      -e DATABASE_PATH=/data/quintal.db \
       ${environmentFileFlags} \
       -v ${escapeShellArg (toString cfg.dataDir)}:/data \
-      -v ${escapeShellArg (toString cfg.backupDir)}:/backups \
       ${escapeShellArg cfg.image} ${command}
   '';
 
   migrate = pkgs.writeShellScript "quintal-migrate" (containerRun "/app/bin/migrate");
 
-  backup = pkgs.writeShellScript "quintal-backup" ''
-    set -eu
-    ${concatStringsSep "\n" (map (path: ". ${escapeShellArg (toString path)}") cfg.environmentFiles)}
-    : "''${DATABASE_URL:?DATABASE_URL must be set for backup}"
-    ${pkgs.postgresql}/bin/pg_dump "$DATABASE_URL" > ${escapeShellArg (toString cfg.backupDir)}/quintal-$(date +%Y%m%d%H%M%S).sql
-  '';
 in
 {
   options.services.quintal = {
@@ -103,10 +94,10 @@ in
       example = [ "/run/secrets/quintal.env" ];
       description = ''
         Host-side environment files passed to the container and read by the
-        migration and backup scripts. Keep secrets outside the Nix store. They
-        must provide DATABASE_URL for an externally managed PostgreSQL database,
-        SECRET_KEY_BASE and QUINTAL_SESSION_KEY. The files use shell-compatible
-        KEY=value lines and are trusted operator input.
+        migration command. Keep secrets outside the Nix store. They must provide
+        SECRET_KEY_BASE and QUINTAL_SESSION_KEY. SQLite is stored at
+        /data/quintal.db. The files use shell-compatible KEY=value lines and are
+        trusted operator input.
       '';
     };
 
@@ -141,15 +132,9 @@ in
     dataDir = mkOption {
       type = types.path;
       default = "/var/lib/quintal";
-      description = "Host directory mounted at /data for writable release state.";
+      description = "Local-disk directory mounted at /data for the SQLite database and release state.";
     };
 
-    backupDir = mkOption {
-      type = types.path;
-      default = "${cfg.dataDir}/backups";
-      defaultText = lib.literalExpression ''"''${config.services.quintal.dataDir}/backups"'';
-      description = "Host directory for PostgreSQL dumps, mounted at /backups.";
-    };
   };
 
   config = mkIf cfg.enable {
@@ -160,7 +145,7 @@ in
       }
       {
         assertion = cfg.environmentFiles != [ ];
-        message = "services.quintal.environmentFiles must provide DATABASE_URL and the required runtime secrets.";
+        message = "services.quintal.environmentFiles must provide the required runtime secrets.";
       }
     ];
 
@@ -173,10 +158,7 @@ in
     };
     users.groups.quintal.gid = cfg.gid;
 
-    systemd.tmpfiles.rules = [
-      "d '${cfg.dataDir}' 0700 quintal quintal -"
-      "d '${cfg.backupDir}' 0700 quintal quintal -"
-    ];
+    systemd.tmpfiles.rules = [ "d '${cfg.dataDir}' 0700 quintal quintal -" ];
 
     virtualisation.docker.enable = lib.mkDefault true;
     virtualisation.oci-containers.backend = "docker";
@@ -188,13 +170,11 @@ in
       environment = {
         PHX_HOST = cfg.hostname;
         PORT = toString cfg.port;
+        DATABASE_PATH = "/data/quintal.db";
         HOME = "/data";
       };
       environmentFiles = cfg.environmentFiles;
-      volumes = [
-        "${cfg.dataDir}:/data"
-        "${cfg.backupDir}:/backups"
-      ];
+      volumes = [ "${cfg.dataDir}:/data" ];
       ports = [ "${cfg.listenAddress}:${toString cfg.port}:${toString cfg.port}" ];
       log-driver = "journald";
       pull = "missing";
@@ -221,13 +201,5 @@ in
       preStart = storagePreStart;
     };
 
-    systemd.services.quintal-backup = {
-      description = "quintal PostgreSQL backup";
-      unitConfig.RequiresMountsFor = lib.unique requiredMounts;
-      serviceConfig = {
-        Type = "oneshot";
-        ExecStart = backup;
-      };
-    };
   };
 }

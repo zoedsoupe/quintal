@@ -1,5 +1,5 @@
 defmodule Quintal.PassearTest do
-  use Quintal.DataCase, async: true
+  use Quintal.DataCase, async: false
 
   alias Quintal.Passear
   alias Quintal.Repo
