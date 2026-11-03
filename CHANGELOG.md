@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.1.0](https://github.com/zoedsoupe/quintal/compare/v1.0.0...v1.1.0) (2026-11-03)
+
+
+### Features
+
+* publish OCI image with beam-overlay ([f80a34a](https://github.com/zoedsoupe/quintal/commit/f80a34ac27d887b770a81b7e788cb4526df30b8c))
+
+
+### Bug Fixes
+
+* follow new proto_rune version session_manager child spec ([e5e457a](https://github.com/zoedsoupe/quintal/commit/e5e457afa507ba3db7ee12d84cf38baa68b1dc28))
+
 ## 1.0.0 (2026-10-31)
 
 
