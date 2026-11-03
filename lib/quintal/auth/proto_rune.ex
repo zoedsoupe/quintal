@@ -106,7 +106,7 @@ defmodule Quintal.Auth.ProtoRune do
   defp start_manager(client, session) do
     opts = [
       session: session,
-      client: client,
+      refresh_opts: [client: client],
       store: Quintal.Auth.store(),
       key: Quintal.Auth.key(),
       registry: SessionRegistry
