@@ -24,9 +24,22 @@
         f pkgs);
   in {
     nixosModules = {
-      quintal = ./nix/module.nix;
-      default = ./nix/module.nix;
+      quintal = {
+        imports = [
+          beam-overlay.nixosModules.beam-containers
+          ./nix/module.nix
+        ];
+      };
+      default = self.nixosModules.quintal;
     };
+
+    checks = forAllSystems (pkgs:
+      nixpkgs.lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
+        nixos-module = import ./nix/module-check.nix {
+          inherit pkgs;
+          module = self.nixosModules.quintal;
+        };
+      });
 
     devShells = forAllSystems (pkgs: {
       default = pkgs.mkShell {
